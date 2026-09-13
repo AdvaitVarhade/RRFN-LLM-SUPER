@@ -1,0 +1,11 @@
+pandas
+numpy
+scikit-learn
+tensorflow
+tensorflow-federated
+tensorflow-privacy
+pymoo
+matplotlib
+seaborn
+requests
+tqdm

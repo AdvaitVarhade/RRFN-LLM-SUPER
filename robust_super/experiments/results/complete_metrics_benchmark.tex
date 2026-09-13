@@ -1,0 +1,36 @@
+\begin{table*}[t]
+\centering
+\small
+\caption{Adversarial Robustness and Popularity Debiasing Performance Comparison on MovieLens-1M.}
+\label{tab:benchmark_results}
+\begin{tabular}{lcccccccccc}
+\toprule
+\textbf{Method / System} & \textbf{Recall@10} $\uparrow$ & \textbf{nDCG@10} $\uparrow$ & \textbf{RMSE-PC} $\downarrow$ & \textbf{MRMC} $\downarrow$ & \textbf{APLT} (\%) $\uparrow$ & \textbf{LTC} (\%) $\uparrow$ & \textbf{Entropy} $\uparrow$ & \textbf{Novelty} $\uparrow$ & \textbf{GKPI} $\uparrow$ & \textbf{$\Delta$GKPI} (\%) $\downarrow$ \\
+\midrule
+Base SUPER (Attacked bandwagon rho=0.05) & 0.0000 & 0.0000 & 0.2973 & 0.6176 & 50.0\% & 0.4\% & 0.8646 & 10.41 & 0.0000 & +0.0\% \\
+\textbf{RRFN-LLM-SUPER (Ours, rho=0.05)} & \textbf{0.0000} & \textbf{0.0000} & \textbf{0.0580} & \textbf{0.1804} & \textbf{84.5\%} & \textbf{0.7\%} & \textbf{0.8464} & \textbf{10.93} & \textbf{0.0000} & \textbf{+0.0\%} \\
+Base SUPER (Attacked bandwagon rho=0.10) & 0.0067 & 0.0067 & 0.2973 & 0.6176 & 50.0\% & 0.3\% & 0.8893 & 10.19 & 0.0110 & +0.0\% \\
+\textbf{RRFN-LLM-SUPER (Ours, rho=0.10)} & \textbf{0.0000} & \textbf{0.0000} & \textbf{0.0583} & \textbf{0.1841} & \textbf{84.7\%} & \textbf{0.6\%} & \textbf{0.8637} & \textbf{11.44} & \textbf{0.0000} & \textbf{+0.0\%} \\
+Base SUPER (Attacked bandwagon rho=0.20) & 0.0000 & 0.0000 & 0.2973 & 0.6176 & 50.0\% & 0.3\% & 0.9239 & 10.53 & 0.0000 & +0.0\% \\
+\textbf{RRFN-LLM-SUPER (Ours, rho=0.20)} & \textbf{0.0000} & \textbf{0.0000} & \textbf{0.0580} & \textbf{0.1821} & \textbf{84.8\%} & \textbf{0.9\%} & \textbf{0.8165} & \textbf{11.08} & \textbf{0.0000} & \textbf{+0.0\%} \\
+Base SUPER (Attacked nuke_bomb rho=0.05) & 0.0000 & 0.0000 & 0.2973 & 0.6176 & 50.0\% & 0.5\% & 0.8468 & 10.47 & 0.0000 & +0.0\% \\
+\textbf{RRFN-LLM-SUPER (Ours, rho=0.05)} & \textbf{0.0000} & \textbf{0.0000} & \textbf{0.0580} & \textbf{0.1814} & \textbf{84.4\%} & \textbf{0.6\%} & \textbf{0.8366} & \textbf{10.62} & \textbf{0.0000} & \textbf{+0.0\%} \\
+Base SUPER (Attacked nuke_bomb rho=0.10) & 0.0000 & 0.0000 & 0.2973 & 0.6176 & 50.0\% & 0.4\% & 0.8500 & 10.32 & 0.0000 & +0.0\% \\
+\textbf{RRFN-LLM-SUPER (Ours, rho=0.10)} & \textbf{0.0067} & \textbf{0.0026} & \textbf{0.0583} & \textbf{0.1851} & \textbf{84.5\%} & \textbf{0.5\%} & \textbf{0.8854} & \textbf{10.68} & \textbf{0.0047} & \textbf{+0.0\%} \\
+Base SUPER (Attacked nuke_bomb rho=0.20) & 0.0067 & 0.0021 & 0.2973 & 0.6176 & 50.0\% & 0.9\% & 0.8095 & 10.43 & 0.0040 & +0.0\% \\
+\textbf{RRFN-LLM-SUPER (Ours, rho=0.20)} & \textbf{0.0000} & \textbf{0.0000} & \textbf{0.0585} & \textbf{0.1812} & \textbf{84.5\%} & \textbf{0.5\%} & \textbf{0.8925} & \textbf{10.96} & \textbf{0.0000} & \textbf{+0.0\%} \\
+Base SUPER (Attacked random_flip rho=0.05) & 0.0000 & 0.0000 & 0.2973 & 0.6176 & 50.0\% & 0.4\% & 0.8431 & 10.32 & 0.0000 & +0.0\% \\
+\textbf{RRFN-LLM-SUPER (Ours, rho=0.05)} & \textbf{0.0000} & \textbf{0.0000} & \textbf{0.0594} & \textbf{0.1837} & \textbf{84.6\%} & \textbf{0.4\%} & \textbf{0.8743} & \textbf{10.79} & \textbf{0.0000} & \textbf{+0.0\%} \\
+Base SUPER (Attacked random_flip rho=0.10) & 0.0000 & 0.0000 & 0.2973 & 0.6176 & 50.0\% & 0.5\% & 0.8453 & 10.22 & 0.0000 & +0.0\% \\
+\textbf{RRFN-LLM-SUPER (Ours, rho=0.10)} & \textbf{0.0000} & \textbf{0.0000} & \textbf{0.0577} & \textbf{0.1795} & \textbf{84.4\%} & \textbf{0.6\%} & \textbf{0.8198} & \textbf{10.58} & \textbf{0.0000} & \textbf{+0.0\%} \\
+Base SUPER (Attacked random_flip rho=0.20) & 0.0000 & 0.0000 & 0.2973 & 0.6176 & 50.0\% & 0.4\% & 0.8729 & 10.48 & 0.0000 & +0.0\% \\
+\textbf{RRFN-LLM-SUPER (Ours, rho=0.20)} & \textbf{0.0000} & \textbf{0.0000} & \textbf{0.0592} & \textbf{0.1776} & \textbf{84.6\%} & \textbf{0.5\%} & \textbf{0.9271} & \textbf{10.63} & \textbf{0.0000} & \textbf{+0.0\%} \\
+Base SUPER (Attacked agas rho=0.05) & 0.0000 & 0.0000 & 0.2973 & 0.6176 & 50.0\% & 0.3\% & 0.8906 & 10.44 & 0.0000 & +0.0\% \\
+\textbf{RRFN-LLM-SUPER (Ours, rho=0.05)} & \textbf{0.0000} & \textbf{0.0000} & \textbf{0.0603} & \textbf{0.1792} & \textbf{84.7\%} & \textbf{0.4\%} & \textbf{0.9062} & \textbf{10.88} & \textbf{0.0000} & \textbf{+0.0\%} \\
+Base SUPER (Attacked agas rho=0.10) & 0.0000 & 0.0000 & 0.2973 & 0.6176 & 50.0\% & 0.3\% & 0.9422 & 10.74 & 0.0000 & +0.0\% \\
+\textbf{RRFN-LLM-SUPER (Ours, rho=0.10)} & \textbf{0.0000} & \textbf{0.0000} & \textbf{0.0570} & \textbf{0.1816} & \textbf{84.4\%} & \textbf{0.6\%} & \textbf{0.8350} & \textbf{10.96} & \textbf{0.0000} & \textbf{+0.0\%} \\
+Base SUPER (Attacked agas rho=0.20) & 0.0000 & 0.0000 & 0.2973 & 0.6176 & 50.0\% & 0.3\% & 0.8971 & 10.55 & 0.0000 & +0.0\% \\
+\textbf{RRFN-LLM-SUPER (Ours, rho=0.20)} & \textbf{0.0000} & \textbf{0.0000} & \textbf{0.0605} & \textbf{0.1794} & \textbf{84.9\%} & \textbf{0.6\%} & \textbf{0.8668} & \textbf{10.82} & \textbf{0.0000} & \textbf{+0.0\%} \\
+\bottomrule
+\end{tabular}
+\end{table*}

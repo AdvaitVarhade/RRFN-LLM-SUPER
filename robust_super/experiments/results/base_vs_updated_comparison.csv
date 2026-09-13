@@ -1,0 +1,157 @@
+Metric,Category,Clean Baseline,Base Model (Attacked),Updated Model (Ours),Absolute Diff,Relative Improvement (%),Higher is Better,Outcome,Attack,NoiseRate
+Recall@10,Ranking Accuracy,0.0,0.0,0.0,0.0,0.0,True,⚪ PAR,bandwagon,0.05
+nDCG@10,Ranking Accuracy,0.0,0.0,0.0,0.0,0.0,True,⚪ PAR,bandwagon,0.05
+RMSE-PC (Calibration Error),Popularity Calibration,0.05769702550578303,0.297261495203696,0.057953237529358936,-0.23930825767433705,80.50429051039828,False,🟢 WIN (+),bandwagon,0.05
+MRMC (Rank Miscalibration),Popularity Calibration,0.16860196201011068,0.6175980602735359,0.18041188433066205,-0.4371861759428739,70.78813941696043,False,🟢 WIN (+),bandwagon,0.05
+APLT@10 (Long-Tail %),Fairness & Discovery,0.8433333333333334,0.5,0.8453333333333333,0.34533333333333327,69.06666666666665,True,🟢 WIN (+),bandwagon,0.05
+LTC@10 (Catalog Coverage),Fairness & Discovery,0.005570117955439056,0.003601833660772757,0.00655307994757536,0.002951246286802603,81.93732872631955,True,🟢 WIN (+),bandwagon,0.05
+Entropy (Exposure Spread),Fairness & Discovery,0.8755328140588582,0.8646442241920735,0.846445988384575,-0.018198235807498575,-2.1047079594503817,True,🔴 LOSS (-),bandwagon,0.05
+Novelty (Self-Information bits),Fairness & Discovery,10.76032554196236,10.40709687370135,10.934701234170552,0.5276043604692013,5.069659357187818,True,🟢 WIN (+),bandwagon,0.05
+GKPI (Holistic Harmonic Metric),Overall Performance,0.0,0.0,0.0,0.0,0.0,True,⚪ PAR,bandwagon,0.05
+ΔGKPI (Attack Degradation %),Adversarial Robustness,,0.0,0.0,0.0,0.0,False,⚪ PAR,bandwagon,0.05
+CSS (Calibration Stability Score),Adversarial Robustness,,0.23956446969791295,0.00025621202357590384,-0.23930825767433705,99.89305090863475,False,🟢 WIN (+),bandwagon,0.05
+Denoising Detection F1,Adversarial Robustness,,0.9992052566894408,0.9751929782892677,-0.02401227840017317,-2.403137717642766,True,🔴 LOSS (-),bandwagon,0.05
+Denoising Detection ROC-AUC,Adversarial Robustness,,0.5,0.6471870300456819,0.1471870300456819,29.43740600913638,True,🟢 WIN (+),bandwagon,0.05
+Recall@10,Ranking Accuracy,0.0,0.006666666666666667,0.0,-0.006666666666666667,-100.0,True,🔴 LOSS (-),bandwagon,0.1
+nDCG@10,Ranking Accuracy,0.0,0.006666666666666667,0.0,-0.006666666666666667,-100.0,True,🔴 LOSS (-),bandwagon,0.1
+RMSE-PC (Calibration Error),Popularity Calibration,0.05769702550578303,0.297261495203696,0.05825512264874042,-0.23900637255495558,80.4027351040465,False,🟢 WIN (+),bandwagon,0.1
+MRMC (Rank Miscalibration),Popularity Calibration,0.16860196201011068,0.6175980602735359,0.18412977459825092,-0.433468285675285,70.18614752178799,False,🟢 WIN (+),bandwagon,0.1
+APLT@10 (Long-Tail %),Fairness & Discovery,0.8433333333333334,0.5,0.8466666666666667,0.3466666666666667,69.33333333333334,True,🟢 WIN (+),bandwagon,0.1
+LTC@10 (Catalog Coverage),Fairness & Discovery,0.005570117955439056,0.0032733224222585926,0.005895840157222404,0.002622517734963811,80.11791680314442,True,🟢 WIN (+),bandwagon,0.1
+Entropy (Exposure Spread),Fairness & Discovery,0.8755328140588582,0.8892981218709533,0.8636805354995793,-0.0256175863713739,-2.8806522516294364,True,🔴 LOSS (-),bandwagon,0.1
+Novelty (Self-Information bits),Fairness & Discovery,10.76032554196236,10.187422181824315,11.439117581788459,1.2516953999641434,12.286674466061989,True,🟢 WIN (+),bandwagon,0.1
+GKPI (Holistic Harmonic Metric),Overall Performance,0.0,0.010985968190242532,0.0,-0.010985968190242532,-100.0,True,🔴 LOSS (-),bandwagon,0.1
+ΔGKPI (Attack Degradation %),Adversarial Robustness,,0.0,0.0,0.0,0.0,False,⚪ PAR,bandwagon,0.1
+CSS (Calibration Stability Score),Adversarial Robustness,,0.23956446969791295,0.0005580971429573894,-0.23900637255495555,99.76703676314725,False,🟢 WIN (+),bandwagon,0.1
+Denoising Detection F1,Adversarial Robustness,,0.9983297632813306,0.9756332005724236,-0.022696562708906964,-2.273453476365108,True,🔴 LOSS (-),bandwagon,0.1
+Denoising Detection ROC-AUC,Adversarial Robustness,,0.5,0.6762872948378694,0.17628729483786942,35.25745896757388,True,🟢 WIN (+),bandwagon,0.1
+Recall@10,Ranking Accuracy,0.0,0.0,0.0,0.0,0.0,True,⚪ PAR,bandwagon,0.2
+nDCG@10,Ranking Accuracy,0.0,0.0,0.0,0.0,0.0,True,⚪ PAR,bandwagon,0.2
+RMSE-PC (Calibration Error),Popularity Calibration,0.05769702550578303,0.297261495203696,0.058003490357661835,-0.23925800484603416,80.48738525051304,False,🟢 WIN (+),bandwagon,0.2
+MRMC (Rank Miscalibration),Popularity Calibration,0.16860196201011068,0.6175980602735359,0.18211735296871082,-0.43548070730482513,70.51199401629427,False,🟢 WIN (+),bandwagon,0.2
+APLT@10 (Long-Tail %),Fairness & Discovery,0.8433333333333334,0.5,0.8480000000000001,0.3480000000000001,69.60000000000002,True,🟢 WIN (+),bandwagon,0.2
+LTC@10 (Catalog Coverage),Fairness & Discovery,0.005570117955439056,0.002944062806673209,0.009165302782324058,0.006221239975650849,211.31478450627387,True,🟢 WIN (+),bandwagon,0.2
+Entropy (Exposure Spread),Fairness & Discovery,0.8755328140588582,0.9238917642987232,0.8164551955763428,-0.10743656872238039,-11.628696441939791,True,🔴 LOSS (-),bandwagon,0.2
+Novelty (Self-Information bits),Fairness & Discovery,10.76032554196236,10.5303342946408,11.077640256634398,0.5473059619935974,5.197422481374951,True,🟢 WIN (+),bandwagon,0.2
+GKPI (Holistic Harmonic Metric),Overall Performance,0.0,0.0,0.0,0.0,0.0,True,⚪ PAR,bandwagon,0.2
+ΔGKPI (Attack Degradation %),Adversarial Robustness,,0.0,0.0,0.0,0.0,False,⚪ PAR,bandwagon,0.2
+CSS (Calibration Stability Score),Adversarial Robustness,,0.23956446969791295,0.00030646485187880296,-0.23925800484603416,99.87207416347455,False,🟢 WIN (+),bandwagon,0.2
+Denoising Detection F1,Adversarial Robustness,,0.9966336621172394,0.9742705764372195,-0.02236308568001988,-2.2438621662158136,True,🔴 LOSS (-),bandwagon,0.2
+Denoising Detection ROC-AUC,Adversarial Robustness,,0.5,0.697336524057683,0.19733652405768298,39.46730481153659,True,🟢 WIN (+),bandwagon,0.2
+Recall@10,Ranking Accuracy,0.0,0.0,0.0,0.0,0.0,True,⚪ PAR,nuke_bomb,0.05
+nDCG@10,Ranking Accuracy,0.0,0.0,0.0,0.0,0.0,True,⚪ PAR,nuke_bomb,0.05
+RMSE-PC (Calibration Error),Popularity Calibration,0.05769702550578303,0.297261495203696,0.057978765522812364,-0.23928272968088363,80.49570278751276,False,🟢 WIN (+),nuke_bomb,0.05
+MRMC (Rank Miscalibration),Popularity Calibration,0.16860196201011068,0.6175980602735359,0.18135630149892829,-0.43624175877460764,70.63522164907626,False,🟢 WIN (+),nuke_bomb,0.05
+APLT@10 (Long-Tail %),Fairness & Discovery,0.8433333333333334,0.5,0.844,0.344,68.8,True,🟢 WIN (+),nuke_bomb,0.05
+LTC@10 (Catalog Coverage),Fairness & Discovery,0.005570117955439056,0.0045871559633027525,0.005901639344262295,0.0013144833809595425,28.655737704918028,True,🟢 WIN (+),nuke_bomb,0.05
+Entropy (Exposure Spread),Fairness & Discovery,0.8755328140588582,0.8468490106440989,0.8366119288599868,-0.01023708178411209,-1.2088438027843877,True,🔴 LOSS (-),nuke_bomb,0.05
+Novelty (Self-Information bits),Fairness & Discovery,10.76032554196236,10.469409957163137,10.62358949681421,0.15417953965107323,1.4726669438097997,True,🟢 WIN (+),nuke_bomb,0.05
+GKPI (Holistic Harmonic Metric),Overall Performance,0.0,0.0,0.0,0.0,0.0,True,⚪ PAR,nuke_bomb,0.05
+ΔGKPI (Attack Degradation %),Adversarial Robustness,,0.0,0.0,0.0,0.0,False,⚪ PAR,nuke_bomb,0.05
+CSS (Calibration Stability Score),Adversarial Robustness,,0.23956446969791295,0.0002817400170293319,-0.23928272968088363,99.88239490714771,False,🟢 WIN (+),nuke_bomb,0.05
+Denoising Detection F1,Adversarial Robustness,,0.9997194820753265,0.9768732375525633,-0.02284624452276318,-2.2852655102145714,True,🔴 LOSS (-),nuke_bomb,0.05
+Denoising Detection ROC-AUC,Adversarial Robustness,,0.5,0.639042367411387,0.13904236741138698,27.808473482277396,True,🟢 WIN (+),nuke_bomb,0.05
+Recall@10,Ranking Accuracy,0.0,0.0,0.006666666666666667,0.006666666666666667,100.0,True,🟢 WIN (+),nuke_bomb,0.1
+nDCG@10,Ranking Accuracy,0.0,0.0,0.0025790187148969444,0.0025790187148969444,100.0,True,🟢 WIN (+),nuke_bomb,0.1
+RMSE-PC (Calibration Error),Popularity Calibration,0.05769702550578303,0.297261495203696,0.05833825549369113,-0.23892323971000487,80.37476887017765,False,🟢 WIN (+),nuke_bomb,0.1
+MRMC (Rank Miscalibration),Popularity Calibration,0.16860196201011068,0.6175980602735359,0.18514311010858842,-0.4324549501649475,70.02207066087804,False,🟢 WIN (+),nuke_bomb,0.1
+APLT@10 (Long-Tail %),Fairness & Discovery,0.8433333333333334,0.5,0.8446666666666667,0.3446666666666667,68.93333333333334,True,🟢 WIN (+),nuke_bomb,0.1
+LTC@10 (Catalog Coverage),Fairness & Discovery,0.005570117955439056,0.004258106780216181,0.004918032786885246,0.0006599260066690654,15.498108448928127,True,🟢 WIN (+),nuke_bomb,0.1
+Entropy (Exposure Spread),Fairness & Discovery,0.8755328140588582,0.8500129178921576,0.8853937042178734,0.03538078632571584,4.162382192196831,True,🟢 WIN (+),nuke_bomb,0.1
+Novelty (Self-Information bits),Fairness & Discovery,10.76032554196236,10.318449476107368,10.677038466809405,0.358588990702037,3.4752216554663464,True,🟢 WIN (+),nuke_bomb,0.1
+GKPI (Holistic Harmonic Metric),Overall Performance,0.0,0.0,0.004700569223371076,0.004700569223371076,100.0,True,🟢 WIN (+),nuke_bomb,0.1
+ΔGKPI (Attack Degradation %),Adversarial Robustness,,0.0,0.0,0.0,0.0,False,⚪ PAR,nuke_bomb,0.1
+CSS (Calibration Stability Score),Adversarial Robustness,,0.23956446969791295,0.0006412299879080957,-0.23892323971000484,99.73233510431798,False,🟢 WIN (+),nuke_bomb,0.1
+Denoising Detection F1,Adversarial Robustness,,0.9994601957633802,0.9759172430467408,-0.02354295271663942,-2.35556681661119,True,🔴 LOSS (-),nuke_bomb,0.1
+Denoising Detection ROC-AUC,Adversarial Robustness,,0.5,0.6415538335460663,0.14155383354606632,28.310766709213265,True,🟢 WIN (+),nuke_bomb,0.1
+Recall@10,Ranking Accuracy,0.0,0.006666666666666667,0.0,-0.006666666666666667,-100.0,True,🔴 LOSS (-),nuke_bomb,0.2
+nDCG@10,Ranking Accuracy,0.0,0.002103099178571525,0.0,-0.002103099178571525,-100.0,True,🔴 LOSS (-),nuke_bomb,0.2
+RMSE-PC (Calibration Error),Popularity Calibration,0.05769702550578303,0.297261495203696,0.05854387888534669,-0.2387176163183493,80.3055963083177,False,🟢 WIN (+),nuke_bomb,0.2
+MRMC (Rank Miscalibration),Popularity Calibration,0.16860196201011068,0.6175980602735359,0.18122741071515075,-0.43637064955838517,70.65609133634834,False,🟢 WIN (+),nuke_bomb,0.2
+APLT@10 (Long-Tail %),Fairness & Discovery,0.8433333333333334,0.5,0.8453333333333333,0.34533333333333327,69.06666666666665,True,🟢 WIN (+),nuke_bomb,0.2
+LTC@10 (Catalog Coverage),Fairness & Discovery,0.005570117955439056,0.008516213560432362,0.004588659455916093,-0.003927554104516269,-46.11854877341603,True,🔴 LOSS (-),nuke_bomb,0.2
+Entropy (Exposure Spread),Fairness & Discovery,0.8755328140588582,0.8095088061596961,0.8925338370383974,0.08302503087870128,10.256223310598859,True,🟢 WIN (+),nuke_bomb,0.2
+Novelty (Self-Information bits),Fairness & Discovery,10.76032554196236,10.431373573629692,10.962939082844999,0.5315655092153069,5.095834268260645,True,🟢 WIN (+),nuke_bomb,0.2
+GKPI (Holistic Harmonic Metric),Overall Performance,0.0,0.003986591198951247,0.0,-0.003986591198951247,-100.0,True,🔴 LOSS (-),nuke_bomb,0.2
+ΔGKPI (Attack Degradation %),Adversarial Robustness,,0.0,0.0,0.0,0.0,False,⚪ PAR,nuke_bomb,0.2
+CSS (Calibration Stability Score),Adversarial Robustness,,0.23956446969791295,0.0008468533795636599,-0.23871761631834928,99.64650293065932,False,🟢 WIN (+),nuke_bomb,0.2
+Denoising Detection F1,Adversarial Robustness,,0.9988830818511337,0.9746852935460886,-0.024197788305045154,-2.4224845474609227,True,🔴 LOSS (-),nuke_bomb,0.2
+Denoising Detection ROC-AUC,Adversarial Robustness,,0.5,0.6402001037359676,0.14020010373596759,28.040020747193516,True,🟢 WIN (+),nuke_bomb,0.2
+Recall@10,Ranking Accuracy,0.0,0.0,0.0,0.0,0.0,True,⚪ PAR,random_flip,0.05
+nDCG@10,Ranking Accuracy,0.0,0.0,0.0,0.0,0.0,True,⚪ PAR,random_flip,0.05
+RMSE-PC (Calibration Error),Popularity Calibration,0.05769702550578303,0.297261495203696,0.05942560064770574,-0.23783589455599025,80.00898145015894,False,🟢 WIN (+),random_flip,0.05
+MRMC (Rank Miscalibration),Popularity Calibration,0.16860196201011068,0.6175980602735359,0.18365677215487522,-0.43394128811866073,70.26273494551893,False,🟢 WIN (+),random_flip,0.05
+APLT@10 (Long-Tail %),Fairness & Discovery,0.8433333333333334,0.5,0.8460000000000001,0.3460000000000001,69.20000000000002,True,🟢 WIN (+),random_flip,0.05
+LTC@10 (Catalog Coverage),Fairness & Discovery,0.005570117955439056,0.003931847968545216,0.0042622950819672135,0.0003304471134219977,8.404371584699476,True,🟢 WIN (+),random_flip,0.05
+Entropy (Exposure Spread),Fairness & Discovery,0.8755328140588582,0.843076793873522,0.8743415309718061,0.031264737098284145,3.708409165746112,True,🟢 WIN (+),random_flip,0.05
+Novelty (Self-Information bits),Fairness & Discovery,10.76032554196236,10.31905133733848,10.793015882224298,0.47396454488581696,4.593101917913931,True,🟢 WIN (+),random_flip,0.05
+GKPI (Holistic Harmonic Metric),Overall Performance,0.0,0.0,0.0,0.0,0.0,True,⚪ PAR,random_flip,0.05
+ΔGKPI (Attack Degradation %),Adversarial Robustness,,0.0,0.0,0.0,0.0,False,⚪ PAR,random_flip,0.05
+CSS (Calibration Stability Score),Adversarial Robustness,,0.23956446969791295,0.0017285751419227058,-0.23783589455599025,99.27845095556013,False,🟢 WIN (+),random_flip,0.05
+Denoising Detection F1,Adversarial Robustness,,0.9742185826171829,0.9691689641591178,-0.005049618458065064,-0.518324998944236,True,🔴 LOSS (-),random_flip,0.05
+Denoising Detection ROC-AUC,Adversarial Robustness,,0.5,0.8239700404534589,0.3239700404534589,64.79400809069178,True,🟢 WIN (+),random_flip,0.05
+Recall@10,Ranking Accuracy,0.0,0.0,0.0,0.0,0.0,True,⚪ PAR,random_flip,0.1
+nDCG@10,Ranking Accuracy,0.0,0.0,0.0,0.0,0.0,True,⚪ PAR,random_flip,0.1
+RMSE-PC (Calibration Error),Popularity Calibration,0.05769702550578303,0.297261495203696,0.057689193810429786,-0.2395723013932662,80.59311591267523,False,🟢 WIN (+),random_flip,0.1
+MRMC (Rank Miscalibration),Popularity Calibration,0.16860196201011068,0.6175980602735359,0.17951455696257324,-0.4380835033109627,70.93343251708632,False,🟢 WIN (+),random_flip,0.1
+APLT@10 (Long-Tail %),Fairness & Discovery,0.8433333333333334,0.5,0.844,0.344,68.8,True,🟢 WIN (+),random_flip,0.1
+LTC@10 (Catalog Coverage),Fairness & Discovery,0.005570117955439056,0.0049148099606815205,0.005573770491803279,0.0006589605311217587,13.407650273224048,True,🟢 WIN (+),random_flip,0.1
+Entropy (Exposure Spread),Fairness & Discovery,0.8755328140588582,0.8453317981551811,0.819810475270841,-0.02552132288434006,-3.01908942027696,True,🔴 LOSS (-),random_flip,0.1
+Novelty (Self-Information bits),Fairness & Discovery,10.76032554196236,10.219082561173076,10.578651865894996,0.3595693047219193,3.5186065145229963,True,🟢 WIN (+),random_flip,0.1
+GKPI (Holistic Harmonic Metric),Overall Performance,0.0,0.0,0.0,0.0,0.0,True,⚪ PAR,random_flip,0.1
+ΔGKPI (Attack Degradation %),Adversarial Robustness,,0.0,0.0,0.0,0.0,False,⚪ PAR,random_flip,0.1
+CSS (Calibration Stability Score),Adversarial Robustness,,0.23956446969791295,7.831695353247015e-06,-0.23955663800255972,99.99673086106505,False,🟢 WIN (+),random_flip,0.1
+Denoising Detection F1,Adversarial Robustness,,0.9478532646093878,0.9637649283066901,0.015911663697302347,1.6787053747037075,True,🟢 WIN (+),random_flip,0.1
+Denoising Detection ROC-AUC,Adversarial Robustness,,0.5,0.828555235753425,0.32855523575342505,65.711047150685,True,🟢 WIN (+),random_flip,0.1
+Recall@10,Ranking Accuracy,0.0,0.0,0.0,0.0,0.0,True,⚪ PAR,random_flip,0.2
+nDCG@10,Ranking Accuracy,0.0,0.0,0.0,0.0,0.0,True,⚪ PAR,random_flip,0.2
+RMSE-PC (Calibration Error),Popularity Calibration,0.05769702550578303,0.297261495203696,0.0591932835243928,-0.2380682116793032,80.08713389407158,False,🟢 WIN (+),random_flip,0.2
+MRMC (Rank Miscalibration),Popularity Calibration,0.16860196201011068,0.6175980602735359,0.17757816177125343,-0.4400198985022825,71.24696899264814,False,🟢 WIN (+),random_flip,0.2
+APLT@10 (Long-Tail %),Fairness & Discovery,0.8433333333333334,0.5,0.8460000000000001,0.3460000000000001,69.20000000000002,True,🟢 WIN (+),random_flip,0.2
+LTC@10 (Catalog Coverage),Fairness & Discovery,0.005570117955439056,0.003931847968545216,0.004919645785503444,0.000987797816958228,25.122991144637602,True,🟢 WIN (+),random_flip,0.2
+Entropy (Exposure Spread),Fairness & Discovery,0.8755328140588582,0.8728580348474647,0.9270627986180997,0.05420476377063499,6.210032056370711,True,🟢 WIN (+),random_flip,0.2
+Novelty (Self-Information bits),Fairness & Discovery,10.76032554196236,10.483728929441343,10.629121887310136,0.14539295786879336,1.386843925928759,True,🟢 WIN (+),random_flip,0.2
+GKPI (Holistic Harmonic Metric),Overall Performance,0.0,0.0,0.0,0.0,0.0,True,⚪ PAR,random_flip,0.2
+ΔGKPI (Attack Degradation %),Adversarial Robustness,,0.0,0.0,0.0,0.0,False,⚪ PAR,random_flip,0.2
+CSS (Calibration Stability Score),Adversarial Robustness,,0.23956446969791295,0.0014962580186097668,-0.2380682116793032,99.37542573800843,False,🟢 WIN (+),random_flip,0.2
+Denoising Detection F1,Adversarial Robustness,,0.8896411169415293,0.9439366007022267,0.05429548376069748,6.103077154005462,True,🟢 WIN (+),random_flip,0.2
+Denoising Detection ROC-AUC,Adversarial Robustness,,0.5,0.8172701213255426,0.31727012132554255,63.45402426510851,True,🟢 WIN (+),random_flip,0.2
+Recall@10,Ranking Accuracy,0.0,0.0,0.0,0.0,0.0,True,⚪ PAR,agas,0.05
+nDCG@10,Ranking Accuracy,0.0,0.0,0.0,0.0,0.0,True,⚪ PAR,agas,0.05
+RMSE-PC (Calibration Error),Popularity Calibration,0.05769702550578303,0.297261495203696,0.06029735198626874,-0.23696414321742726,79.71572068392159,False,🟢 WIN (+),agas,0.05
+MRMC (Rank Miscalibration),Popularity Calibration,0.16860196201011068,0.6175980602735359,0.17919590668505372,-0.4384021535884822,70.98502760748838,False,🟢 WIN (+),agas,0.05
+APLT@10 (Long-Tail %),Fairness & Discovery,0.8433333333333334,0.5,0.8473333333333334,0.3473333333333334,69.46666666666668,True,🟢 WIN (+),agas,0.05
+LTC@10 (Catalog Coverage),Fairness & Discovery,0.005570117955439056,0.003275466754012447,0.003934426229508197,0.0006589594754957497,20.118032786885237,True,🟢 WIN (+),agas,0.05
+Entropy (Exposure Spread),Fairness & Discovery,0.8755328140588582,0.8905708976382548,0.9062182095403808,0.015647311902125982,1.756997892433022,True,🟢 WIN (+),agas,0.05
+Novelty (Self-Information bits),Fairness & Discovery,10.76032554196236,10.44256147234968,10.880920344695541,0.43835887234586046,4.19780983340695,True,🟢 WIN (+),agas,0.05
+GKPI (Holistic Harmonic Metric),Overall Performance,0.0,0.0,0.0,0.0,0.0,True,⚪ PAR,agas,0.05
+ΔGKPI (Attack Degradation %),Adversarial Robustness,,0.0,0.0,0.0,0.0,False,⚪ PAR,agas,0.05
+CSS (Calibration Stability Score),Adversarial Robustness,,0.23956446969791295,0.002600326480485707,-0.23696414321742726,98.9145608763417,False,🟢 WIN (+),agas,0.05
+Denoising Detection F1,Adversarial Robustness,,0.9995149930412045,0.9772193604171024,-0.022295632624102057,-2.23064514082611,True,🔴 LOSS (-),agas,0.05
+Denoising Detection ROC-AUC,Adversarial Robustness,,1.0,0.6821726013298757,-0.31782739867012433,-31.78273986701243,True,🔴 LOSS (-),agas,0.05
+Recall@10,Ranking Accuracy,0.0,0.0,0.0,0.0,0.0,True,⚪ PAR,agas,0.1
+nDCG@10,Ranking Accuracy,0.0,0.0,0.0,0.0,0.0,True,⚪ PAR,agas,0.1
+RMSE-PC (Calibration Error),Popularity Calibration,0.05769702550578303,0.297261495203696,0.05697144433230175,-0.24029005087139424,80.83456981427663,False,🟢 WIN (+),agas,0.1
+MRMC (Rank Miscalibration),Popularity Calibration,0.16860196201011068,0.6175980602735359,0.18155379890209808,-0.4360442613714378,70.60324334216862,False,🟢 WIN (+),agas,0.1
+APLT@10 (Long-Tail %),Fairness & Discovery,0.8433333333333334,0.5,0.844,0.344,68.8,True,🟢 WIN (+),agas,0.1
+LTC@10 (Catalog Coverage),Fairness & Discovery,0.005570117955439056,0.0026195153896529143,0.006225425950196592,0.003605910560543678,137.6556356487549,True,🟢 WIN (+),agas,0.1
+Entropy (Exposure Spread),Fairness & Discovery,0.8755328140588582,0.9421756982487739,0.8350157513451809,-0.10715994690359298,-11.373669168369727,True,🔴 LOSS (-),agas,0.1
+Novelty (Self-Information bits),Fairness & Discovery,10.76032554196236,10.736958016402923,10.958038399504243,0.22108038310132017,2.059059770594,True,🟢 WIN (+),agas,0.1
+GKPI (Holistic Harmonic Metric),Overall Performance,0.0,0.0,0.0,0.0,0.0,True,⚪ PAR,agas,0.1
+ΔGKPI (Attack Degradation %),Adversarial Robustness,,0.0,0.0,0.0,0.0,False,⚪ PAR,agas,0.1
+CSS (Calibration Stability Score),Adversarial Robustness,,0.23956446969791295,0.0007255811734812809,-0.23883888852443166,99.69712488066523,False,🟢 WIN (+),agas,0.1
+Denoising Detection F1,Adversarial Robustness,,0.9990199281280627,0.9743625196326454,-0.02465740849541731,-2.468159823560248,True,🔴 LOSS (-),agas,0.1
+Denoising Detection ROC-AUC,Adversarial Robustness,,1.0,0.652640155967176,-0.34735984403282405,-34.7359844032824,True,🔴 LOSS (-),agas,0.1
+Recall@10,Ranking Accuracy,0.0,0.0,0.0,0.0,0.0,True,⚪ PAR,agas,0.2
+nDCG@10,Ranking Accuracy,0.0,0.0,0.0,0.0,0.0,True,⚪ PAR,agas,0.2
+RMSE-PC (Calibration Error),Popularity Calibration,0.05769702550578303,0.297261495203696,0.060532960659348406,-0.23672853454434759,79.63646094901438,False,🟢 WIN (+),agas,0.2
+MRMC (Rank Miscalibration),Popularity Calibration,0.16860196201011068,0.6175980602735359,0.17943787267024816,-0.4381601876032878,70.94584905419318,False,🟢 WIN (+),agas,0.2
+APLT@10 (Long-Tail %),Fairness & Discovery,0.8433333333333334,0.5,0.8486666666666668,0.3486666666666668,69.73333333333336,True,🟢 WIN (+),agas,0.2
+LTC@10 (Catalog Coverage),Fairness & Discovery,0.005570117955439056,0.002618657937806874,0.005570117955439056,0.002951460017632182,112.70887942332894,True,🟢 WIN (+),agas,0.2
+Entropy (Exposure Spread),Fairness & Discovery,0.8755328140588582,0.8971498180675204,0.8668234766395905,-0.030326341427929893,-3.3802984537469416,True,🔴 LOSS (-),agas,0.2
+Novelty (Self-Information bits),Fairness & Discovery,10.76032554196236,10.547340759243884,10.820755237420302,0.2734144781764183,2.5922598351323085,True,🟢 WIN (+),agas,0.2
+GKPI (Holistic Harmonic Metric),Overall Performance,0.0,0.0,0.0,0.0,0.0,True,⚪ PAR,agas,0.2
+ΔGKPI (Attack Degradation %),Adversarial Robustness,,0.0,0.0,0.0,0.0,False,⚪ PAR,agas,0.2
+CSS (Calibration Stability Score),Adversarial Robustness,,0.23956446969791295,0.0028359351535653735,-0.23672853454434759,98.81621212146298,False,🟢 WIN (+),agas,0.2
+Denoising Detection F1,Adversarial Robustness,,0.9980417754569191,0.9744613015050553,-0.0235804739518638,-2.36267404148171,True,🔴 LOSS (-),agas,0.2
+Denoising Detection ROC-AUC,Adversarial Robustness,,1.0,0.6861034339683678,-0.3138965660316322,-31.389656603163218,True,🔴 LOSS (-),agas,0.2

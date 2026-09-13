@@ -1,0 +1,78 @@
+data:
+  dataset: "movielens-1m"
+  raw_dir: "data/raw/ml-1m"
+  processed_dir: "data/processed"
+  min_user_interactions: 5
+  min_item_interactions: 5
+  split_strategy: "leave_one_out"
+  val_ratio: 0.1
+  seed: 42
+
+attack:
+  enabled: false
+  type: "none"          # "random_flip" | "bandwagon" | "nuke_bomb" | "agas"
+  noise_rate: 0.10      # η for random_flip; ρ for shilling/bombing
+  target_items: []
+  time_window_hours: 24
+
+model:
+  backbone: "neumf"     # "neumf" | "lightgcn" | "vaecf"
+  embedding_dim: 64
+  mlp_layers: [128, 64, 32]
+  dropout: 0.2
+  top_k: 10
+
+rrfn:
+  num_rating_classes: 5
+  anchor_percentile: 0.90
+  min_anchors_per_class: 20
+  delta_T_reg: 0.01
+  warm_epochs: 5
+
+llm:
+  provider: "mock"      # "gemini" | "openai" | "mock"
+  model_name: "gemini-1.5-flash"
+  batch_size: 50
+  max_retries: 3
+  cache_path: "data/processed/llm_cache.db"
+  fallback_score: 0.5
+  prefilter_threshold: 0.60
+
+bombing_detector:
+  time_window_hours: 24
+  burst_acceleration_threshold: 2.5
+  polarity_skew_threshold: 0.70
+  semantic_similarity_threshold: 0.85
+  sigmoid_bias: 0.0
+  omega_1: 0.6          # Temporal acceleration weight (adjusted when text unavailable)
+  omega_2: 0.4          # Polarity skew weight
+  omega_3: 0.0          # Semantic text similarity weight
+
+fusion:
+  alpha: 0.50           # Weight for R_RRFN
+  beta: 0.30            # Weight for R_LLM
+  gamma: 0.20           # Weight for R_bomb
+  min_weight: 0.02      # Floor to prevent total exclusion
+
+catalog:
+  pareto_alpha: 0.20    # Head = minimal prefix with 20% of effective volume
+
+super:
+  shrinkage_tau: 5.0
+  blueprint_filter_threshold: 0.30
+  global_head_prior: 0.20
+
+training:
+  epochs: 25
+  batch_size: 1024
+  learning_rate: 0.001
+  weight_decay: 1e-5
+  optimizer: "adam"
+  lr_warmup_epochs: 2
+  early_stopping_patience: 8
+  gradient_clip_norm: 5.0
+  device: "cuda"
+
+evaluation:
+  top_k_list: [5, 10, 20]
+  report_dir: "experiments/results"
