@@ -165,10 +165,12 @@ class AttackSimulator:
         burst_ts = int(np.median([ts for u_list in split.train_dict.values() for _, _, ts in u_list]))
 
         # Group 1: Moderate fillers + 5★ target
+        top_pool = [i for i, _ in sorted_items[:100]]
+        g1_size = min(15, len(top_pool))
         for idx in range(half_users):
             fake_id = split.num_users + idx
             fake_list = []
-            chosen_fillers = np.random.choice([i for i, _ in sorted_items[:100]], size=15, replace=False)
+            chosen_fillers = np.random.choice(top_pool, size=g1_size, replace=len(top_pool) < g1_size) if g1_size > 0 else []
             for f in chosen_fillers:
                 r = int(np.random.choice([3, 4, 5], p=[0.2, 0.4, 0.4]))
                 ts = burst_ts + np.random.randint(-86400, 0)
@@ -181,10 +183,14 @@ class AttackSimulator:
             split.user_mean_ratings[fake_id] = 4.2
 
         # Group 2: Niche fillers + 5★ target (Round 2 adaptation)
+        mid_pool = [i for i, _ in sorted_items[100:300]]
+        if not mid_pool:
+            mid_pool = [i for i, _ in sorted_items[max(0, len(sorted_items)//2):]] or [i for i, _ in sorted_items]
+        g2_size = min(10, len(mid_pool))
         for idx in range(half_users, num_fake_users):
             fake_id = split.num_users + idx
             fake_list = []
-            chosen_fillers = np.random.choice([i for i, _ in sorted_items[100:300]], size=10, replace=False)
+            chosen_fillers = np.random.choice(mid_pool, size=g2_size, replace=len(mid_pool) < g2_size) if g2_size > 0 else []
             for f in chosen_fillers:
                 r = int(np.random.choice([2, 3, 4], p=[0.2, 0.5, 0.3]))
                 ts = burst_ts + np.random.randint(0, 86400)
