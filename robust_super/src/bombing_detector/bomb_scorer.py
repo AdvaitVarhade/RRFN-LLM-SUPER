@@ -10,7 +10,9 @@ def compute_bomb_scores(
     omega_3: float = 0.00,
     sigmoid_bias: float = 0.0,
     burst_threshold: float = 2.5,
-    polarity_threshold: float = 0.70
+    polarity_threshold: float = 0.70,
+    sigmoid_slope: float = 4.0,
+    sigmoid_midpoint: float = 0.50
 ) -> Dict[Tuple[int, int], float]:
     """
     Computes R_bomb(u, i) in [0.0, 1.0].
@@ -36,7 +38,8 @@ def compute_bomb_scores(
         norm_s = min(1.0, max(0.0, (s - 0.5) / (polarity_threshold - 0.5 + 1e-6)))
 
         bombing_signal = (w1 * norm_a) + (w2 * norm_s) + (w3 * sim)
-        suspicion = 1.0 / (1.0 + np.exp(-(bombing_signal * 4.0 - 2.0 + sigmoid_bias)))
+        # Dynamically scaled calibrated logistic transformation
+        suspicion = 1.0 / (1.0 + np.exp(-(sigmoid_slope * (bombing_signal - sigmoid_midpoint) + sigmoid_bias)))
         
         # Reliability is 1 - suspicion
         r_bomb = float(np.clip(1.0 - suspicion, 0.05, 1.0))

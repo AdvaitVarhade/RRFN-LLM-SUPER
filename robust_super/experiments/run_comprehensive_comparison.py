@@ -155,6 +155,7 @@ def run_full_benchmark_comparison(
             M_pop_base, _ = trainer.train_single_model(p_loader_base, attacked_split.val_dict, H_base)
             M_tail_base, _ = trainer.train_single_model(t_loader_base, attacked_split.val_dict, T_base)
             inclin_base = compute_robust_inclination(attacked_split.train_dict, H_base, unweighted, shrinkage_tau=0.0)
+            bp_base = build_denoised_blueprints(attacked_split.train_dict, unweighted, attacked_split.user_mean_ratings, H_base, filter_threshold=0.0)
 
             # --- Updated Model (RRFN-LLM-SUPER under attack) ---
             anchor_sel = AnchorSelector(anchor_percentile=0.85, min_anchors_per_class=10)
@@ -192,14 +193,15 @@ def run_full_benchmark_comparison(
             t_list_base = [i for i in T_base if i < attacked_split.num_items]
 
             for u in eval_users:
-                # Base model recommendations
+                # Base model recommendations (Dynamic attacked inclination & dynamic blueprint)
                 sp_b = M_pop_base.score_items(u, h_list_base, device=device)
                 st_b = M_tail_base.score_items(u, t_list_base, device=device)
                 pc_b = [h_list_base[idx] for idx in torch.topk(sp_b, k=min(top_k, len(h_list_base))).indices.cpu().numpy()]
                 tc_b = [t_list_base[idx] for idx in torch.topk(st_b, k=min(top_k, len(t_list_base))).indices.cpu().numpy()]
-                recs_base[u] = merge_top_n(u, pc_b, tc_b, 0.50, [1, 1, 1, 1, 1, 0, 0, 0, 0, 0], top_k=top_k)
+                _, bu_b = bp_base.get(u, ([], []))
+                recs_base[u] = merge_top_n(u, pc_b, tc_b, inclin_base.get(u, 0.2), bu_b, top_k=top_k)
 
-                # Updated model recommendations
+                # Updated model recommendations (Robust reliability-weighted inclination & denoised blueprint)
                 sp_r = M_pop_rob.score_items(u, h_list_rob, device=device)
                 st_r = M_tail_rob.score_items(u, t_list_rob, device=device)
                 pc_r = [h_list_rob[idx] for idx in torch.topk(sp_r, k=min(top_k, len(h_list_rob))).indices.cpu().numpy()]

@@ -102,7 +102,7 @@ class AttackSimulator:
                 split.weight_dict[(fake_user_id, int(t_item))] = 1.0
 
             split.train_dict[fake_user_id] = fake_interactions
-            split.user_mean_ratings[fake_user_id] = 4.8
+            split.user_mean_ratings[fake_user_id] = float(np.mean([r for _, r, _ in fake_interactions])) if fake_interactions else 4.0
 
         split.num_users += num_fake_users
 
@@ -145,7 +145,7 @@ class AttackSimulator:
                 split.weight_dict[(fake_user_id, int(t_item))] = 1.0
 
             split.train_dict[fake_user_id] = fake_interactions
-            split.user_mean_ratings[fake_user_id] = 1.5
+            split.user_mean_ratings[fake_user_id] = float(np.mean([r for _, r, _ in fake_interactions])) if fake_interactions else 1.0
 
         split.num_users += num_fake_users
 
@@ -180,7 +180,7 @@ class AttackSimulator:
                 fake_list.append((int(t), 5, burst_ts))
                 split.ground_truth_labels[(fake_id, int(t))] = 0
             split.train_dict[fake_id] = fake_list
-            split.user_mean_ratings[fake_id] = 4.2
+            split.user_mean_ratings[fake_id] = float(np.mean([r for _, r, _ in fake_list])) if fake_list else 4.0
 
         # Group 2: Niche fillers + 5★ target (Round 2 adaptation)
         mid_pool = [i for i, _ in sorted_items[100:300]]
@@ -200,6 +200,6 @@ class AttackSimulator:
                 fake_list.append((int(t), 5, burst_ts + 43200))
                 split.ground_truth_labels[(fake_id, int(t))] = 0
             split.train_dict[fake_id] = fake_list
-            split.user_mean_ratings[fake_id] = 3.6
+            split.user_mean_ratings[fake_id] = float(np.mean([r for _, r, _ in fake_list])) if fake_list else 3.0
 
         split.num_users += num_fake_users

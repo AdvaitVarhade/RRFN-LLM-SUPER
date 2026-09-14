@@ -304,6 +304,27 @@ def run_interactive_simulation(
         filter_threshold=filter_threshold
     )
 
+    # Dynamic Vanilla (Attacked) inclinations and blueprints without robustness weights
+    vanilla_inclinations = compute_robust_inclination(
+        attacked_split.train_dict, H_vanilla, unweighted,
+        shrinkage_tau=0.0, global_head_prior=pareto_alpha
+    )
+    vanilla_blueprints = build_denoised_blueprints(
+        attacked_split.train_dict, unweighted, attacked_split.user_mean_ratings, H_vanilla,
+        filter_threshold=0.0
+    )
+
+    # Dynamic Clean ground-truth inclinations and blueprints on pristine clean split
+    clean_unweighted = {k: 1.0 for k in clean_split.weight_dict}
+    clean_inclinations = compute_robust_inclination(
+        clean_split.train_dict, H_robust, clean_unweighted,
+        shrinkage_tau=shrinkage_tau, global_head_prior=pareto_alpha
+    )
+    clean_blueprints = build_denoised_blueprints(
+        clean_split.train_dict, clean_unweighted, clean_split.user_mean_ratings, H_robust,
+        filter_threshold=0.0
+    )
+
     recs_robust = {}
     recs_vanilla = {}
     recs_uncalib = {}
@@ -333,16 +354,23 @@ def run_interactive_simulation(
         
         user_cand_pools[u] = (pop_cands, tail_cands)
 
-        _, b_u = denoised_blueprints.get(u, ([], []))
-        recs_robust[u] = merge_top_n(u, pop_cands, tail_cands, robust_inclinations.get(u, 0.2), b_u, top_k=top_k)
-        recs_vanilla[u] = merge_top_n(u, pop_cands, tail_cands, 0.50, [1, 1, 1, 1, 1, 0, 0, 0, 0, 0], top_k=top_k)
-        recs_clean_super[u] = merge_top_n(u, pop_cands, tail_cands, robust_inclinations.get(u, 0.2), b_u, top_k=top_k)
+        _, b_u_rob = denoised_blueprints.get(u, ([], []))
+        _, b_u_van = vanilla_blueprints.get(u, ([], []))
+        _, b_u_clean = clean_blueprints.get(u, ([], []))
+
+        c_u_rob = robust_inclinations.get(u, pareto_alpha)
+        c_u_van = vanilla_inclinations.get(u, pareto_alpha)
+        c_u_clean = clean_inclinations.get(u, pareto_alpha)
+
+        recs_robust[u] = merge_top_n(u, pop_cands, tail_cands, c_u_rob, b_u_rob, top_k=top_k)
+        recs_vanilla[u] = merge_top_n(u, pop_cands, tail_cands, c_u_van, b_u_van, top_k=top_k)
+        recs_clean_super[u] = merge_top_n(u, pop_cands, tail_cands, c_u_clean, b_u_clean, top_k=top_k)
 
     # Metrics Computation
     metrics_robust = evaluate_recommendations(recs_robust, clean_split.test_dict, attacked_split.train_dict, H_robust, T_robust, robust_inclinations, top_k=top_k)
-    metrics_vanilla = evaluate_recommendations(recs_vanilla, clean_split.test_dict, attacked_split.train_dict, H_vanilla, T_vanilla, robust_inclinations, top_k=top_k)
-    metrics_uncalib = evaluate_recommendations(recs_uncalib, clean_split.test_dict, attacked_split.train_dict, H_robust, T_robust, robust_inclinations, top_k=top_k)
-    metrics_clean_super = evaluate_recommendations(recs_clean_super, clean_split.test_dict, clean_split.train_dict, H_robust, T_robust, robust_inclinations, top_k=top_k)
+    metrics_vanilla = evaluate_recommendations(recs_vanilla, clean_split.test_dict, attacked_split.train_dict, H_vanilla, T_vanilla, clean_inclinations, top_k=top_k)
+    metrics_uncalib = evaluate_recommendations(recs_uncalib, clean_split.test_dict, attacked_split.train_dict, H_robust, T_robust, clean_inclinations, top_k=top_k)
+    metrics_clean_super = evaluate_recommendations(recs_clean_super, clean_split.test_dict, clean_split.train_dict, H_robust, T_robust, clean_inclinations, top_k=top_k)
     
     robustness_robust = compute_robustness_metrics(metrics_robust, metrics_clean_super, attacked_split.ground_truth_labels, fused_weights, recommendations=recs_robust, top_k=top_k)
     unweighted_noise = {k: 1.0 for k in attacked_split.weight_dict}

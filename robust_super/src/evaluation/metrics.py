@@ -37,6 +37,10 @@ def evaluate_recommendations(
         for item, _, _ in interactions:
             item_train_counts[item] = item_train_counts.get(item, 0) + 1
 
+    # Dynamic maximum theoretical self-information based on catalog size / interactions
+    num_unique_items = max(2, len(head_items | tail_items) if (head_items or tail_items) else len(item_train_counts))
+    max_self_info = float(np.log2(max(num_unique_items, total_train_ratings, 2)))
+
     item_self_info = {}
     for item, count in item_train_counts.items():
         p_i = count / max(1, total_train_ratings)
@@ -69,8 +73,8 @@ def evaluate_recommendations(
         tail_count = sum(1 for item in rec_list if item in tail_items)
         aplt_user_scores.append(tail_count / max(1, len(rec_list)))
 
-        # 5. Novelty
-        user_novelty = np.mean([item_self_info.get(item, 15.0) for item in rec_list])
+        # 5. Novelty (Dynamic imputation using max_self_info)
+        user_novelty = np.mean([item_self_info.get(item, max_self_info) for item in rec_list])
         novelties.append(user_novelty)
 
         # 6. Global Exposure Tracking
@@ -106,8 +110,8 @@ def evaluate_recommendations(
     def harmonic_mean(x, y):
         return (2.0 * x * y) / (x + y + 1e-8)
 
-    # Normalize novelty to [0, 1] range for GKPI computation (max ~ 20 bits)
-    norm_novelty = min(1.0, novelty / 20.0)
+    # Normalize novelty to [0, 1] range dynamically using max_self_info
+    norm_novelty = min(1.0, novelty / max(1.0, max_self_info))
 
     h_aplt = harmonic_mean(ndcg, aplt)
     h_nov = harmonic_mean(ndcg, norm_novelty)

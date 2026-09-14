@@ -151,7 +151,7 @@ class MovieLensLoader:
             "gender": np.random.choice(["M", "F"], size=num_users),
             "age": np.random.choice([18, 25, 35, 45, 50], size=num_users),
             "occupation": np.random.randint(0, 20, size=num_users),
-            "zip": ["10001"] * num_users
+            "zip": [f"{np.random.randint(10000, 99999):05d}" for _ in range(num_users)]
         })
 
         self.num_users = num_users
