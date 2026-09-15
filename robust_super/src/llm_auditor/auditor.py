@@ -18,7 +18,7 @@ class LLMAuditor:
         self,
         prompt_builder: LLMPromptBuilder,
         provider: str = "mock",
-        model_name: str = "gemini-3.6-flash",
+        model_name: str = "gemini-2.5-flash",
         api_key: Optional[str] = None,
         cache_path: str = "data/processed/llm_cache.db",
         prefilter_threshold: float = 0.60,

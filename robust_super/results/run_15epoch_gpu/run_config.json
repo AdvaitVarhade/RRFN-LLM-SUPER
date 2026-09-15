@@ -1,0 +1,18 @@
+{
+  "attack_type": "bandwagon",
+  "noise_rate": 0.1,
+  "seed": 42,
+  "backbone": "NeuMF",
+  "dataset": "sample",
+  "warm_epochs": 4,
+  "dual_epochs": 15,
+  "device": "cuda",
+  "gpu_name": "NVIDIA GeForce RTX 3050 Laptop GPU",
+  "gpu_vram_mb": 4095,
+  "timestamp": "2026-09-15 21:26:35",
+  "num_users": 6034,
+  "num_items": 3259,
+  "eval_users_count": 150,
+  "head_items": 156,
+  "tail_items": 3103
+}

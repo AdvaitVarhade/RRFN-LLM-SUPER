@@ -1,0 +1,68 @@
+[
+  {
+    "omega_1_temporal": 0.0,
+    "omega_2_polarity": 1.0,
+    "Denoising_F1": 0.9045826774194292,
+    "ROC_AUC": 0.8738859832057756
+  },
+  {
+    "omega_1_temporal": 0.1,
+    "omega_2_polarity": 0.9,
+    "Denoising_F1": 0.904343971017103,
+    "ROC_AUC": 0.9293909238909829
+  },
+  {
+    "omega_1_temporal": 0.2,
+    "omega_2_polarity": 0.8,
+    "Denoising_F1": 0.9046217536142824,
+    "ROC_AUC": 0.9544203179793692
+  },
+  {
+    "omega_1_temporal": 0.3,
+    "omega_2_polarity": 0.7,
+    "Denoising_F1": 0.9042523434700694,
+    "ROC_AUC": 0.9781325778841596
+  },
+  {
+    "omega_1_temporal": 0.4,
+    "omega_2_polarity": 0.6,
+    "Denoising_F1": 0.9071970526597302,
+    "ROC_AUC": 0.989748695121177
+  },
+  {
+    "omega_1_temporal": 0.5,
+    "omega_2_polarity": 0.5,
+    "Denoising_F1": 0.9761145671332296,
+    "ROC_AUC": 0.9918234701550876
+  },
+  {
+    "omega_1_temporal": 0.6,
+    "omega_2_polarity": 0.4,
+    "Denoising_F1": 0.9339264710181922,
+    "ROC_AUC": 0.9929365701107029
+  },
+  {
+    "omega_1_temporal": 0.7,
+    "omega_2_polarity": 0.3,
+    "Denoising_F1": 0.9253158128610424,
+    "ROC_AUC": 0.9934326437787179
+  },
+  {
+    "omega_1_temporal": 0.8,
+    "omega_2_polarity": 0.2,
+    "Denoising_F1": 0.9011208085584802,
+    "ROC_AUC": 0.9934363887823966
+  },
+  {
+    "omega_1_temporal": 0.9,
+    "omega_2_polarity": 0.1,
+    "Denoising_F1": 0.8992759983467313,
+    "ROC_AUC": 0.9934171010957782
+  },
+  {
+    "omega_1_temporal": 1.0,
+    "omega_2_polarity": 0.0,
+    "Denoising_F1": 0.8921425883815662,
+    "ROC_AUC": 0.9552032514337816
+  }
+]

@@ -1,0 +1,16 @@
+\begin{table*}[t]
+\centering
+\small
+\caption{Adversarial Robustness and Popularity Debiasing Performance Comparison on MovieLens-1M.}
+\label{tab:benchmark_results}
+\begin{tabular}{lcccccccccc}
+\toprule
+\textbf{Method / System} & \textbf{Recall@10} $\uparrow$ & \textbf{nDCG@10} $\uparrow$ & \textbf{RMSE-PC} $\downarrow$ & \textbf{MRMC} $\downarrow$ & \textbf{APLT} (\%) $\uparrow$ & \textbf{LTC} (\%) $\uparrow$ & \textbf{Entropy} $\uparrow$ & \textbf{Novelty} $\uparrow$ & \textbf{GKPI} $\uparrow$ & \textbf{$\Delta$GKPI} (\%) $\downarrow$ \\
+\midrule
+Uncalibrated Backbone (NeuMF) & 0.0000 & 0.0000 & 0.6354 & 0.7288 & 23.9\% & 2.2\% & 0.7460 & 9.51 & 0.0000 & +0.0\% \\
+Vanilla SUPER (Clean Baseline) & 0.0000 & 0.0000 & 0.0577 & 0.1388 & 89.3\% & 0.7\% & 0.8149 & 11.44 & 0.0000 & +0.0\% \\
+Vanilla SUPER (Attacked bandwagon rho=0.10) & 0.0000 & 0.0000 & 0.0601 & 0.1364 & 89.6\% & 0.7\% & 0.8128 & 10.72 & 0.0000 & +0.0\% \\
+\textbf{RRFN-LLM-SUPER (Ours, 15 epochs, CUDA, rho=0.10)} & \textbf{0.0000} & \textbf{0.0000} & \textbf{0.0555} & \textbf{0.1352} & \textbf{89.3\%} & \textbf{0.7\%} & \textbf{0.8149} & \textbf{10.72} & \textbf{0.0000} & \textbf{+0.0\%} \\
+\bottomrule
+\end{tabular}
+\end{table*}

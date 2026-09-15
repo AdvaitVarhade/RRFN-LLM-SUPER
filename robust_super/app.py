@@ -8,13 +8,12 @@ import sys
 import os
 
 # ── GPU Safety Guard ─────────────────────────────────────────────────────────
-# Streamlit runs user scripts in a forked/threaded process where CUDA driver
-# contexts can become invalid mid-session. We default to CPU mode unless the
-# user explicitly selects CUDA in the sidebar.  The sidebar toggle then
-# reinitialises the session which starts a fresh Python context that CAN
-# safely initialise CUDA.  This line must appear BEFORE any torch import.
-_STREAMLIT_DEVICE = os.environ.get("RRFN_DEVICE", "cpu")
-if _STREAMLIT_DEVICE == "cpu":
+# PyTorch CUDA contexts are thread-local. Streamlit re-runs script in the SAME
+# process (not a new fork), so CUDA initialized once stays available.
+# We only hide the GPU if explicitly launched with RRFN_DEVICE=cpu_only.
+# Default: GPU is available and the sidebar toggle selects it.
+_STREAMLIT_DEVICE = os.environ.get("RRFN_DEVICE", "auto")
+if _STREAMLIT_DEVICE == "cpu_only":
     os.environ["CUDA_VISIBLE_DEVICES"] = ""
 # ─────────────────────────────────────────────────────────────────────────────
 
@@ -26,6 +25,25 @@ import torch
 import plotly.express as px
 import plotly.graph_objects as go
 import streamlit as st
+
+# ── Eager CUDA Context Initialization ────────────────────────────────────────
+# Initialize CUDA in the MAIN Streamlit thread immediately at module import.
+# This prevents the "CUDA error: unknown error" that occurs when Streamlit
+# re-runs the script and a SECONDARY thread tries to use a GPU context
+# that was never initialized in that thread.
+# By touching CUDA HERE (top-level, synchronously), the context is created
+# once and stays valid for all subsequent runs in the same process.
+if torch.cuda.is_available() and _STREAMLIT_DEVICE != "cpu_only":
+    try:
+        _init_tensor = torch.zeros(1, device="cuda")
+        del _init_tensor
+        torch.cuda.synchronize()
+        _CUDA_READY = True
+    except Exception as _cuda_init_err:
+        _CUDA_READY = False
+else:
+    _CUDA_READY = False
+# ─────────────────────────────────────────────────────────────────────────────
 
 # Configure page
 st.set_page_config(
@@ -179,14 +197,17 @@ def load_clean_dataset(dataset_choice: str):
 # =============================================================================
 # Core Simulation Engine with Detailed Telemetry & Optimization
 # =============================================================================
-def select_safe_device(device_pref: str = "CPU (Safe & Fast Mode)") -> str:
+def select_safe_device(device_pref: str = "CUDA / GPU (RTX 3050)") -> str:
     """
-    Determines the compute device. CPU is default and always safe.
-    CUDA is only used if explicitly requested AND torch reports it available
-    (it will be hidden by CUDA_VISIBLE_DEVICES="" if launched in CPU mode).
+    Returns 'cuda' if the user requests GPU AND it was successfully initialized
+    at startup. Falls back to 'cpu' otherwise. No dynamic CUDA probing here —
+    all CUDA init happened at module import in the main thread.
     """
-    if "CUDA" in device_pref and torch.cuda.is_available():
-        return "cuda"
+    if "CUDA" in device_pref or "GPU" in device_pref:
+        if _CUDA_READY:
+            return "cuda"
+        else:
+            return "cpu"  # GPU requested but not available/failed init
     return "cpu"
 
 def run_interactive_simulation(
@@ -683,11 +704,17 @@ training_intensity = st.sidebar.selectbox(
     help="Determines decoupled training epochs."
 )
 
+_gpu_label = "CUDA / GPU (Not Available)"
+if _CUDA_READY:
+    _gpu_name = torch.cuda.get_device_name(0)
+    _gpu_mem = torch.cuda.get_device_properties(0).total_memory // (1024**2)
+    _gpu_label = f"CUDA / GPU ({_gpu_name}, {_gpu_mem}MB)"
+
 device_choice = st.sidebar.selectbox(
     "💻 Hardware Accelerator",
-    ["CPU (Safe & Fast Mode)", "CUDA (GPU Acceleration)"],
-    index=0,
-    help="CPU is recommended for stability in multi-threaded web environments."
+    ["CPU (Safe & Fast Mode)", _gpu_label],
+    index=1 if _CUDA_READY else 0,  # Default to GPU if available
+    help="GPU drastically speeds up training. CUDA context is initialized at startup for thread safety."
 )
 
 st.sidebar.markdown("---")
@@ -754,6 +781,21 @@ filter_threshold = st.sidebar.slider("Blueprint Pruning Threshold (θ_filter)", 
 
 run_btn = st.sidebar.button("🚀 Run Live Simulation", type="primary", use_container_width=True)
 
+# Check for pre-saved GPU results
+_SAVED_RESULTS_DIR = os.path.join(BASE_DIR, "results", "run_15epoch_gpu")
+_SAVED_METRICS_PATH = os.path.join(_SAVED_RESULTS_DIR, "metrics.json")
+_saved_results_exist = os.path.isfile(_SAVED_METRICS_PATH)
+
+if _saved_results_exist:
+    load_saved_btn = st.sidebar.button(
+        "📂 Load Pre-Saved 15-Epoch GPU Results",
+        use_container_width=True,
+        help="Loads results from the last GPU training run — instant display, no re-computation."
+    )
+else:
+    load_saved_btn = False
+    st.sidebar.info("💡 Run `python train_15epoch_gpu.py` to generate persistent GPU results.")
+
 # Load clean dataset
 clean_split, movies_df, users_df = load_clean_dataset(dataset_mode)
 
@@ -765,7 +807,81 @@ sim_cache_key = (
     bool(gemini_api_key_input), reproducibility_seed
 )
 
-if run_btn or "sim_data" not in st.session_state or st.session_state.get("sim_cache_key") != sim_cache_key:
+def _load_saved_sim_data():
+    """Reconstructs a sim_data dict from the JSON files saved by train_15epoch_gpu.py."""
+    import pickle
+    with open(os.path.join(_SAVED_RESULTS_DIR, "metrics.json")) as f:
+        mdata = json.load(f)
+    with open(os.path.join(_SAVED_RESULTS_DIR, "benchmark_table.json")) as f:
+        bench = json.load(f)
+    with open(os.path.join(_SAVED_RESULTS_DIR, "benchmark_table.tex")) as f:
+        latex_str = f.read()
+    with open(os.path.join(_SAVED_RESULTS_DIR, "loss_history.json")) as f:
+        lhist = json.load(f)
+    with open(os.path.join(_SAVED_RESULTS_DIR, "roc_pr.json")) as f:
+        roc_pr = json.load(f)
+    with open(os.path.join(_SAVED_RESULTS_DIR, "omega_sweep.json")) as f:
+        omega_sw = json.load(f)
+    with open(os.path.join(_SAVED_RESULTS_DIR, "transition_matrix.json")) as f:
+        tmat = json.load(f)
+    with open(os.path.join(_SAVED_RESULTS_DIR, "run_config.json")) as f:
+        cfg = json.load(f)
+    with open(os.path.join(_SAVED_RESULTS_DIR, "comparison_summary.json")) as f:
+        comp = json.load(f)
+
+    # Build a minimal stub auditor for display purposes
+    from src.llm_auditor.prompt_builder import LLMPromptBuilder
+    from src.llm_auditor.auditor import LLMAuditor
+    stub_pb = LLMPromptBuilder(movies_df)
+    stub_auditor = LLMAuditor(prompt_builder=stub_pb, provider="mock", api_key=None)
+
+    # Reconstruct fused_weights, R_RRFN, R_bomb, R_LLM as empty dicts (not needed for display)
+    return {
+        "attacked_split": clean_split,    # use clean as proxy — only used for shape info in display
+        "clean_split": clean_split,
+        "metrics_robust":      mdata["metrics_robust"],
+        "metrics_vanilla":     mdata["metrics_vanilla"],
+        "metrics_uncalib":     mdata["metrics_uncalib"],
+        "metrics_clean_super": mdata["metrics_clean_super"],
+        "comparison_summary":  comp,
+        "benchmark_table":     bench,
+        "latex_table_str":     latex_str,
+        "robustness":          mdata["metrics_robust"],
+        "roc_pr_data":         roc_pr,
+        "omega_sweep_data":    omega_sw,
+        "T_hat":               np.array(tmat["T_hat"]),
+        "T_final":             np.array(tmat["T_final"]),
+        "fused_weights":       {},
+        "R_RRFN":              {},
+        "R_LLM":               {},
+        "R_bomb":              {},
+        "H_robust":            set(),
+        "T_robust":            set(),
+        "H_vanilla":           set(),
+        "T_vanilla":           set(),
+        "robust_inclinations": {},
+        "denoised_blueprints": {},
+        "recs_robust":         {},
+        "recs_vanilla":        {},
+        "recs_uncalib":        {},
+        "user_cand_pools":     {},
+        "loss_history_pop":    lhist.get("M_pop_train_loss", []),
+        "loss_history_tail":   lhist.get("M_tail_train_loss", []),
+        "llm_auditor":         stub_auditor,
+        "prompt_builder":      stub_pb,
+        "backbone_type":       cfg.get("backbone", "NeuMF"),
+        "attack_type":         cfg.get("attack_type", "bandwagon"),
+        "noise_rate":          cfg.get("noise_rate", 0.10),
+        "device_used":         cfg.get("device", "cuda"),
+        "timing_breakdown":    {"Total Pipeline Execution": f"Pre-saved ({cfg.get('timestamp', '')})", "Device": cfg.get("gpu_name", ""), "Dual Epochs": str(cfg.get("dual_epochs", 15))},
+    }
+
+if load_saved_btn:
+    with st.spinner("📂 Loading pre-saved GPU results..."):
+        st.session_state["sim_data"] = _load_saved_sim_data()
+        st.session_state["sim_cache_key"] = "SAVED_GPU_15EPOCH"
+
+elif run_btn or "sim_data" not in st.session_state or st.session_state.get("sim_cache_key") != sim_cache_key:
     prog = st.progress(0, text="Initializing Pipeline...")
     st.session_state["sim_data"] = run_interactive_simulation(
         clean_split=clean_split,
@@ -792,6 +908,7 @@ if run_btn or "sim_data" not in st.session_state or st.session_state.get("sim_ca
     st.session_state["sim_cache_key"] = sim_cache_key
     time.sleep(0.1)
     prog.empty()
+
 
 sim = st.session_state["sim_data"]
 m_rob = sim["metrics_robust"]
