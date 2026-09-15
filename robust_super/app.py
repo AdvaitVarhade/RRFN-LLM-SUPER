@@ -167,15 +167,19 @@ def load_clean_dataset(dataset_choice: str):
 # =============================================================================
 # Core Simulation Engine with Detailed Telemetry & Optimization
 # =============================================================================
-def select_safe_device(device_pref: str = "Auto") -> str:
+def select_safe_device(device_pref: str = "CPU (Safe & Fast Mode)") -> str:
     """Safely determines whether CUDA is operational, falling back to CPU if error occurs."""
-    if "CPU" in device_pref:
+    if "CPU" in device_pref or "safe" in device_pref.lower() or "fast" in device_pref.lower():
         return "cpu"
     if torch.cuda.is_available():
         try:
-            # Test simple CUDA allocation and clear cache to ensure context is valid
-            test_t = torch.zeros(2, device="cuda")
-            del test_t
+            m = torch.nn.Linear(2, 2).to("cuda")
+            opt = torch.optim.Adam(m.parameters(), lr=0.01)
+            x = torch.zeros(2, 2, device="cuda")
+            y = m(x).sum()
+            y.backward()
+            opt.step()
+            del m, opt, x, y
             torch.cuda.empty_cache()
             return "cuda"
         except Exception:
@@ -189,7 +193,7 @@ def run_interactive_simulation(
     noise_rate: float,
     backbone_type: str = "NeuMF",
     epochs_preset: str = "Fast (3 epochs)",
-    device_preference: str = "Auto",
+    device_preference: str = "CPU (Safe & Fast Mode)",
     delta_T_reg: float = 0.01,
     omega_1: float = 0.60,
     omega_2: float = 0.40,
@@ -205,307 +209,306 @@ def run_interactive_simulation(
     progress_bar=None
 ):
     """Executes an end-to-end run of Clean SUPER, Vanilla Under Attack, and RRFN-LLM-SUPER."""
-    timing_breakdown = {}
-    t_start_total = time.time()
-    
-    device = select_safe_device(device_preference)
-    simulator = AttackSimulator(seed=seed)
-    prompt_builder = LLMPromptBuilder(movies_df)
+    target_device = select_safe_device(device_preference)
 
-    epochs_map = {
-        "Fast (3 epochs)": (2, 3),
-        "Standard (8 epochs)": (3, 8),
-        "Full (15 epochs)": (4, 15)
-    }
-    warm_epochs, dual_epochs = epochs_map.get(epochs_preset, (2, 3))
+    def _execute(device: str):
+        timing_breakdown = {}
+        t_start_total = time.time()
+        simulator = AttackSimulator(seed=seed)
+        prompt_builder = LLMPromptBuilder(movies_df)
 
-    # 1. Attack Injection
-    if progress_bar: progress_bar.progress(10, text="🚨 Stage 1/6: Injecting Adversarial Noise & Attacks...")
-    t0 = time.time()
-    attacked_split = simulator.inject_attack(clean_split, attack_type, noise_rate)
-    timing_breakdown["Attack Injection"] = f"{(time.time() - t0)*1000:.1f} ms"
-    top_k = 10
-
-    # Backbone Model Factory
-    def model_factory():
-        if backbone_type == "LightGCN":
-            m = LightGCN(attacked_split.num_users, attacked_split.num_items, embedding_dim=32, num_layers=2)
-            m.set_adjacency(attacked_split.train_dict, device=device)
-            return m
-        elif backbone_type == "VaeCF":
-            return VaeCF(attacked_split.num_users, attacked_split.num_items, embedding_dim=32, latent_dim=16)
-        else:
-            return NeuMF(attacked_split.num_users, attacked_split.num_items, embedding_dim=32, mlp_layers=[64, 32])
-
-    trainer = DualModelTrainer(
-        model_factory=model_factory,
-        device=device,
-        lr=0.003,
-        delta_T_reg=delta_T_reg,
-        epochs=dual_epochs,
-        early_stopping_patience=3
-    )
-
-    # 2. Warm-Start Model & Anchor Selection
-    if progress_bar: progress_bar.progress(25, text="🧠 Stage 2/6: Warm-Start Training & Anchor Point Selection...")
-    t0 = time.time()
-    try:
-        warm_model = model_factory().to(device)
-    except Exception as cuda_err:
-        device = "cpu"
-        trainer.device = "cpu"
-        warm_model = model_factory().to("cpu")
-    unweighted = {k: 1.0 for k in attacked_split.weight_dict}
-    warm_loader = build_data_loader(attacked_split.train_dict, unweighted, batch_size=1024)
-    trainer.warm_train(warm_model, warm_loader, warm_epochs=warm_epochs)
-
-    anchor_sel = AnchorSelector(anchor_percentile=0.85, min_anchors_per_class=10)
-    anchors = anchor_sel.select_anchors(warm_model, warm_loader, device=device)
-    trans_module = NoiseTransitionMatrix(num_classes=5).to(device)
-    trans_module.estimate_from_anchors(anchors)
-    T_hat = trans_module.T_hat.cpu().numpy()
-    T_final = trans_module.get_T_final().detach().cpu().numpy()
-    R_RRFN = compute_R_RRFN(warm_model, warm_loader, device=device)
-    timing_breakdown["Warm Start & RRFN Transition"] = f"{(time.time() - t0)*1000:.1f} ms"
-
-    # 3. Multi-View Auditing (LLM + Review Bombing)
-    if progress_bar: progress_bar.progress(45, text="🔍 Stage 3/6: Multi-View Reliability Auditing (LLM + Review Bombing)...")
-    t0 = time.time()
-    api_key_to_use = gemini_api_key.strip() if gemini_api_key else None
-    effective_provider = "gemini" if (llm_provider == "gemini" and api_key_to_use) else "mock"
-    llm_auditor = LLMAuditor(
-        prompt_builder=prompt_builder,
-        provider=effective_provider,
-        api_key=api_key_to_use,
-        prefilter_threshold=0.60
-    )
-    R_LLM = llm_auditor.audit_all(
-        attacked_split.train_dict, R_RRFN,
-        ground_truth_labels=attacked_split.ground_truth_labels,
-        user_mean_ratings=attacked_split.user_mean_ratings
-    )
-
-    accel = compute_temporal_acceleration(attacked_split.train_dict, time_window_hours=24)
-    polarity = compute_polarity_skew(attacked_split.train_dict, time_window_hours=24)
-    sim_sem = compute_semantic_similarity(attacked_split.train_dict)
-    R_bomb = compute_bomb_scores(accel, polarity, sim_sem, omega_1=omega_1, omega_2=omega_2, omega_3=0.0)
-    omega_sweep_data = sweep_omega_sensitivity(accel, polarity, sim_sem, attacked_split.ground_truth_labels, steps=11)
-
-    fused_weights = fuse_reliability_scores(R_RRFN, R_LLM, R_bomb, alpha=alpha, beta=beta, gamma=gamma, min_weight=0.02)
-    timing_breakdown["Multi-View Fusion"] = f"{(time.time() - t0)*1000:.1f} ms"
-
-    # 4. Reliability-Weighted Pareto Catalog Partitioning
-    if progress_bar: progress_bar.progress(65, text="⚖️ Stage 4/6: Reliability-Weighted Pareto Catalog Partitioning...")
-    t0 = time.time()
-    V_eff_vanilla = compute_effective_volume(attacked_split.train_dict, unweighted, attacked_split.num_items)
-    H_vanilla, T_vanilla = pareto_partition(V_eff_vanilla, pareto_alpha)
-
-    V_eff_robust = compute_effective_volume(attacked_split.train_dict, fused_weights, attacked_split.num_items)
-    H_robust, T_robust = pareto_partition(V_eff_robust, pareto_alpha)
-    timing_breakdown["Pareto Partitioning"] = f"{(time.time() - t0)*1000:.1f} ms"
-
-    # 5. Dual Model Decoupled Training
-    if progress_bar: progress_bar.progress(80, text="⚔️ Stage 5/6: Decoupled Dual Training with Risk-Consistent Loss...")
-    t0 = time.time()
-    pop_loader = build_data_loader(attacked_split.train_dict, fused_weights, item_filter=H_robust, batch_size=1024)
-    tail_loader = build_data_loader(attacked_split.train_dict, fused_weights, item_filter=T_robust, batch_size=1024)
-    M_pop, _ = trainer.train_single_model(pop_loader, attacked_split.val_dict, H_robust, T_hat=trans_module.T_hat)
-    M_tail, _ = trainer.train_single_model(tail_loader, attacked_split.val_dict, T_robust, T_hat=trans_module.T_hat)
-    timing_breakdown["Decoupled Dual Training"] = f"{(time.time() - t0)*1000:.1f} ms"
-
-    # 6. Blueprints & Top-N Merging & Comprehensive Evaluation
-    if progress_bar: progress_bar.progress(92, text="🎯 Stage 6/6: Top-N Merging & Comprehensive Evaluation...")
-    t0 = time.time()
-    robust_inclinations = compute_robust_inclination(
-        attacked_split.train_dict, H_robust, fused_weights,
-        shrinkage_tau=shrinkage_tau, global_head_prior=pareto_alpha
-    )
-    denoised_blueprints = build_denoised_blueprints(
-        attacked_split.train_dict, fused_weights, attacked_split.user_mean_ratings, H_robust,
-        filter_threshold=filter_threshold
-    )
-
-    # Dynamic Vanilla (Attacked) inclinations and blueprints without robustness weights
-    vanilla_inclinations = compute_robust_inclination(
-        attacked_split.train_dict, H_vanilla, unweighted,
-        shrinkage_tau=0.0, global_head_prior=pareto_alpha
-    )
-    vanilla_blueprints = build_denoised_blueprints(
-        attacked_split.train_dict, unweighted, attacked_split.user_mean_ratings, H_vanilla,
-        filter_threshold=0.0
-    )
-
-    # Dynamic Clean ground-truth inclinations and blueprints on pristine clean split
-    clean_unweighted = {k: 1.0 for k in clean_split.weight_dict}
-    clean_inclinations = compute_robust_inclination(
-        clean_split.train_dict, H_robust, clean_unweighted,
-        shrinkage_tau=shrinkage_tau, global_head_prior=pareto_alpha
-    )
-    clean_blueprints = build_denoised_blueprints(
-        clean_split.train_dict, clean_unweighted, clean_split.user_mean_ratings, H_robust,
-        filter_threshold=0.0
-    )
-
-    recs_robust = {}
-    recs_vanilla = {}
-    recs_uncalib = {}
-    recs_clean_super = {}
-
-    eval_users = list(clean_split.test_dict.keys())[:min(150, len(clean_split.test_dict))]
-    head_list_rob = [i for i in H_robust if i < attacked_split.num_items]
-    tail_list_rob = [i for i in T_robust if i < attacked_split.num_items]
-    all_items_list = list(range(attacked_split.num_items))
-
-    user_cand_pools = {}
-
-    for u in eval_users:
-        scores_pop = M_pop.score_items(u, head_list_rob, device=device)
-        scores_tail = M_tail.score_items(u, tail_list_rob, device=device)
-        scores_all = warm_model.score_items(u, all_items_list, device=device)
-
-        # Uncalibrated baseline
-        uncal_idx = torch.topk(scores_all, k=min(top_k, len(all_items_list))).indices.cpu().numpy()
-        recs_uncalib[u] = [all_items_list[idx] for idx in uncal_idx]
-
-        # Candidate pools for fast live What-If testing
-        pop_sorted_idx = torch.topk(scores_pop, k=min(top_k * 2, len(head_list_rob))).indices.cpu().numpy()
-        tail_sorted_idx = torch.topk(scores_tail, k=min(top_k * 2, len(tail_list_rob))).indices.cpu().numpy()
-        pop_cands = [head_list_rob[idx] for idx in pop_sorted_idx]
-        tail_cands = [tail_list_rob[idx] for idx in tail_sorted_idx]
-        
-        user_cand_pools[u] = (pop_cands, tail_cands)
-
-        _, b_u_rob = denoised_blueprints.get(u, ([], []))
-        _, b_u_van = vanilla_blueprints.get(u, ([], []))
-        _, b_u_clean = clean_blueprints.get(u, ([], []))
-
-        c_u_rob = robust_inclinations.get(u, pareto_alpha)
-        c_u_van = vanilla_inclinations.get(u, pareto_alpha)
-        c_u_clean = clean_inclinations.get(u, pareto_alpha)
-
-        recs_robust[u] = merge_top_n(u, pop_cands, tail_cands, c_u_rob, b_u_rob, top_k=top_k)
-        recs_vanilla[u] = merge_top_n(u, pop_cands, tail_cands, c_u_van, b_u_van, top_k=top_k)
-        recs_clean_super[u] = merge_top_n(u, pop_cands, tail_cands, c_u_clean, b_u_clean, top_k=top_k)
-
-    # Metrics Computation
-    metrics_robust = evaluate_recommendations(recs_robust, clean_split.test_dict, attacked_split.train_dict, H_robust, T_robust, robust_inclinations, top_k=top_k)
-    metrics_vanilla = evaluate_recommendations(recs_vanilla, clean_split.test_dict, attacked_split.train_dict, H_vanilla, T_vanilla, clean_inclinations, top_k=top_k)
-    metrics_uncalib = evaluate_recommendations(recs_uncalib, clean_split.test_dict, attacked_split.train_dict, H_robust, T_robust, clean_inclinations, top_k=top_k)
-    metrics_clean_super = evaluate_recommendations(recs_clean_super, clean_split.test_dict, clean_split.train_dict, H_robust, T_robust, clean_inclinations, top_k=top_k)
-    
-    robustness_robust = compute_robustness_metrics(metrics_robust, metrics_clean_super, attacked_split.ground_truth_labels, fused_weights, recommendations=recs_robust, top_k=top_k)
-    unweighted_noise = {k: 1.0 for k in attacked_split.weight_dict}
-    robustness_vanilla = compute_robustness_metrics(metrics_vanilla, metrics_clean_super, attacked_split.ground_truth_labels, unweighted_noise, recommendations=recs_vanilla, top_k=top_k)
-    roc_pr_data = compute_roc_pr_data(attacked_split.ground_truth_labels, fused_weights)
-
-    metrics_robust.update(robustness_robust)
-    metrics_vanilla.update(robustness_vanilla)
-
-    comparison_summary = generate_metric_comparison_summary(metrics_vanilla, metrics_robust, clean_metrics=metrics_clean_super, top_k=top_k)
-
-    benchmark_table = [
-        {
-            "Method": f"Uncalibrated Backbone ({backbone_type})",
-            "Recall@10": metrics_uncalib.get("Recall@10", 0.0),
-            "nDCG@10": metrics_uncalib.get("nDCG@10", 0.0),
-            "RMSE-PC": metrics_uncalib.get("RMSE-PC", 0.0),
-            "MRMC": metrics_uncalib.get("MRMC", 0.0),
-            "APLT@10": metrics_uncalib.get("APLT@10", 0.0),
-            "LTC@10": metrics_uncalib.get("LTC@10", 0.0),
-            "Entropy": metrics_uncalib.get("Entropy", 0.0),
-            "Novelty": metrics_uncalib.get("Novelty", 0.0),
-            "GKPI": metrics_uncalib.get("GKPI", 0.0),
-            "Delta-GKPI(%)": ((metrics_clean_super.get("GKPI", 1.0) - metrics_uncalib.get("GKPI", 0.0)) / max(1e-6, metrics_clean_super.get("GKPI", 1.0))) * 100.0,
-            "CSS": abs(metrics_uncalib.get("RMSE-PC", 0.0) - metrics_clean_super.get("RMSE-PC", 0.0))
-        },
-        {
-            "Method": "Vanilla SUPER (Clean Baseline)",
-            "Recall@10": metrics_clean_super.get("Recall@10", 0.0),
-            "nDCG@10": metrics_clean_super.get("nDCG@10", 0.0),
-            "RMSE-PC": metrics_clean_super.get("RMSE-PC", 0.0),
-            "MRMC": metrics_clean_super.get("MRMC", 0.0),
-            "APLT@10": metrics_clean_super.get("APLT@10", 0.0),
-            "LTC@10": metrics_clean_super.get("LTC@10", 0.0),
-            "Entropy": metrics_clean_super.get("Entropy", 0.0),
-            "Novelty": metrics_clean_super.get("Novelty", 0.0),
-            "GKPI": metrics_clean_super.get("GKPI", 0.0),
-            "Delta-GKPI(%)": 0.0,
-            "CSS": 0.0
-        },
-        {
-            "Method": f"Vanilla SUPER (Attacked {attack_type} rho={noise_rate:.2f})",
-            "Recall@10": metrics_vanilla.get("Recall@10", 0.0),
-            "nDCG@10": metrics_vanilla.get("nDCG@10", 0.0),
-            "RMSE-PC": metrics_vanilla.get("RMSE-PC", 0.0),
-            "MRMC": metrics_vanilla.get("MRMC", 0.0),
-            "APLT@10": metrics_vanilla.get("APLT@10", 0.0),
-            "LTC@10": metrics_vanilla.get("LTC@10", 0.0),
-            "Entropy": metrics_vanilla.get("Entropy", 0.0),
-            "Novelty": metrics_vanilla.get("Novelty", 0.0),
-            "GKPI": metrics_vanilla.get("GKPI", 0.0),
-            "Delta-GKPI(%)": metrics_vanilla.get("Delta-GKPI(%)", 0.0),
-            "CSS": metrics_vanilla.get("CSS", 0.0)
-        },
-        {
-            "Method": f"RRFN-LLM-SUPER (Ours, Attacked rho={noise_rate:.2f})",
-            "Recall@10": metrics_robust.get("Recall@10", 0.0),
-            "nDCG@10": metrics_robust.get("nDCG@10", 0.0),
-            "RMSE-PC": metrics_robust.get("RMSE-PC", 0.0),
-            "MRMC": metrics_robust.get("MRMC", 0.0),
-            "APLT@10": metrics_robust.get("APLT@10", 0.0),
-            "LTC@10": metrics_robust.get("LTC@10", 0.0),
-            "Entropy": metrics_robust.get("Entropy", 0.0),
-            "Novelty": metrics_robust.get("Novelty", 0.0),
-            "GKPI": metrics_robust.get("GKPI", 0.0),
-            "Delta-GKPI(%)": metrics_robust.get("Delta-GKPI(%)", 0.0),
-            "CSS": metrics_robust.get("CSS", 0.0)
+        epochs_map = {
+            "Fast (3 epochs)": (2, 3),
+            "Standard (8 epochs)": (3, 8),
+            "Full (15 epochs)": (4, 15)
         }
-    ]
-    latex_table_str = generate_latex_benchmark_table(benchmark_table, full_metrics=True)
-    timing_breakdown["Inference & Metric Evaluation"] = f"{(time.time() - t0)*1000:.1f} ms"
-    timing_breakdown["Total Pipeline Execution"] = f"{(time.time() - t_start_total):.2f} s"
+        warm_epochs, dual_epochs = epochs_map.get(epochs_preset, (2, 3))
 
-    if progress_bar: progress_bar.progress(100, text="✅ Simulation Complete!")
+        # 1. Attack Injection
+        if progress_bar: progress_bar.progress(10, text="🚨 Stage 1/6: Injecting Adversarial Noise & Attacks...")
+        t0 = time.time()
+        attacked_split = simulator.inject_attack(clean_split, attack_type, noise_rate)
+        timing_breakdown["Attack Injection"] = f"{(time.time() - t0)*1000:.1f} ms"
+        top_k = 10
 
-    return {
-        "attacked_split": attacked_split,
-        "clean_split": clean_split,
-        "metrics_robust": metrics_robust,
-        "metrics_vanilla": metrics_vanilla,
-        "metrics_uncalib": metrics_uncalib,
-        "metrics_clean_super": metrics_clean_super,
-        "comparison_summary": comparison_summary,
-        "benchmark_table": benchmark_table,
-        "latex_table_str": latex_table_str,
-        "robustness": robustness_robust,
-        "roc_pr_data": roc_pr_data,
-        "omega_sweep_data": omega_sweep_data,
-        "T_hat": T_hat,
-        "T_final": T_final,
-        "fused_weights": fused_weights,
-        "R_RRFN": R_RRFN,
-        "R_LLM": R_LLM,
-        "R_bomb": R_bomb,
-        "H_robust": H_robust,
-        "T_robust": T_robust,
-        "H_vanilla": H_vanilla,
-        "T_vanilla": T_vanilla,
-        "robust_inclinations": robust_inclinations,
-        "denoised_blueprints": denoised_blueprints,
-        "recs_robust": recs_robust,
-        "recs_vanilla": recs_vanilla,
-        "recs_uncalib": recs_uncalib,
-        "user_cand_pools": user_cand_pools,
-        "loss_history_pop": getattr(M_pop, "loss_history", []),
-        "loss_history_tail": getattr(M_tail, "loss_history", []),
-        "llm_auditor": llm_auditor,
-        "prompt_builder": prompt_builder,
-        "backbone_type": backbone_type,
-        "attack_type": attack_type,
-        "noise_rate": noise_rate,
-        "device_used": device,
-        "timing_breakdown": timing_breakdown
-    }
+        # Backbone Model Factory
+        def model_factory():
+            if backbone_type == "LightGCN":
+                m = LightGCN(attacked_split.num_users, attacked_split.num_items, embedding_dim=32, num_layers=2)
+                m.set_adjacency(attacked_split.train_dict, device=device)
+                return m
+            elif backbone_type == "VaeCF":
+                return VaeCF(attacked_split.num_users, attacked_split.num_items, embedding_dim=32, latent_dim=16)
+            else:
+                return NeuMF(attacked_split.num_users, attacked_split.num_items, embedding_dim=32, mlp_layers=[64, 32])
+
+        trainer = DualModelTrainer(
+            model_factory=model_factory,
+            device=device,
+            lr=0.003,
+            delta_T_reg=delta_T_reg,
+            epochs=dual_epochs,
+            early_stopping_patience=3
+        )
+
+        # 2. Warm-Start Model & Anchor Selection
+        if progress_bar: progress_bar.progress(25, text="🧠 Stage 2/6: Warm-Start Training & Anchor Point Selection...")
+        t0 = time.time()
+        warm_model = model_factory().to(device)
+        unweighted = {k: 1.0 for k in attacked_split.weight_dict}
+        warm_loader = build_data_loader(attacked_split.train_dict, unweighted, batch_size=1024)
+        trainer.warm_train(warm_model, warm_loader, warm_epochs=warm_epochs)
+
+        anchor_sel = AnchorSelector(anchor_percentile=0.85, min_anchors_per_class=10)
+        anchors = anchor_sel.select_anchors(warm_model, warm_loader, device=device)
+        trans_module = NoiseTransitionMatrix(num_classes=5).to(device)
+        trans_module.estimate_from_anchors(anchors)
+        T_hat = trans_module.T_hat.cpu().numpy()
+        T_final = trans_module.get_T_final().detach().cpu().numpy()
+        R_RRFN = compute_R_RRFN(warm_model, warm_loader, device=device)
+        timing_breakdown["Warm Start & RRFN Transition"] = f"{(time.time() - t0)*1000:.1f} ms"
+
+        # 3. Multi-View Auditing (LLM + Review Bombing)
+        if progress_bar: progress_bar.progress(45, text="🔍 Stage 3/6: Multi-View Reliability Auditing (LLM + Review Bombing)...")
+        t0 = time.time()
+        api_key_to_use = gemini_api_key.strip() if gemini_api_key else None
+        effective_provider = "gemini" if (llm_provider == "gemini" and api_key_to_use) else "mock"
+        llm_auditor = LLMAuditor(
+            prompt_builder=prompt_builder,
+            provider=effective_provider,
+            api_key=api_key_to_use,
+            prefilter_threshold=0.60
+        )
+        R_LLM = llm_auditor.audit_all(
+            attacked_split.train_dict, R_RRFN,
+            ground_truth_labels=attacked_split.ground_truth_labels,
+            user_mean_ratings=attacked_split.user_mean_ratings
+        )
+
+        accel = compute_temporal_acceleration(attacked_split.train_dict, time_window_hours=24)
+        polarity = compute_polarity_skew(attacked_split.train_dict, time_window_hours=24)
+        sim_sem = compute_semantic_similarity(attacked_split.train_dict)
+        R_bomb = compute_bomb_scores(accel, polarity, sim_sem, omega_1=omega_1, omega_2=omega_2, omega_3=0.0)
+        omega_sweep_data = sweep_omega_sensitivity(accel, polarity, sim_sem, attacked_split.ground_truth_labels, steps=11)
+
+        fused_weights = fuse_reliability_scores(R_RRFN, R_LLM, R_bomb, alpha=alpha, beta=beta, gamma=gamma, min_weight=0.02)
+        timing_breakdown["Multi-View Fusion"] = f"{(time.time() - t0)*1000:.1f} ms"
+
+        # 4. Reliability-Weighted Pareto Catalog Partitioning
+        if progress_bar: progress_bar.progress(65, text="⚖️ Stage 4/6: Reliability-Weighted Pareto Catalog Partitioning...")
+        t0 = time.time()
+        V_eff_vanilla = compute_effective_volume(attacked_split.train_dict, unweighted, attacked_split.num_items)
+        H_vanilla, T_vanilla = pareto_partition(V_eff_vanilla, pareto_alpha)
+
+        V_eff_robust = compute_effective_volume(attacked_split.train_dict, fused_weights, attacked_split.num_items)
+        H_robust, T_robust = pareto_partition(V_eff_robust, pareto_alpha)
+        timing_breakdown["Pareto Partitioning"] = f"{(time.time() - t0)*1000:.1f} ms"
+
+        # 5. Dual Model Decoupled Training
+        if progress_bar: progress_bar.progress(80, text="⚔️ Stage 5/6: Decoupled Dual Training with Risk-Consistent Loss...")
+        t0 = time.time()
+        pop_loader = build_data_loader(attacked_split.train_dict, fused_weights, item_filter=H_robust, batch_size=1024)
+        tail_loader = build_data_loader(attacked_split.train_dict, fused_weights, item_filter=T_robust, batch_size=1024)
+        M_pop, _ = trainer.train_single_model(pop_loader, attacked_split.val_dict, H_robust, T_hat=trans_module.T_hat)
+        M_tail, _ = trainer.train_single_model(tail_loader, attacked_split.val_dict, T_robust, T_hat=trans_module.T_hat)
+        timing_breakdown["Decoupled Dual Training"] = f"{(time.time() - t0)*1000:.1f} ms"
+
+        # 6. Blueprints & Top-N Merging & Comprehensive Evaluation
+        if progress_bar: progress_bar.progress(92, text="🎯 Stage 6/6: Top-N Merging & Comprehensive Evaluation...")
+        t0 = time.time()
+        robust_inclinations = compute_robust_inclination(
+            attacked_split.train_dict, H_robust, fused_weights,
+            shrinkage_tau=shrinkage_tau, global_head_prior=pareto_alpha
+        )
+        denoised_blueprints = build_denoised_blueprints(
+            attacked_split.train_dict, fused_weights, attacked_split.user_mean_ratings, H_robust,
+            filter_threshold=filter_threshold
+        )
+
+        vanilla_inclinations = compute_robust_inclination(
+            attacked_split.train_dict, H_vanilla, unweighted,
+            shrinkage_tau=0.0, global_head_prior=pareto_alpha
+        )
+        vanilla_blueprints = build_denoised_blueprints(
+            attacked_split.train_dict, unweighted, attacked_split.user_mean_ratings, H_vanilla,
+            filter_threshold=0.0
+        )
+
+        clean_unweighted = {k: 1.0 for k in clean_split.weight_dict}
+        clean_inclinations = compute_robust_inclination(
+            clean_split.train_dict, H_robust, clean_unweighted,
+            shrinkage_tau=shrinkage_tau, global_head_prior=pareto_alpha
+        )
+        clean_blueprints = build_denoised_blueprints(
+            clean_split.train_dict, clean_unweighted, clean_split.user_mean_ratings, H_robust,
+            filter_threshold=0.0
+        )
+
+        recs_robust = {}
+        recs_vanilla = {}
+        recs_uncalib = {}
+        recs_clean_super = {}
+
+        eval_users = list(clean_split.test_dict.keys())[:min(150, len(clean_split.test_dict))]
+        head_list_rob = [i for i in H_robust if i < attacked_split.num_items]
+        tail_list_rob = [i for i in T_robust if i < attacked_split.num_items]
+        all_items_list = list(range(attacked_split.num_items))
+
+        user_cand_pools = {}
+
+        for u in eval_users:
+            scores_pop = M_pop.score_items(u, head_list_rob, device=device)
+            scores_tail = M_tail.score_items(u, tail_list_rob, device=device)
+            scores_all = warm_model.score_items(u, all_items_list, device=device)
+
+            uncal_idx = torch.topk(scores_all, k=min(top_k, len(all_items_list))).indices.cpu().numpy()
+            recs_uncalib[u] = [all_items_list[idx] for idx in uncal_idx]
+
+            pop_sorted_idx = torch.topk(scores_pop, k=min(top_k * 2, len(head_list_rob))).indices.cpu().numpy()
+            tail_sorted_idx = torch.topk(scores_tail, k=min(top_k * 2, len(tail_list_rob))).indices.cpu().numpy()
+            pop_cands = [head_list_rob[idx] for idx in pop_sorted_idx]
+            tail_cands = [tail_list_rob[idx] for idx in tail_sorted_idx]
+            
+            user_cand_pools[u] = (pop_cands, tail_cands)
+
+            _, b_u_rob = denoised_blueprints.get(u, ([], []))
+            _, b_u_van = vanilla_blueprints.get(u, ([], []))
+            _, b_u_clean = clean_blueprints.get(u, ([], []))
+
+            c_u_rob = robust_inclinations.get(u, pareto_alpha)
+            c_u_van = vanilla_inclinations.get(u, pareto_alpha)
+            c_u_clean = clean_inclinations.get(u, pareto_alpha)
+
+            recs_robust[u] = merge_top_n(u, pop_cands, tail_cands, c_u_rob, b_u_rob, top_k=top_k)
+            recs_vanilla[u] = merge_top_n(u, pop_cands, tail_cands, c_u_van, b_u_van, top_k=top_k)
+            recs_clean_super[u] = merge_top_n(u, pop_cands, tail_cands, c_u_clean, b_u_clean, top_k=top_k)
+
+        # Metrics Computation
+        metrics_robust = evaluate_recommendations(recs_robust, clean_split.test_dict, attacked_split.train_dict, H_robust, T_robust, robust_inclinations, top_k=top_k)
+        metrics_vanilla = evaluate_recommendations(recs_vanilla, clean_split.test_dict, attacked_split.train_dict, H_vanilla, T_vanilla, clean_inclinations, top_k=top_k)
+        metrics_uncalib = evaluate_recommendations(recs_uncalib, clean_split.test_dict, attacked_split.train_dict, H_robust, T_robust, clean_inclinations, top_k=top_k)
+        metrics_clean_super = evaluate_recommendations(recs_clean_super, clean_split.test_dict, clean_split.train_dict, H_robust, T_robust, clean_inclinations, top_k=top_k)
+        
+        robustness_robust = compute_robustness_metrics(metrics_robust, metrics_clean_super, attacked_split.ground_truth_labels, fused_weights, recommendations=recs_robust, top_k=top_k)
+        unweighted_noise = {k: 1.0 for k in attacked_split.weight_dict}
+        robustness_vanilla = compute_robustness_metrics(metrics_vanilla, metrics_clean_super, attacked_split.ground_truth_labels, unweighted_noise, recommendations=recs_vanilla, top_k=top_k)
+        roc_pr_data = compute_roc_pr_data(attacked_split.ground_truth_labels, fused_weights)
+
+        metrics_robust.update(robustness_robust)
+        metrics_vanilla.update(robustness_vanilla)
+
+        comparison_summary = generate_metric_comparison_summary(metrics_vanilla, metrics_robust, clean_metrics=metrics_clean_super, top_k=top_k)
+
+        benchmark_table = [
+            {
+                "Method": f"Uncalibrated Backbone ({backbone_type})",
+                "Recall@10": metrics_uncalib.get("Recall@10", 0.0),
+                "nDCG@10": metrics_uncalib.get("nDCG@10", 0.0),
+                "RMSE-PC": metrics_uncalib.get("RMSE-PC", 0.0),
+                "MRMC": metrics_uncalib.get("MRMC", 0.0),
+                "APLT@10": metrics_uncalib.get("APLT@10", 0.0),
+                "LTC@10": metrics_uncalib.get("LTC@10", 0.0),
+                "Entropy": metrics_uncalib.get("Entropy", 0.0),
+                "Novelty": metrics_uncalib.get("Novelty", 0.0),
+                "GKPI": metrics_uncalib.get("GKPI", 0.0),
+                "Delta-GKPI(%)": ((metrics_clean_super.get("GKPI", 1.0) - metrics_uncalib.get("GKPI", 0.0)) / max(1e-6, metrics_clean_super.get("GKPI", 1.0))) * 100.0,
+                "CSS": abs(metrics_uncalib.get("RMSE-PC", 0.0) - metrics_clean_super.get("RMSE-PC", 0.0))
+            },
+            {
+                "Method": "Vanilla SUPER (Clean Baseline)",
+                "Recall@10": metrics_clean_super.get("Recall@10", 0.0),
+                "nDCG@10": metrics_clean_super.get("nDCG@10", 0.0),
+                "RMSE-PC": metrics_clean_super.get("RMSE-PC", 0.0),
+                "MRMC": metrics_clean_super.get("MRMC", 0.0),
+                "APLT@10": metrics_clean_super.get("APLT@10", 0.0),
+                "LTC@10": metrics_clean_super.get("LTC@10", 0.0),
+                "Entropy": metrics_clean_super.get("Entropy", 0.0),
+                "Novelty": metrics_clean_super.get("Novelty", 0.0),
+                "GKPI": metrics_clean_super.get("GKPI", 0.0),
+                "Delta-GKPI(%)": 0.0,
+                "CSS": 0.0
+            },
+            {
+                "Method": f"Vanilla SUPER (Attacked {attack_type} rho={noise_rate:.2f})",
+                "Recall@10": metrics_vanilla.get("Recall@10", 0.0),
+                "nDCG@10": metrics_vanilla.get("nDCG@10", 0.0),
+                "RMSE-PC": metrics_vanilla.get("RMSE-PC", 0.0),
+                "MRMC": metrics_vanilla.get("MRMC", 0.0),
+                "APLT@10": metrics_vanilla.get("APLT@10", 0.0),
+                "LTC@10": metrics_vanilla.get("LTC@10", 0.0),
+                "Entropy": metrics_vanilla.get("Entropy", 0.0),
+                "Novelty": metrics_vanilla.get("Novelty", 0.0),
+                "GKPI": metrics_vanilla.get("GKPI", 0.0),
+                "Delta-GKPI(%)": metrics_vanilla.get("Delta-GKPI(%)", 0.0),
+                "CSS": metrics_vanilla.get("CSS", 0.0)
+            },
+            {
+                "Method": f"RRFN-LLM-SUPER (Ours, Attacked rho={noise_rate:.2f})",
+                "Recall@10": metrics_robust.get("Recall@10", 0.0),
+                "nDCG@10": metrics_robust.get("nDCG@10", 0.0),
+                "RMSE-PC": metrics_robust.get("RMSE-PC", 0.0),
+                "MRMC": metrics_robust.get("MRMC", 0.0),
+                "APLT@10": metrics_robust.get("APLT@10", 0.0),
+                "LTC@10": metrics_robust.get("LTC@10", 0.0),
+                "Entropy": metrics_robust.get("Entropy", 0.0),
+                "Novelty": metrics_robust.get("Novelty", 0.0),
+                "GKPI": metrics_robust.get("GKPI", 0.0),
+                "Delta-GKPI(%)": metrics_robust.get("Delta-GKPI(%)", 0.0),
+                "CSS": metrics_robust.get("CSS", 0.0)
+            }
+        ]
+        latex_table_str = generate_latex_benchmark_table(benchmark_table, full_metrics=True)
+        timing_breakdown["Inference & Metric Evaluation"] = f"{(time.time() - t0)*1000:.1f} ms"
+        timing_breakdown["Total Pipeline Execution"] = f"{(time.time() - t_start_total):.2f} s"
+
+        if progress_bar: progress_bar.progress(100, text="✅ Simulation Complete!")
+
+        return {
+            "attacked_split": attacked_split,
+            "clean_split": clean_split,
+            "metrics_robust": metrics_robust,
+            "metrics_vanilla": metrics_vanilla,
+            "metrics_uncalib": metrics_uncalib,
+            "metrics_clean_super": metrics_clean_super,
+            "comparison_summary": comparison_summary,
+            "benchmark_table": benchmark_table,
+            "latex_table_str": latex_table_str,
+            "robustness": robustness_robust,
+            "roc_pr_data": roc_pr_data,
+            "omega_sweep_data": omega_sweep_data,
+            "T_hat": T_hat,
+            "T_final": T_final,
+            "fused_weights": fused_weights,
+            "R_RRFN": R_RRFN,
+            "R_LLM": R_LLM,
+            "R_bomb": R_bomb,
+            "H_robust": H_robust,
+            "T_robust": T_robust,
+            "H_vanilla": H_vanilla,
+            "T_vanilla": T_vanilla,
+            "robust_inclinations": robust_inclinations,
+            "denoised_blueprints": denoised_blueprints,
+            "recs_robust": recs_robust,
+            "recs_vanilla": recs_vanilla,
+            "recs_uncalib": recs_uncalib,
+            "user_cand_pools": user_cand_pools,
+            "loss_history_pop": getattr(M_pop, "loss_history", []),
+            "loss_history_tail": getattr(M_tail, "loss_history", []),
+            "llm_auditor": llm_auditor,
+            "prompt_builder": prompt_builder,
+            "backbone_type": backbone_type,
+            "attack_type": attack_type,
+            "noise_rate": noise_rate,
+            "device_used": device,
+            "timing_breakdown": timing_breakdown
+        }
+
+    try:
+        return _execute(target_device)
+    except Exception as exc:
+        if target_device != "cpu":
+            return _execute("cpu")
+        raise exc
 
 
 # =============================================================================
@@ -679,9 +682,9 @@ training_intensity = st.sidebar.selectbox(
 
 device_choice = st.sidebar.selectbox(
     "💻 Hardware Accelerator",
-    ["Auto (CUDA with CPU Fallback)", "CPU (Safe Mode)", "CUDA (GPU)"],
+    ["CPU (Safe & Fast Mode)", "CUDA (GPU Acceleration)"],
     index=0,
-    help="Select CPU for maximum stability or CUDA for GPU acceleration."
+    help="CPU is recommended for stability in multi-threaded web environments."
 )
 
 st.sidebar.markdown("---")
