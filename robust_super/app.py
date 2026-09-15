@@ -6,6 +6,18 @@ and user-centric popularity debiasing under adversarial review bombing.
 """
 import sys
 import os
+
+# ── GPU Safety Guard ─────────────────────────────────────────────────────────
+# Streamlit runs user scripts in a forked/threaded process where CUDA driver
+# contexts can become invalid mid-session. We default to CPU mode unless the
+# user explicitly selects CUDA in the sidebar.  The sidebar toggle then
+# reinitialises the session which starts a fresh Python context that CAN
+# safely initialise CUDA.  This line must appear BEFORE any torch import.
+_STREAMLIT_DEVICE = os.environ.get("RRFN_DEVICE", "cpu")
+if _STREAMLIT_DEVICE == "cpu":
+    os.environ["CUDA_VISIBLE_DEVICES"] = ""
+# ─────────────────────────────────────────────────────────────────────────────
+
 import time
 import json
 import numpy as np
@@ -168,22 +180,13 @@ def load_clean_dataset(dataset_choice: str):
 # Core Simulation Engine with Detailed Telemetry & Optimization
 # =============================================================================
 def select_safe_device(device_pref: str = "CPU (Safe & Fast Mode)") -> str:
-    """Safely determines whether CUDA is operational, falling back to CPU if error occurs."""
-    if "CPU" in device_pref or "safe" in device_pref.lower() or "fast" in device_pref.lower():
-        return "cpu"
-    if torch.cuda.is_available():
-        try:
-            m = torch.nn.Linear(2, 2).to("cuda")
-            opt = torch.optim.Adam(m.parameters(), lr=0.01)
-            x = torch.zeros(2, 2, device="cuda")
-            y = m(x).sum()
-            y.backward()
-            opt.step()
-            del m, opt, x, y
-            torch.cuda.empty_cache()
-            return "cuda"
-        except Exception:
-            return "cpu"
+    """
+    Determines the compute device. CPU is default and always safe.
+    CUDA is only used if explicitly requested AND torch reports it available
+    (it will be hidden by CUDA_VISIBLE_DEVICES="" if launched in CPU mode).
+    """
+    if "CUDA" in device_pref and torch.cuda.is_available():
+        return "cuda"
     return "cpu"
 
 def run_interactive_simulation(
