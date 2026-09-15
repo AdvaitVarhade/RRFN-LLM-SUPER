@@ -167,6 +167,21 @@ def load_clean_dataset(dataset_choice: str):
 # =============================================================================
 # Core Simulation Engine with Detailed Telemetry & Optimization
 # =============================================================================
+def select_safe_device(device_pref: str = "Auto") -> str:
+    """Safely determines whether CUDA is operational, falling back to CPU if error occurs."""
+    if "CPU" in device_pref:
+        return "cpu"
+    if torch.cuda.is_available():
+        try:
+            # Test simple CUDA allocation and clear cache to ensure context is valid
+            test_t = torch.zeros(2, device="cuda")
+            del test_t
+            torch.cuda.empty_cache()
+            return "cuda"
+        except Exception:
+            return "cpu"
+    return "cpu"
+
 def run_interactive_simulation(
     clean_split: DataSplit,
     movies_df: pd.DataFrame,
@@ -174,6 +189,7 @@ def run_interactive_simulation(
     noise_rate: float,
     backbone_type: str = "NeuMF",
     epochs_preset: str = "Fast (3 epochs)",
+    device_preference: str = "Auto",
     delta_T_reg: float = 0.01,
     omega_1: float = 0.60,
     omega_2: float = 0.40,
@@ -192,7 +208,7 @@ def run_interactive_simulation(
     timing_breakdown = {}
     t_start_total = time.time()
     
-    device = "cuda" if torch.cuda.is_available() else "cpu"
+    device = select_safe_device(device_preference)
     simulator = AttackSimulator(seed=seed)
     prompt_builder = LLMPromptBuilder(movies_df)
 
@@ -233,7 +249,12 @@ def run_interactive_simulation(
     # 2. Warm-Start Model & Anchor Selection
     if progress_bar: progress_bar.progress(25, text="🧠 Stage 2/6: Warm-Start Training & Anchor Point Selection...")
     t0 = time.time()
-    warm_model = model_factory().to(device)
+    try:
+        warm_model = model_factory().to(device)
+    except Exception as cuda_err:
+        device = "cpu"
+        trainer.device = "cpu"
+        warm_model = model_factory().to("cpu")
     unweighted = {k: 1.0 for k in attacked_split.weight_dict}
     warm_loader = build_data_loader(attacked_split.train_dict, unweighted, batch_size=1024)
     trainer.warm_train(warm_model, warm_loader, warm_epochs=warm_epochs)
@@ -656,6 +677,13 @@ training_intensity = st.sidebar.selectbox(
     help="Determines decoupled training epochs."
 )
 
+device_choice = st.sidebar.selectbox(
+    "💻 Hardware Accelerator",
+    ["Auto (CUDA with CPU Fallback)", "CPU (Safe Mode)", "CUDA (GPU)"],
+    index=0,
+    help="Select CPU for maximum stability or CUDA for GPU acceleration."
+)
+
 st.sidebar.markdown("---")
 st.sidebar.subheader("🚨 Adversarial Attack Configuration")
 
@@ -701,9 +729,14 @@ st.sidebar.markdown("---")
 st.sidebar.subheader("🤖 LLM Auditor Configuration")
 llm_provider_choice = st.sidebar.selectbox("LLM Engine", ["mock (Heuristic Approximation)", "gemini (Google GenAI Live API)"], index=0)
 llm_provider = "gemini" if "gemini" in llm_provider_choice else "mock"
-gemini_api_key_input = ""
+gemini_api_key_input = os.environ.get("GEMINI_API_KEY", "")
 if llm_provider == "gemini":
-    gemini_api_key_input = st.sidebar.text_input("Gemini API Key", type="password", help="Enter Google AI Studio API key. Never saved to disk.")
+    gemini_api_key_input = st.sidebar.text_input(
+        "Gemini API Key",
+        value=os.environ.get("GEMINI_API_KEY", ""),
+        type="password",
+        help="Google AI Studio API key (gemini-3.6-flash). Reads from GEMINI_API_KEY environment variable if set."
+    )
     if not gemini_api_key_input:
         st.sidebar.warning("⚠️ No key entered; falling back to mock auditor.")
 
@@ -720,7 +753,7 @@ clean_split, movies_df, users_df = load_clean_dataset(dataset_mode)
 
 # Session state simulation cache check
 sim_cache_key = (
-    dataset_mode, selected_backbone, training_intensity, attack_type,
+    dataset_mode, selected_backbone, training_intensity, device_choice, attack_type,
     noise_rate, alpha, beta, gamma, delta_T_reg, omega_1, omega_2,
     pareto_alpha, shrinkage_tau, filter_threshold, llm_provider,
     bool(gemini_api_key_input), reproducibility_seed
@@ -735,6 +768,7 @@ if run_btn or "sim_data" not in st.session_state or st.session_state.get("sim_ca
         noise_rate=noise_rate,
         backbone_type=selected_backbone,
         epochs_preset=training_intensity,
+        device_preference=device_choice,
         delta_T_reg=delta_T_reg,
         omega_1=omega_1,
         omega_2=omega_2,

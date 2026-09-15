@@ -30,8 +30,9 @@ rrfn:
   warm_epochs: 5
 
 llm:
-  provider: "mock"      # "gemini" | "openai" | "mock"
-  model_name: "gemini-1.5-flash"
+  provider: "gemini"    # "gemini" | "openai" | "mock"
+  model_name: "gemini-3.6-flash"
+  api_key: ""           # Loaded dynamically from GEMINI_API_KEY environment variable
   batch_size: 50
   max_retries: 3
   cache_path: "data/processed/llm_cache.db"
