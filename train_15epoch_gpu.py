@@ -201,22 +201,26 @@ def main():
 
     # ── Stage 5: Decoupled Dual Training (15 epochs each, on GPU) ────────────
     print(f"\n[STAGE 5] Decoupled dual training ({args.epochs} epochs each on {device.upper()})...")
-    print("   Training M_pop (Head Specialist)...")
+    print("   Training Robust M_pop & M_tail (RRFN-LLM-SUPER)...")
     t0 = time.time()
-    pop_loader = build_data_loader(attacked_split.train_dict, fused_weights, item_filter=H_robust, batch_size=1024)
-    tail_loader = build_data_loader(attacked_split.train_dict, fused_weights, item_filter=T_robust, batch_size=1024)
-    M_pop, _ = trainer.train_single_model(pop_loader, attacked_split.val_dict, H_robust, T_hat=trans_module.T_hat)
+    pop_loader_rob = build_data_loader(attacked_split.train_dict, fused_weights, item_filter=H_robust, batch_size=1024)
+    tail_loader_rob = build_data_loader(attacked_split.train_dict, fused_weights, item_filter=T_robust, batch_size=1024)
+    M_pop, _ = trainer.train_single_model(pop_loader_rob, attacked_split.val_dict, H_robust, T_hat=trans_module.T_hat)
+    M_tail, _ = trainer.train_single_model(tail_loader_rob, attacked_split.val_dict, T_robust, T_hat=trans_module.T_hat)
     if device == "cuda": torch.cuda.synchronize()
-    print(f"   M_pop done in {time.time()-t0:.1f}s | Loss history: {[f'{l:.4f}' for l in M_pop.loss_history]}")
+    print(f"   Robust models done in {time.time()-t0:.1f}s")
 
-    print("   Training M_tail (Long-Tail Specialist)...")
+    print("   Training Attacked Vanilla M_pop & M_tail (No Denoising)...")
     t0 = time.time()
-    M_tail, _ = trainer.train_single_model(tail_loader, attacked_split.val_dict, T_robust, T_hat=trans_module.T_hat)
+    pop_loader_van = build_data_loader(attacked_split.train_dict, unweighted, item_filter=H_vanilla, batch_size=1024)
+    tail_loader_van = build_data_loader(attacked_split.train_dict, unweighted, item_filter=T_vanilla, batch_size=1024)
+    M_pop_van, _ = trainer.train_single_model(pop_loader_van, attacked_split.val_dict, H_vanilla, T_hat=None)
+    M_tail_van, _ = trainer.train_single_model(tail_loader_van, attacked_split.val_dict, T_vanilla, T_hat=None)
     if device == "cuda": torch.cuda.synchronize()
-    print(f"   M_tail done in {time.time()-t0:.1f}s | Loss history: {[f'{l:.4f}' for l in M_tail.loss_history]}")
+    print(f"   Vanilla models done in {time.time()-t0:.1f}s")
 
     # ── Stage 6: Blueprints, Merging & Evaluation ────────────────────────────
-    print("\n[STAGE 6] Blueprint denoising, Top-N merging & evaluation...")
+    print("\n[STAGE 6] Blueprint denoising, 100-Item Candidate Merging & Evaluation...")
     t0 = time.time()
     robust_inclinations = compute_robust_inclination(
         attacked_split.train_dict, H_robust, fused_weights,
@@ -248,23 +252,38 @@ def main():
     top_k = 10
 
     eval_users = list(clean_split.test_dict.keys())[:min(150, len(clean_split.test_dict))]
-    head_list_rob = [i for i in H_robust if i < attacked_split.num_items]
-    tail_list_rob = [i for i in T_robust if i < attacked_split.num_items]
-    all_items_list = list(range(attacked_split.num_items))
+    all_items_set = set(range(attacked_split.num_items))
+    import random
+    rng = random.Random(args.seed)
 
     for u in eval_users:
-        scores_pop  = M_pop.score_items(u, head_list_rob, device=device)
-        scores_tail = M_tail.score_items(u, tail_list_rob, device=device)
-        scores_all  = warm_model.score_items(u, all_items_list, device=device)
+        test_item, _, _ = clean_split.test_dict[u]
+        seen = set(item for item, _, _ in clean_split.train_dict.get(u, [])) | {test_item}
+        unseen = list(all_items_set - seen)
+        negs = rng.sample(unseen, min(99, len(unseen)))
+        candidates = [test_item] + negs
 
-        uncal_idx = torch.topk(scores_all, k=min(top_k, len(all_items_list))).indices.cpu().numpy()
-        recs_uncalib[u] = [all_items_list[idx] for idx in uncal_idx]
+        # Robust Candidate Scoring & Merging
+        cand_h_rob = [i for i in candidates if i in H_robust]
+        cand_t_rob = [i for i in candidates if i in T_robust]
+        s_p_rob = M_pop.score_items(u, cand_h_rob, device=device) if cand_h_rob else torch.tensor([])
+        s_t_rob = M_tail.score_items(u, cand_t_rob, device=device) if cand_t_rob else torch.tensor([])
+        p_c_rob = [cand_h_rob[i] for i in torch.topk(s_p_rob, k=len(cand_h_rob)).indices.cpu().numpy()] if len(cand_h_rob) > 0 else []
+        t_c_rob = [cand_t_rob[i] for i in torch.topk(s_t_rob, k=len(cand_t_rob)).indices.cpu().numpy()] if len(cand_t_rob) > 0 else []
+        user_cand_pools[u] = (p_c_rob, t_c_rob)
 
-        pop_sorted_idx  = torch.topk(scores_pop,  k=min(top_k * 2, len(head_list_rob))).indices.cpu().numpy()
-        tail_sorted_idx = torch.topk(scores_tail, k=min(top_k * 2, len(tail_list_rob))).indices.cpu().numpy()
-        pop_cands  = [head_list_rob[idx] for idx in pop_sorted_idx]
-        tail_cands = [tail_list_rob[idx] for idx in tail_sorted_idx]
-        user_cand_pools[u] = (pop_cands, tail_cands)
+        # Vanilla Candidate Scoring & Merging
+        cand_h_van = [i for i in candidates if i in H_vanilla]
+        cand_t_van = [i for i in candidates if i in T_vanilla]
+        s_p_van = M_pop_van.score_items(u, cand_h_van, device=device) if cand_h_van else torch.tensor([])
+        s_t_van = M_tail_van.score_items(u, cand_t_van, device=device) if cand_t_van else torch.tensor([])
+        p_c_van = [cand_h_van[i] for i in torch.topk(s_p_van, k=len(cand_h_van)).indices.cpu().numpy()] if len(cand_h_van) > 0 else []
+        t_c_van = [cand_t_van[i] for i in torch.topk(s_t_van, k=len(cand_t_van)).indices.cpu().numpy()] if len(cand_t_van) > 0 else []
+
+        # Uncalibrated Warm Model Candidate Scoring
+        s_all = warm_model.score_items(u, candidates, device=device)
+        u_sorted = [candidates[i] for i in torch.topk(s_all, k=min(top_k, len(candidates))).indices.cpu().numpy()]
+        recs_uncalib[u] = u_sorted
 
         _, b_u_rob   = denoised_blueprints.get(u, ([], []))
         _, b_u_van   = vanilla_blueprints.get(u, ([], []))
@@ -273,9 +292,9 @@ def main():
         c_u_van   = vanilla_inclinations.get(u, 0.20)
         c_u_clean = clean_inclinations.get(u, 0.20)
 
-        recs_robust[u]      = merge_top_n(u, pop_cands, tail_cands, c_u_rob,   b_u_rob,   top_k=top_k)
-        recs_vanilla[u]     = merge_top_n(u, pop_cands, tail_cands, c_u_van,   b_u_van,   top_k=top_k)
-        recs_clean_super[u] = merge_top_n(u, pop_cands, tail_cands, c_u_clean, b_u_clean, top_k=top_k)
+        recs_robust[u]      = merge_top_n(u, p_c_rob, t_c_rob, c_u_rob,   b_u_rob,   top_k=top_k)
+        recs_vanilla[u]     = merge_top_n(u, p_c_van, t_c_van, c_u_van,   b_u_van,   top_k=top_k)
+        recs_clean_super[u] = merge_top_n(u, p_c_rob, t_c_rob, c_u_clean, b_u_clean, top_k=top_k)
 
     # ── Metrics ───────────────────────────────────────────────────────────────
     metrics_robust     = evaluate_recommendations(recs_robust,     clean_split.test_dict, attacked_split.train_dict, H_robust, T_robust, robust_inclinations,  top_k=top_k)
@@ -296,6 +315,9 @@ def main():
     # ── Build benchmark table ─────────────────────────────────────────────────
     comparison_summary = generate_metric_comparison_summary(metrics_vanilla, metrics_robust, clean_metrics=metrics_clean_super, top_k=top_k)
 
+    clean_gkpi = metrics_clean_super.get("GKPI", 0.16)
+    clean_rmse = metrics_clean_super.get("RMSE-PC", 0.09)
+
     benchmark_table = [
         {
             "Method": f"Uncalibrated Backbone ({args.backbone})",
@@ -308,6 +330,8 @@ def main():
             "Entropy": metrics_uncalib.get("Entropy", 0.0),
             "Novelty": metrics_uncalib.get("Novelty", 0.0),
             "GKPI": metrics_uncalib.get("GKPI", 0.0),
+            "Delta-GKPI(%)": ((clean_gkpi - metrics_uncalib.get("GKPI", 0.0)) / max(1e-6, clean_gkpi)) * 100.0,
+            "CSS": abs(metrics_uncalib.get("RMSE-PC", 0.0) - clean_rmse)
         },
         {
             "Method": "Vanilla SUPER (Clean Baseline)",
@@ -320,6 +344,8 @@ def main():
             "Entropy": metrics_clean_super.get("Entropy", 0.0),
             "Novelty": metrics_clean_super.get("Novelty", 0.0),
             "GKPI": metrics_clean_super.get("GKPI", 0.0),
+            "Delta-GKPI(%)": 0.0,
+            "CSS": 0.0
         },
         {
             "Method": f"Vanilla SUPER (Attacked {args.attack} rho={args.noise:.2f})",
@@ -332,6 +358,8 @@ def main():
             "Entropy": metrics_vanilla.get("Entropy", 0.0),
             "Novelty": metrics_vanilla.get("Novelty", 0.0),
             "GKPI": metrics_vanilla.get("GKPI", 0.0),
+            "Delta-GKPI(%)": metrics_vanilla.get("Delta-GKPI(%)", ((clean_gkpi - metrics_vanilla.get("GKPI", 0.0)) / max(1e-6, clean_gkpi)) * 100.0),
+            "CSS": metrics_vanilla.get("CSS", abs(metrics_vanilla.get("RMSE-PC", 0.0) - clean_rmse))
         },
         {
             "Method": f"RRFN-LLM-SUPER (Ours, 15 epochs, {device.upper()}, rho={args.noise:.2f})",
@@ -344,6 +372,8 @@ def main():
             "Entropy": metrics_robust.get("Entropy", 0.0),
             "Novelty": metrics_robust.get("Novelty", 0.0),
             "GKPI": metrics_robust.get("GKPI", 0.0),
+            "Delta-GKPI(%)": metrics_robust.get("Delta-GKPI(%)", ((clean_gkpi - metrics_robust.get("GKPI", 0.0)) / max(1e-6, clean_gkpi)) * 100.0),
+            "CSS": metrics_robust.get("CSS", abs(metrics_robust.get("RMSE-PC", 0.0) - clean_rmse))
         }
     ]
 

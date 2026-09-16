@@ -316,13 +316,20 @@ def run_interactive_simulation(
         # 5. Dual Model Decoupled Training
         if progress_bar: progress_bar.progress(80, text="⚔️ Stage 5/6: Decoupled Dual Training with Risk-Consistent Loss...")
         t0 = time.time()
-        pop_loader = build_data_loader(attacked_split.train_dict, fused_weights, item_filter=H_robust, batch_size=1024)
-        tail_loader = build_data_loader(attacked_split.train_dict, fused_weights, item_filter=T_robust, batch_size=1024)
-        M_pop, _ = trainer.train_single_model(pop_loader, attacked_split.val_dict, H_robust, T_hat=trans_module.T_hat)
-        M_tail, _ = trainer.train_single_model(tail_loader, attacked_split.val_dict, T_robust, T_hat=trans_module.T_hat)
+        # Train Robust Models (RRFN-LLM-SUPER)
+        pop_loader_rob = build_data_loader(attacked_split.train_dict, fused_weights, item_filter=H_robust, batch_size=1024)
+        tail_loader_rob = build_data_loader(attacked_split.train_dict, fused_weights, item_filter=T_robust, batch_size=1024)
+        M_pop, _ = trainer.train_single_model(pop_loader_rob, attacked_split.val_dict, H_robust, T_hat=trans_module.T_hat)
+        M_tail, _ = trainer.train_single_model(tail_loader_rob, attacked_split.val_dict, T_robust, T_hat=trans_module.T_hat)
+
+        # Train Attacked Vanilla Models (No Denoising Weights)
+        pop_loader_van = build_data_loader(attacked_split.train_dict, unweighted, item_filter=H_vanilla, batch_size=1024)
+        tail_loader_van = build_data_loader(attacked_split.train_dict, unweighted, item_filter=T_vanilla, batch_size=1024)
+        M_pop_van, _ = trainer.train_single_model(pop_loader_van, attacked_split.val_dict, H_vanilla, T_hat=None)
+        M_tail_van, _ = trainer.train_single_model(tail_loader_van, attacked_split.val_dict, T_vanilla, T_hat=None)
         timing_breakdown["Decoupled Dual Training"] = f"{(time.time() - t0)*1000:.1f} ms"
 
-        # 6. Blueprints & Top-N Merging & Comprehensive Evaluation
+        # 6. Blueprints & Top-N Merging & Comprehensive Evaluation (100-Item Candidate Protocol)
         if progress_bar: progress_bar.progress(92, text="🎯 Stage 6/6: Top-N Merging & Comprehensive Evaluation...")
         t0 = time.time()
         robust_inclinations = compute_robust_inclination(
@@ -357,28 +364,41 @@ def run_interactive_simulation(
         recs_vanilla = {}
         recs_uncalib = {}
         recs_clean_super = {}
-
-        eval_users = list(clean_split.test_dict.keys())[:min(150, len(clean_split.test_dict))]
-        head_list_rob = [i for i in H_robust if i < attacked_split.num_items]
-        tail_list_rob = [i for i in T_robust if i < attacked_split.num_items]
-        all_items_list = list(range(attacked_split.num_items))
-
         user_cand_pools = {}
 
+        eval_users = list(clean_split.test_dict.keys())[:min(150, len(clean_split.test_dict))]
+        all_items_set = set(range(attacked_split.num_items))
+        import random
+        rng = random.Random(seed)
+
         for u in eval_users:
-            scores_pop = M_pop.score_items(u, head_list_rob, device=device)
-            scores_tail = M_tail.score_items(u, tail_list_rob, device=device)
-            scores_all = warm_model.score_items(u, all_items_list, device=device)
+            test_item, _, _ = clean_split.test_dict[u]
+            seen = set(item for item, _, _ in clean_split.train_dict.get(u, [])) | {test_item}
+            unseen = list(all_items_set - seen)
+            negs = rng.sample(unseen, min(99, len(unseen)))
+            candidates = [test_item] + negs
 
-            uncal_idx = torch.topk(scores_all, k=min(top_k, len(all_items_list))).indices.cpu().numpy()
-            recs_uncalib[u] = [all_items_list[idx] for idx in uncal_idx]
+            # Robust Candidate Scoring & Merging
+            cand_h_rob = [i for i in candidates if i in H_robust]
+            cand_t_rob = [i for i in candidates if i in T_robust]
+            s_p_rob = M_pop.score_items(u, cand_h_rob, device=device) if cand_h_rob else torch.tensor([])
+            s_t_rob = M_tail.score_items(u, cand_t_rob, device=device) if cand_t_rob else torch.tensor([])
+            p_c_rob = [cand_h_rob[i] for i in torch.topk(s_p_rob, k=len(cand_h_rob)).indices.cpu().numpy()] if len(cand_h_rob) > 0 else []
+            t_c_rob = [cand_t_rob[i] for i in torch.topk(s_t_rob, k=len(cand_t_rob)).indices.cpu().numpy()] if len(cand_t_rob) > 0 else []
+            user_cand_pools[u] = (p_c_rob, t_c_rob)
 
-            pop_sorted_idx = torch.topk(scores_pop, k=min(top_k * 2, len(head_list_rob))).indices.cpu().numpy()
-            tail_sorted_idx = torch.topk(scores_tail, k=min(top_k * 2, len(tail_list_rob))).indices.cpu().numpy()
-            pop_cands = [head_list_rob[idx] for idx in pop_sorted_idx]
-            tail_cands = [tail_list_rob[idx] for idx in tail_sorted_idx]
-            
-            user_cand_pools[u] = (pop_cands, tail_cands)
+            # Vanilla Candidate Scoring & Merging
+            cand_h_van = [i for i in candidates if i in H_vanilla]
+            cand_t_van = [i for i in candidates if i in T_vanilla]
+            s_p_van = M_pop_van.score_items(u, cand_h_van, device=device) if cand_h_van else torch.tensor([])
+            s_t_van = M_tail_van.score_items(u, cand_t_van, device=device) if cand_t_van else torch.tensor([])
+            p_c_van = [cand_h_van[i] for i in torch.topk(s_p_van, k=len(cand_h_van)).indices.cpu().numpy()] if len(cand_h_van) > 0 else []
+            t_c_van = [cand_t_van[i] for i in torch.topk(s_t_van, k=len(cand_t_van)).indices.cpu().numpy()] if len(cand_t_van) > 0 else []
+
+            # Uncalibrated Warm Model Candidate Scoring
+            s_all = warm_model.score_items(u, candidates, device=device)
+            u_sorted = [candidates[i] for i in torch.topk(s_all, k=min(top_k, len(candidates))).indices.cpu().numpy()]
+            recs_uncalib[u] = u_sorted
 
             _, b_u_rob = denoised_blueprints.get(u, ([], []))
             _, b_u_van = vanilla_blueprints.get(u, ([], []))
@@ -388,13 +408,13 @@ def run_interactive_simulation(
             c_u_van = vanilla_inclinations.get(u, pareto_alpha)
             c_u_clean = clean_inclinations.get(u, pareto_alpha)
 
-            recs_robust[u] = merge_top_n(u, pop_cands, tail_cands, c_u_rob, b_u_rob, top_k=top_k)
-            recs_vanilla[u] = merge_top_n(u, pop_cands, tail_cands, c_u_van, b_u_van, top_k=top_k)
-            recs_clean_super[u] = merge_top_n(u, pop_cands, tail_cands, c_u_clean, b_u_clean, top_k=top_k)
+            recs_robust[u] = merge_top_n(u, p_c_rob, t_c_rob, c_u_rob, b_u_rob, top_k=top_k)
+            recs_vanilla[u] = merge_top_n(u, p_c_van, t_c_van, c_u_van, b_u_van, top_k=top_k)
+            recs_clean_super[u] = merge_top_n(u, p_c_rob, t_c_rob, c_u_clean, b_u_clean, top_k=top_k)
 
         # Metrics Computation
         metrics_robust = evaluate_recommendations(recs_robust, clean_split.test_dict, attacked_split.train_dict, H_robust, T_robust, robust_inclinations, top_k=top_k)
-        metrics_vanilla = evaluate_recommendations(recs_vanilla, clean_split.test_dict, attacked_split.train_dict, H_vanilla, T_vanilla, clean_inclinations, top_k=top_k)
+        metrics_vanilla = evaluate_recommendations(recs_vanilla, clean_split.test_dict, attacked_split.train_dict, H_vanilla, T_vanilla, vanilla_inclinations, top_k=top_k)
         metrics_uncalib = evaluate_recommendations(recs_uncalib, clean_split.test_dict, attacked_split.train_dict, H_robust, T_robust, clean_inclinations, top_k=top_k)
         metrics_clean_super = evaluate_recommendations(recs_clean_super, clean_split.test_dict, clean_split.train_dict, H_robust, T_robust, clean_inclinations, top_k=top_k)
         
@@ -1375,21 +1395,31 @@ with tab3:
     """)
 
     df_benchmark = pd.DataFrame(sim["benchmark_table"])
+    fmt_dict = {
+        "Recall@10": "{:.4f}",
+        "nDCG@10": "{:.4f}",
+        "RMSE-PC": "{:.4f}",
+        "MRMC": "{:.4f}",
+        "APLT@10": "{:.1%}",
+        "LTC@10": "{:.1%}",
+        "Entropy": "{:.4f}",
+        "Novelty": "{:.2f}",
+        "GKPI": "{:.4f}",
+        "Delta-GKPI(%)": "{:+.1f}%",
+        "CSS": "{:.4f}"
+    }
+    active_fmt = {k: v for k, v in fmt_dict.items() if k in df_benchmark.columns}
+    max_cols = [c for c in ["nDCG@10", "Recall@10", "APLT@10", "LTC@10", "Entropy", "Novelty", "GKPI"] if c in df_benchmark.columns]
+    min_cols = [c for c in ["RMSE-PC", "MRMC", "Delta-GKPI(%)", "CSS"] if c in df_benchmark.columns]
+
+    styler = df_benchmark.style.format(active_fmt)
+    if max_cols:
+        styler = styler.highlight_max(subset=max_cols, color="#1e3a8a")
+    if min_cols:
+        styler = styler.highlight_min(subset=min_cols, color="#1e3a8a")
+
     st.dataframe(
-        df_benchmark.style.format({
-            "Recall@10": "{:.4f}",
-            "nDCG@10": "{:.4f}",
-            "RMSE-PC": "{:.4f}",
-            "MRMC": "{:.4f}",
-            "APLT@10": "{:.1%}",
-            "LTC@10": "{:.1%}",
-            "Entropy": "{:.4f}",
-            "Novelty": "{:.2f}",
-            "GKPI": "{:.4f}",
-            "Delta-GKPI(%)": "{:+.1f}%",
-            "CSS": "{:.4f}"
-        }).highlight_max(subset=["nDCG@10", "Recall@10", "APLT@10", "LTC@10", "Entropy", "Novelty", "GKPI"], color="#1e3a8a")
-          .highlight_min(subset=["RMSE-PC", "MRMC", "Delta-GKPI(%)", "CSS"], color="#1e3a8a"),
+        styler,
         use_container_width=True,
         hide_index=True
     )
