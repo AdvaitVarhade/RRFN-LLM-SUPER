@@ -2,67 +2,67 @@
   {
     "omega_1_temporal": 0.0,
     "omega_2_polarity": 1.0,
-    "Denoising_F1": 0.9045826774194292,
-    "ROC_AUC": 0.8738859832057756
+    "Denoising_F1": 0.9070010305104708,
+    "ROC_AUC": 0.731923298498532
   },
   {
     "omega_1_temporal": 0.1,
     "omega_2_polarity": 0.9,
-    "Denoising_F1": 0.904343971017103,
-    "ROC_AUC": 0.9293909238909829
+    "Denoising_F1": 0.9060316758544145,
+    "ROC_AUC": 0.8747828902037165
   },
   {
     "omega_1_temporal": 0.2,
     "omega_2_polarity": 0.8,
-    "Denoising_F1": 0.9046217536142824,
-    "ROC_AUC": 0.9544203179793692
+    "Denoising_F1": 0.9059468423234603,
+    "ROC_AUC": 0.8811042552742607
   },
   {
     "omega_1_temporal": 0.3,
     "omega_2_polarity": 0.7,
-    "Denoising_F1": 0.9042523434700694,
-    "ROC_AUC": 0.9781325778841596
+    "Denoising_F1": 0.9053870300119384,
+    "ROC_AUC": 0.8894835181458627
   },
   {
     "omega_1_temporal": 0.4,
     "omega_2_polarity": 0.6,
-    "Denoising_F1": 0.9071970526597302,
-    "ROC_AUC": 0.989748695121177
+    "Denoising_F1": 0.9082322211568751,
+    "ROC_AUC": 0.9030184405542268
   },
   {
     "omega_1_temporal": 0.5,
     "omega_2_polarity": 0.5,
-    "Denoising_F1": 0.9761145671332296,
-    "ROC_AUC": 0.9918234701550876
+    "Denoising_F1": 0.9767981138500131,
+    "ROC_AUC": 0.9371558265211629
   },
   {
     "omega_1_temporal": 0.6,
     "omega_2_polarity": 0.4,
-    "Denoising_F1": 0.9339264710181922,
-    "ROC_AUC": 0.9929365701107029
+    "Denoising_F1": 0.9333018337270784,
+    "ROC_AUC": 0.9598227541383626
   },
   {
     "omega_1_temporal": 0.7,
     "omega_2_polarity": 0.3,
-    "Denoising_F1": 0.9253158128610424,
-    "ROC_AUC": 0.9934326437787179
+    "Denoising_F1": 0.9246430855914095,
+    "ROC_AUC": 0.9608009523497444
   },
   {
     "omega_1_temporal": 0.8,
     "omega_2_polarity": 0.2,
-    "Denoising_F1": 0.9011208085584802,
-    "ROC_AUC": 0.9934363887823966
+    "Denoising_F1": 0.9003581170096302,
+    "ROC_AUC": 0.9609417920209288
   },
   {
     "omega_1_temporal": 0.9,
     "omega_2_polarity": 0.1,
-    "Denoising_F1": 0.8992759983467313,
-    "ROC_AUC": 0.9934171010957782
+    "Denoising_F1": 0.8985054028999784,
+    "ROC_AUC": 0.9586726427929847
   },
   {
     "omega_1_temporal": 1.0,
     "omega_2_polarity": 0.0,
-    "Denoising_F1": 0.8921425883815662,
-    "ROC_AUC": 0.9552032514337816
+    "Denoising_F1": 0.8913727709367093,
+    "ROC_AUC": 0.932626705025198
   }
 ]

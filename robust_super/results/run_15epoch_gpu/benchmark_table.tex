@@ -7,10 +7,10 @@
 \toprule
 \textbf{Method / System} & \textbf{Recall@10} $\uparrow$ & \textbf{nDCG@10} $\uparrow$ & \textbf{RMSE-PC} $\downarrow$ & \textbf{MRMC} $\downarrow$ & \textbf{APLT} (\%) $\uparrow$ & \textbf{LTC} (\%) $\uparrow$ & \textbf{Entropy} $\uparrow$ & \textbf{Novelty} $\uparrow$ & \textbf{GKPI} $\uparrow$ & \textbf{$\Delta$GKPI} (\%) $\downarrow$ \\
 \midrule
-Uncalibrated Backbone (NeuMF) & 0.1533 & 0.0721 & 0.1271 & 0.1596 & 93.9\% & 20.7\% & 0.9668 & 12.23 & 0.1264 & +0.0\% \\
-Vanilla SUPER (Clean Baseline) & 0.1867 & 0.0989 & 0.0974 & 0.1414 & 92.3\% & 15.8\% & 0.9636 & 12.06 & 0.1630 & +0.0\% \\
-Vanilla SUPER (Attacked bandwagon rho=0.10) & 0.2200 & 0.1194 & 0.1003 & 0.1414 & 92.7\% & 15.6\% & 0.9640 & 11.86 & 0.1905 & +0.0\% \\
-\textbf{RRFN-LLM-SUPER (Ours, 15 epochs, CUDA, rho=0.10)} & \textbf{0.1867} & \textbf{0.0934} & \textbf{0.0954} & \textbf{0.1377} & \textbf{92.3\%} & \textbf{15.8\%} & \textbf{0.9636} & \textbf{12.00} & \textbf{0.1552} & \textbf{+0.0\%} \\
+Uncalibrated Backbone (NeuMF) & 0.1533 & 0.0767 & 0.1768 & 0.1810 & 95.0\% & 22.4\% & 0.9692 & 12.27 & 0.1342 & +21.8\% \\
+Vanilla SUPER (Clean Baseline) & 0.2000 & 0.1052 & 0.1211 & 0.1698 & 88.9\% & 15.9\% & 0.9630 & 11.99 & 0.1715 & +0.0\% \\
+Vanilla SUPER (Attacked bandwagon rho=0.15) & 0.1867 & 0.0990 & 0.1211 & 0.1655 & 89.6\% & 15.6\% & 0.9626 & 11.77 & 0.1628 & +5.1\% \\
+\textbf{RRFN-LLM-SUPER (Ours, 15 epochs, CUDA, rho=0.15)} & \textbf{0.2067} & \textbf{0.1014} & \textbf{0.1188} & \textbf{0.1673} & \textbf{89.2\%} & \textbf{15.9\%} & \textbf{0.9628} & \textbf{11.94} & \textbf{0.1664} & \textbf{+3.0\%} \\
 \bottomrule
 \end{tabular}
 \end{table*}

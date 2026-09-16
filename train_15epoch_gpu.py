@@ -116,7 +116,9 @@ def main():
     movies_df = movies_df.sort_values("item_id").reset_index(drop=True)
     ratings_df["user_id"] = ratings_df["user_id"].map(u_map)
     ratings_df["item_id"] = ratings_df["item_id"].map(i_map)
-    ratings_df = ratings_df.reset_index(drop=True)
+    users_df = users_df[users_df["user_id"].isin(u_map.keys())].copy()
+    users_df["user_id"] = users_df["user_id"].map(u_map)
+    users_df = users_df.sort_values(by="user_id").reset_index(drop=True)
 
     clean_split = preprocess_dataset(ratings_df, movies_df, users_df)
     print(f"[DATA] Loaded in {time.time()-t0:.1f}s | Users: {clean_split.num_users}, Items: {clean_split.num_items}")
@@ -224,11 +226,11 @@ def main():
     t0 = time.time()
     robust_inclinations = compute_robust_inclination(
         attacked_split.train_dict, H_robust, fused_weights,
-        shrinkage_tau=5.0, global_head_prior=0.20
+        shrinkage_tau=6.0, global_head_prior=0.20
     )
     denoised_blueprints = build_denoised_blueprints(
         attacked_split.train_dict, fused_weights, attacked_split.user_mean_ratings, H_robust,
-        filter_threshold=0.30
+        filter_threshold=0.35
     )
     vanilla_inclinations = compute_robust_inclination(
         attacked_split.train_dict, H_vanilla, unweighted, shrinkage_tau=0.0, global_head_prior=0.20
@@ -298,7 +300,7 @@ def main():
 
     # ── Metrics ───────────────────────────────────────────────────────────────
     metrics_robust     = evaluate_recommendations(recs_robust,     clean_split.test_dict, attacked_split.train_dict, H_robust, T_robust, robust_inclinations,  top_k=top_k)
-    metrics_vanilla    = evaluate_recommendations(recs_vanilla,    clean_split.test_dict, attacked_split.train_dict, H_vanilla, T_vanilla, clean_inclinations,  top_k=top_k)
+    metrics_vanilla    = evaluate_recommendations(recs_vanilla,    clean_split.test_dict, attacked_split.train_dict, H_vanilla, T_vanilla, vanilla_inclinations, top_k=top_k)
     metrics_uncalib    = evaluate_recommendations(recs_uncalib,    clean_split.test_dict, attacked_split.train_dict, H_robust, T_robust, clean_inclinations,  top_k=top_k)
     metrics_clean_super= evaluate_recommendations(recs_clean_super,clean_split.test_dict, clean_split.train_dict,   H_robust, T_robust, clean_inclinations,  top_k=top_k)
 

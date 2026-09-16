@@ -948,23 +948,6 @@ timing = sim.get("timing_breakdown", {})
 device_used = sim.get("device_used", "cpu").upper()
 
 # -----------------------------------------------------------------------------
-# System Status & Diagnostic Telemetry Ribbon
-# -----------------------------------------------------------------------------
-st.markdown(f"""
-<div class="telemetry-bar">
-    <div>
-        <span class="badge-chip badge-robust">{device_used} ACCELERATION</span>
-        <span class="badge-chip badge-head">{selected_backbone}</span>
-        <span class="badge-chip badge-noise">ATTACK: {attack_type.upper()} (ρ={noise_rate:.2f})</span>
-        <span class="badge-chip badge-tail">AUDITOR: {sim['llm_auditor'].provider.upper()}</span>
-    </div>
-    <div>
-        <span>Total Runtime: <b>{timing.get('Total Pipeline Execution', 'N/A')}</b></span>
-    </div>
-</div>
-""", unsafe_allow_html=True)
-
-# -----------------------------------------------------------------------------
 # Top Telemetry KPI Bar
 # -----------------------------------------------------------------------------
 kpi_col1, kpi_col2, kpi_col3, kpi_col4, kpi_col5, kpi_col6 = st.columns(6)

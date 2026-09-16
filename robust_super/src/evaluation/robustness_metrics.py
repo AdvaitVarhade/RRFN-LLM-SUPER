@@ -249,7 +249,7 @@ def generate_metric_comparison_summary(
             "Absolute Diff": abs_diff,
             "Relative Improvement (%)": rel_impr,
             "Higher is Better": higher_is_better,
-            "Outcome": "🟢 WIN (+)" if is_win else ("⚪ PAR" if abs_diff == 0 else "🔴 LOSS (-)")
+            "Outcome": "WIN (+)" if is_win else ("PAR" if abs_diff == 0 else "LOSS (-)")
         })
 
     return comparison_rows
