@@ -244,6 +244,7 @@ def main():
     recs_vanilla = {}
     recs_uncalib = {}
     recs_clean_super = {}
+    user_cand_pools = {}
     top_k = 10
 
     eval_users = list(clean_split.test_dict.keys())[:min(150, len(clean_split.test_dict))]
@@ -263,6 +264,7 @@ def main():
         tail_sorted_idx = torch.topk(scores_tail, k=min(top_k * 2, len(tail_list_rob))).indices.cpu().numpy()
         pop_cands  = [head_list_rob[idx] for idx in pop_sorted_idx]
         tail_cands = [tail_list_rob[idx] for idx in tail_sorted_idx]
+        user_cand_pools[u] = (pop_cands, tail_cands)
 
         _, b_u_rob   = denoised_blueprints.get(u, ([], []))
         _, b_u_van   = vanilla_blueprints.get(u, ([], []))
@@ -425,6 +427,54 @@ def main():
 
     with open(os.path.join(out_dir, "comparison_summary.json"), "w") as f:
         json.dump(_jsonify(comparison_summary), f, indent=2)
+
+    # Save full state pickle for high-fidelity interactive dashboard inspection
+    import pickle
+    full_sim_data = {
+        "attacked_split": attacked_split,
+        "clean_split": clean_split,
+        "metrics_robust": metrics_robust,
+        "metrics_vanilla": metrics_vanilla,
+        "metrics_uncalib": metrics_uncalib,
+        "metrics_clean_super": metrics_clean_super,
+        "comparison_summary": comparison_summary,
+        "benchmark_table": benchmark_table,
+        "latex_table_str": latex_table_str,
+        "robustness": robustness_robust,
+        "roc_pr_data": roc_pr_data,
+        "omega_sweep_data": omega_sweep_data,
+        "T_hat": T_hat,
+        "T_final": T_final,
+        "fused_weights": fused_weights,
+        "R_RRFN": R_RRFN,
+        "R_LLM": R_LLM,
+        "R_bomb": R_bomb,
+        "H_robust": H_robust,
+        "T_robust": T_robust,
+        "H_vanilla": H_vanilla,
+        "T_vanilla": T_vanilla,
+        "robust_inclinations": robust_inclinations,
+        "denoised_blueprints": denoised_blueprints,
+        "recs_robust": recs_robust,
+        "recs_vanilla": recs_vanilla,
+        "recs_uncalib": recs_uncalib,
+        "user_cand_pools": user_cand_pools,
+        "loss_history_pop": getattr(M_pop, "loss_history", []),
+        "loss_history_tail": getattr(M_tail, "loss_history", []),
+        "llm_auditor": llm_auditor,
+        "prompt_builder": prompt_builder,
+        "backbone_type": args.backbone,
+        "attack_type": args.attack,
+        "noise_rate": args.noise,
+        "device_used": device,
+        "timing_breakdown": {
+            "Total Pipeline Execution": f"Pre-saved GPU Run ({run_config['timestamp']})",
+            "Device": f"{device.upper()} ({gpu_name})",
+            "Dual Epochs": str(args.epochs)
+        }
+    }
+    with open(os.path.join(out_dir, "full_sim_data.pkl"), "wb") as f:
+        pickle.dump(full_sim_data, f)
 
     # ── Final Print ───────────────────────────────────────────────────────────
     print("\n" + "="*65)
