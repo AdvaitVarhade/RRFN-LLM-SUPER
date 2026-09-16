@@ -8,13 +8,20 @@ import sys
 import os
 
 # ── GPU Safety Guard ─────────────────────────────────────────────────────────
-# PyTorch CUDA contexts are thread-local. Streamlit re-runs script in the SAME
-# process (not a new fork), so CUDA initialized once stays available.
-# We only hide the GPU if explicitly launched with RRFN_DEVICE=cpu_only.
-# Default: GPU is available and the sidebar toggle selects it.
-_STREAMLIT_DEVICE = os.environ.get("RRFN_DEVICE", "auto")
-if _STREAMLIT_DEVICE == "cpu_only":
-    os.environ["CUDA_VISIBLE_DEVICES"] = ""
+# ── Device Policy ─────────────────────────────────────────────────────────────
+# WHY CPU-ONLY IN STREAMLIT:
+# On Windows, PyTorch CUDA contexts are created per-thread. Streamlit dispatches
+# every script re-run into a NEW background thread. Adam.step() calls
+# torch.cuda.is_current_stream_capturing() → _cuda_isCurrentStreamCapturing()
+# which requires the CUDA context in the CURRENT thread. Since training runs in
+# Streamlit's background thread (not the one that imported torch), this always
+# fails with "CUDA error: unknown error" regardless of any pre-initialization.
+#
+# SOLUTION: Streamlit always uses CPU for live simulation (fast on the 300-user
+# sample: ~45s). For full GPU training use: python train_15epoch_gpu.py
+# Then load results instantly with the "📂 Load Pre-Saved Results" button.
+os.environ["CUDA_VISIBLE_DEVICES"] = ""   # Hide GPU from Streamlit process
+_CUDA_READY = False                        # Streamlit never uses GPU directly
 # ─────────────────────────────────────────────────────────────────────────────
 
 import time
@@ -26,24 +33,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 import streamlit as st
 
-# ── Eager CUDA Context Initialization ────────────────────────────────────────
-# Initialize CUDA in the MAIN Streamlit thread immediately at module import.
-# This prevents the "CUDA error: unknown error" that occurs when Streamlit
-# re-runs the script and a SECONDARY thread tries to use a GPU context
-# that was never initialized in that thread.
-# By touching CUDA HERE (top-level, synchronously), the context is created
-# once and stays valid for all subsequent runs in the same process.
-if torch.cuda.is_available() and _STREAMLIT_DEVICE != "cpu_only":
-    try:
-        _init_tensor = torch.zeros(1, device="cuda")
-        del _init_tensor
-        torch.cuda.synchronize()
-        _CUDA_READY = True
-    except Exception as _cuda_init_err:
-        _CUDA_READY = False
-else:
-    _CUDA_READY = False
-# ─────────────────────────────────────────────────────────────────────────────
+
 
 # Configure page
 st.set_page_config(
@@ -197,17 +187,12 @@ def load_clean_dataset(dataset_choice: str):
 # =============================================================================
 # Core Simulation Engine with Detailed Telemetry & Optimization
 # =============================================================================
-def select_safe_device(device_pref: str = "CUDA / GPU (RTX 3050)") -> str:
+def select_safe_device(device_pref: str = "cpu") -> str:
+    """Always returns 'cpu' for in-Streamlit simulation.
+    Windows PyTorch CUDA contexts are thread-local; Streamlit trains in a
+    background thread that cannot share the main thread's CUDA context.
+    Use train_15epoch_gpu.py for GPU training, then load via the sidebar button.
     """
-    Returns 'cuda' if the user requests GPU AND it was successfully initialized
-    at startup. Falls back to 'cpu' otherwise. No dynamic CUDA probing here —
-    all CUDA init happened at module import in the main thread.
-    """
-    if "CUDA" in device_pref or "GPU" in device_pref:
-        if _CUDA_READY:
-            return "cuda"
-        else:
-            return "cpu"  # GPU requested but not available/failed init
     return "cpu"
 
 def run_interactive_simulation(
@@ -704,17 +689,10 @@ training_intensity = st.sidebar.selectbox(
     help="Determines decoupled training epochs."
 )
 
-_gpu_label = "CUDA / GPU (Not Available)"
-if _CUDA_READY:
-    _gpu_name = torch.cuda.get_device_name(0)
-    _gpu_mem = torch.cuda.get_device_properties(0).total_memory // (1024**2)
-    _gpu_label = f"CUDA / GPU ({_gpu_name}, {_gpu_mem}MB)"
-
-device_choice = st.sidebar.selectbox(
-    "💻 Hardware Accelerator",
-    ["CPU (Safe & Fast Mode)", _gpu_label],
-    index=1 if _CUDA_READY else 0,  # Default to GPU if available
-    help="GPU drastically speeds up training. CUDA context is initialized at startup for thread safety."
+device_choice = "cpu"  # Streamlit always uses CPU — see device policy at top of file
+st.sidebar.info(
+    "⚡ **Compute: CPU** — Live simulation runs on CPU (fast for 300-user sample).\n\n"
+    "🖥️ GPU results (RTX 3050, 15 epochs) → use **📂 Load Pre-Saved Results** below."
 )
 
 st.sidebar.markdown("---")
