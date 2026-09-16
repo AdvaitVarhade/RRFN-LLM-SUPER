@@ -32,7 +32,7 @@ class LLMPromptBuilder:
         for item_id, rating, _ in sorted_history:
             title, genres = self.item_info.get(item_id, (f"Movie_{item_id}", ["Unknown"]))
             if rating >= 4 and len(top_titles) < 4:
-                top_titles.append(f"{title} ({rating}★)")
+                top_titles.append(f"{title} ({rating}/5)")
             for g in genres:
                 genre_ratings.setdefault(g, []).append(rating)
 

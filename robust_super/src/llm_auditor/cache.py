@@ -15,7 +15,7 @@ class LLMCache:
         self._init_db()
 
     def _init_db(self):
-        with sqlite3.connect(self.db_path) as conn:
+        with sqlite3.connect(self.db_path, timeout=30.0) as conn:
             conn.execute("""
                 CREATE TABLE IF NOT EXISTS audit_cache (
                     cache_key TEXT PRIMARY KEY,
@@ -36,7 +36,7 @@ class LLMCache:
 
     def get(self, user_id: int, item_id: int, rating: int, model_name: str) -> Optional[Tuple[float, str]]:
         key = self._generate_key(user_id, item_id, rating, model_name)
-        with sqlite3.connect(self.db_path) as conn:
+        with sqlite3.connect(self.db_path, timeout=30.0) as conn:
             cursor = conn.cursor()
             cursor.execute(
                 "SELECT semantic_reliability, reason FROM audit_cache WHERE cache_key = ?",
@@ -49,7 +49,7 @@ class LLMCache:
 
     def put(self, user_id: int, item_id: int, rating: int, score: float, reason: str, model_name: str):
         key = self._generate_key(user_id, item_id, rating, model_name)
-        with sqlite3.connect(self.db_path) as conn:
+        with sqlite3.connect(self.db_path, timeout=30.0) as conn:
             conn.execute(
                 """
                 INSERT OR REPLACE INTO audit_cache

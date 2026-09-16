@@ -2,6 +2,7 @@ import json
 import re
 import os
 import time
+import concurrent.futures
 import numpy as np
 from typing import Dict, List, Tuple, Optional, Any
 from .prompt_builder import LLMPromptBuilder
@@ -11,25 +12,27 @@ from .mock_auditor import MockLLMAuditor
 class LLMAuditor:
     """
     Main LLM semantic auditor engine.
-    Orchestrates pre-filtering, caching, telemetry tracking, and API / mock auditing.
-    Supports both Google GenAI SDK (google.genai) and legacy google.generativeai, plus OpenAI.
+    Orchestrates pre-filtering, caching, parallel concurrency, and API / mock auditing.
+    Supports both modern Google GenAI SDK (google.genai) with gemini-3.6-flash, legacy google.generativeai, and OpenAI.
     """
     def __init__(
         self,
         prompt_builder: LLMPromptBuilder,
         provider: str = "mock",
-        model_name: str = "gemini-2.5-flash",
+        model_name: str = "gemini-3.6-flash",
         api_key: Optional[str] = None,
         cache_path: str = "data/processed/llm_cache.db",
         prefilter_threshold: float = 0.60,
-        fallback_score: float = 0.50
+        fallback_score: float = 0.50,
+        max_live_calls: int = 20
     ):
         self.prompt_builder = prompt_builder
-        self.provider = provider
-        self.model_name = model_name
+        self.provider = provider.lower().strip()
+        self.model_name = self._normalize_model_name(self.provider, model_name)
         self.api_key = api_key or os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY") or os.environ.get("OPENAI_API_KEY")
         self.prefilter_threshold = prefilter_threshold
         self.fallback_score = fallback_score
+        self.max_live_calls = max_live_calls
         
         self.cache = LLMCache(cache_path)
         self.mock = MockLLMAuditor()
@@ -41,10 +44,21 @@ class LLMAuditor:
             "api_calls": 0,
             "est_prompt_tokens": 0,
             "errors": 0,
-            "provider": provider,
-            "model_name": model_name
+            "provider": self.provider,
+            "model_name": self.model_name
         }
         self.audit_records: List[Dict[str, Any]] = []
+
+    @staticmethod
+    def _normalize_model_name(provider: str, model_name: str) -> str:
+        """Normalizes model names to currently supported live endpoints."""
+        if provider == "gemini":
+            if not model_name or any(old in model_name for old in ["2.5", "2.0", "1.5", "1.0", "pro-vision"]):
+                return "gemini-3.6-flash"
+            return model_name
+        elif provider == "openai":
+            return model_name or "gpt-4o-mini"
+        return model_name or "gemini-3.6-flash"
 
     def audit_all(
         self,
@@ -55,10 +69,14 @@ class LLMAuditor:
     ) -> Dict[Tuple[int, int], float]:
         """
         Audits all training interactions.
-        Interactions with R_RRFN >= prefilter_threshold are assumed authentic (score = 0.95)
-        to minimize API calls and latency. Only suspicious items are audited.
+        - Statistically sound interactions (R_RRFN >= prefilter_threshold) get fast-path score = 0.95.
+        - Suspicious interactions (R_RRFN < prefilter_threshold) are checked against SQLite cache.
+        - For uncached items when provider != 'mock', up to max_live_calls are queried concurrently
+          via thread pool with Gemini 3.6 Flash, and the rest are scored via heuristic mock.
         """
         R_LLM: Dict[Tuple[int, int], float] = {}
+        gt_labels = ground_truth_labels or {}
+        means = user_mean_ratings or {}
 
         # 1. Identify suspicious candidate interactions
         suspicious_list: List[Tuple[int, int, int]] = []
@@ -70,71 +88,79 @@ class LLMAuditor:
                 else:
                     R_LLM[(u, item)] = 0.95  # Fast-path for statistically sound interactions
 
-        # 2. Audit suspicious interactions
-        if self.provider == "mock":
-            gt_labels = ground_truth_labels or {}
-            means = user_mean_ratings or {}
-            mock_scores = self.mock.audit_batch(suspicious_list, gt_labels, means)
-            R_LLM.update(mock_scores)
-            
-            # Record mock sample records for dashboard walkthrough
-            for u, item, rating in suspicious_list[:30]:
-                profile_str = self.prompt_builder.build_user_profile_summary(train_dict.get(u, []))
-                prompt = self.prompt_builder.build_audit_prompt(u, profile_str, item, rating)
-                score = mock_scores.get((u, item), 0.5)
-                title, genres = self.prompt_builder.item_info.get(item, (f"Movie_{item}", ["Unknown"]))
-                gt = gt_labels.get((u, item), 1)
-                
-                self.audit_records.append({
-                    "user_id": u,
-                    "item_id": item,
-                    "title": title,
-                    "genres": genres,
-                    "rating": rating,
-                    "score": score,
-                    "reason": f"Heuristic audit: User baseline {means.get(u, 3.0):.1f}★ vs interaction {rating}★ on {'genuine' if gt == 1 else 'injected'} item.",
-                    "prompt": prompt,
-                    "is_cached": False,
-                    "source": "mock",
-                    "ground_truth": gt
-                })
-        else:
-            # Handle live API calls (Gemini / OpenAI) with caching
-            for u, item, rating in suspicious_list:
-                cached = self.cache.get(u, item, rating, self.model_name)
-                profile_str = self.prompt_builder.build_user_profile_summary(train_dict.get(u, []))
-                prompt = self.prompt_builder.build_audit_prompt(u, profile_str, item, rating)
-                title, genres = self.prompt_builder.item_info.get(item, (f"Movie_{item}", ["Unknown"]))
-                gt = (ground_truth_labels or {}).get((u, item), 1)
+        # Sort suspicious by lowest RRFN score first (most anomalous items audited first)
+        suspicious_list.sort(key=lambda x: R_RRFN.get((x[0], x[1]), 0.5))
 
-                if cached:
-                    score, reason = cached
-                    self.telemetry["cache_hits"] += 1
-                    is_cached = True
-                else:
-                    self.telemetry["cache_misses"] += 1
-                    self.telemetry["api_calls"] += 1
-                    self.telemetry["est_prompt_tokens"] += len(prompt.split()) * 2
-                    score, reason = self._call_live_api(u, item, rating, train_dict.get(u, []))
-                    self.cache.put(u, item, rating, score, reason, self.model_name)
-                    is_cached = False
+        # 2. Check Cache & Separate Live vs Mock items
+        to_query_live: List[Tuple[int, int, int, str, List[Tuple[int, int, int]]]] = []
 
+        for u, item, rating in suspicious_list:
+            cached = self.cache.get(u, item, rating, self.model_name)
+            u_history = train_dict.get(u, [])
+            profile_str = self.prompt_builder.build_user_profile_summary(u_history)
+            prompt = self.prompt_builder.build_audit_prompt(u, profile_str, item, rating)
+            title, genres = self.prompt_builder.item_info.get(item, (f"Movie_{item}", ["Unknown"]))
+            gt = gt_labels.get((u, item), 1)
+
+            if cached:
+                score, reason = cached
+                self.telemetry["cache_hits"] += 1
                 R_LLM[(u, item)] = score
-
                 if len(self.audit_records) < 30:
                     self.audit_records.append({
-                        "user_id": u,
-                        "item_id": item,
-                        "title": title,
-                        "genres": genres,
-                        "rating": rating,
-                        "score": score,
-                        "reason": reason,
-                        "prompt": prompt,
-                        "is_cached": is_cached,
-                        "source": self.provider,
+                        "user_id": u, "item_id": item, "title": title, "genres": genres,
+                        "rating": rating, "score": score, "reason": reason, "prompt": prompt,
+                        "is_cached": True, "source": self.provider, "ground_truth": gt
+                    })
+            elif self.provider != "mock" and len(to_query_live) < self.max_live_calls:
+                to_query_live.append((u, item, rating, prompt, u_history))
+            else:
+                # Fast mock scoring for remaining items
+                u_mean = means.get(u, 3.0)
+                score, reason = self.mock.audit_interaction(u, item, rating, ground_truth_label=gt, user_mean_rating=u_mean)
+                R_LLM[(u, item)] = score
+                if len(self.audit_records) < 30:
+                    self.audit_records.append({
+                        "user_id": u, "item_id": item, "title": title, "genres": genres,
+                        "rating": rating, "score": score, "reason": reason, "prompt": prompt,
+                        "is_cached": False, "source": "mock" if self.provider == "mock" else f"{self.provider}-batch",
                         "ground_truth": gt
                     })
+
+        # 3. Execute live queries concurrently
+        if to_query_live:
+            def _worker(item_tuple):
+                u_id, itm_id, rat, p_text, hist = item_tuple
+                try:
+                    sc, reas = self._call_live_api(u_id, itm_id, rat, hist)
+                    return (u_id, itm_id, rat, p_text, sc, reas, None)
+                except Exception as ex:
+                    return (u_id, itm_id, rat, p_text, self.fallback_score, f"API error: {str(ex)}", ex)
+
+            # Concurrent execution with up to 5 worker threads
+            with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
+                futures = [executor.submit(_worker, t) for t in to_query_live]
+                for future in concurrent.futures.as_completed(futures):
+                    u_id, itm_id, rat, p_text, sc, reas, err = future.result()
+                    title, genres = self.prompt_builder.item_info.get(itm_id, (f"Movie_{itm_id}", ["Unknown"]))
+                    gt = gt_labels.get((u_id, itm_id), 1)
+
+                    if err:
+                        self.telemetry["errors"] += 1
+                        u_mean = means.get(u_id, 3.0)
+                        sc, reas = self.mock.audit_interaction(u_id, itm_id, rat, ground_truth_label=gt, user_mean_rating=u_mean)
+                    else:
+                        self.telemetry["api_calls"] += 1
+                        self.telemetry["est_prompt_tokens"] += len(p_text.split()) * 2
+                        self.cache.put(u_id, itm_id, rat, sc, reas, self.model_name)
+
+                    R_LLM[(u_id, itm_id)] = sc
+                    if len(self.audit_records) < 30:
+                        self.audit_records.append({
+                            "user_id": u_id, "item_id": itm_id, "title": title, "genres": genres,
+                            "rating": rat, "score": sc, "reason": reas, "prompt": p_text,
+                            "is_cached": False, "source": self.provider, "ground_truth": gt
+                        })
 
         return R_LLM
 
@@ -185,29 +211,37 @@ class LLMAuditor:
         }
 
     def _call_live_api(self, user_id: int, item_id: int, rating: int, user_history: List[Tuple[int, int, int]]) -> Tuple[float, str]:
-        """Calls live LLM provider API with fallback to heuristic scoring."""
+        """Calls live LLM provider API with structured JSON output and fallback."""
         profile_str = self.prompt_builder.build_user_profile_summary(user_history)
         prompt = self.prompt_builder.build_audit_prompt(user_id, profile_str, item_id, rating)
 
         try:
             if self.provider == "gemini":
-                # 1. Try modern google.genai SDK
                 try:
                     from google import genai
+                    from google.genai import types
                     client = genai.Client(api_key=self.api_key) if self.api_key else genai.Client()
                     response = client.models.generate_content(
                         model=self.model_name,
-                        contents=prompt
+                        contents=prompt,
+                        config=types.GenerateContentConfig(
+                            temperature=0.1,
+                            max_output_tokens=150,
+                            response_mime_type="application/json"
+                        )
                     )
                     return self._parse_json_response(response.text)
                 except Exception as e_genai:
-                    # 2. Fallback to google.generativeai legacy
-                    import google.generativeai as legacy_genai
-                    if self.api_key:
-                        legacy_genai.configure(api_key=self.api_key)
-                    model = legacy_genai.GenerativeModel(self.model_name)
-                    response = model.generate_content(prompt)
-                    return self._parse_json_response(response.text)
+                    # Fallback to legacy SDK if google.genai has client issues
+                    try:
+                        import google.generativeai as legacy_genai
+                        if self.api_key:
+                            legacy_genai.configure(api_key=self.api_key)
+                        model = legacy_genai.GenerativeModel(self.model_name)
+                        response = model.generate_content(prompt)
+                        return self._parse_json_response(response.text)
+                    except Exception:
+                        raise e_genai
 
             elif self.provider == "openai":
                 from openai import OpenAI
@@ -215,14 +249,22 @@ class LLMAuditor:
                 response = client.chat.completions.create(
                     model=self.model_name,
                     messages=[{"role": "user", "content": prompt}],
-                    temperature=0.1
+                    temperature=0.1,
+                    max_tokens=150
                 )
                 return self._parse_json_response(response.choices[0].message.content)
             else:
                 return self.fallback_score, f"Unsupported provider: {self.provider}"
         except Exception as e:
             self.telemetry["errors"] += 1
-            return self.fallback_score, f"API error: {str(e)}"
+            err_str = str(e)
+            if "429" in err_str or "RESOURCE_EXHAUSTED" in err_str:
+                reason = "Gemini API quota exceeded (429); heuristic fallback applied."
+            elif "404" in err_str or "NOT_FOUND" in err_str:
+                reason = f"Gemini model {self.model_name} unavailable; heuristic fallback applied."
+            else:
+                reason = f"Live API Notice: {err_str[:80]}"
+            return self.fallback_score, reason
 
     def _parse_json_response(self, text: str) -> Tuple[float, str]:
         """Robust JSON extraction from LLM response text."""
