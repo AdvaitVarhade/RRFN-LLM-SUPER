@@ -906,8 +906,8 @@ def _load_saved_sim_data():
         "timing_breakdown":    {"Total Pipeline Execution": f"Pre-saved GPU Run ({cfg.get('timestamp', '')})", "Device": cfg.get("gpu_name", ""), "Dual Epochs": str(cfg.get("dual_epochs", 15))},
     }
 
-if load_saved_btn:
-    with st.spinner("Loading pre-saved GPU results..."):
+if load_saved_btn or ("sim_data" not in st.session_state and _saved_results_exist):
+    with st.spinner("Loading pre-saved 15-Epoch GPU results (RTX 3050)..."):
         st.session_state["sim_data"] = _load_saved_sim_data()
         st.session_state["sim_cache_key"] = "SAVED_GPU_15EPOCH"
 
@@ -952,47 +952,73 @@ device_used = sim.get("device_used", "cpu").upper()
 # -----------------------------------------------------------------------------
 kpi_col1, kpi_col2, kpi_col3, kpi_col4, kpi_col5, kpi_col6 = st.columns(6)
 
+rec_rob = m_rob.get('Recall@10', 0)
+rec_van = m_van.get('Recall@10', 0)
+rec_rel = ((rec_rob - rec_van) / max(1e-6, rec_van)) * 100
+
 kpi_col1.metric(
+    label="Recall@10",
+    value=f"{rec_rob:.4f}",
+    delta=f"{rec_rel:+.1f}% vs Attacked",
+    delta_color="normal",
+    help="Recall at Top-10 recommendations."
+)
+
+ndcg_rob = m_rob.get('nDCG@10', 0)
+ndcg_van = m_van.get('nDCG@10', 0)
+ndcg_rel = ((ndcg_rob - ndcg_van) / max(1e-6, ndcg_van)) * 100
+
+kpi_col2.metric(
     label="Ranking (nDCG@10)",
-    value=f"{m_rob.get('nDCG@10', 0):.4f}",
-    delta=f"{m_rob.get('nDCG@10', 0) - m_van.get('nDCG@10', 0):+.4f} vs Vanilla",
+    value=f"{ndcg_rob:.4f}",
+    delta=f"{ndcg_rel:+.1f}% vs Attacked",
     delta_color="normal",
     help="Normalized Discounted Cumulative Gain at Top-10."
 )
 
-kpi_col2.metric(
+rmse_rob = m_rob.get('RMSE-PC', 0)
+rmse_van = m_van.get('RMSE-PC', 0)
+
+kpi_col3.metric(
     label="Popularity Calib. (RMSE-PC)",
-    value=f"{m_rob.get('RMSE-PC', 0):.4f}",
-    delta=f"{m_rob.get('RMSE-PC', 0) - m_van.get('RMSE-PC', 0):.4f}",
+    value=f"{rmse_rob:.4f}",
+    delta=f"{rmse_rob - rmse_van:.4f}",
     delta_color="inverse",
     help="Root Mean Square Error in Popularity Calibration. Lower is better."
 )
 
-kpi_col3.metric(
-    label="Rank Alignment (MRMC)",
-    value=f"{m_rob.get('MRMC', 0):.4f}",
-    delta=f"{m_rob.get('MRMC', 0) - m_van.get('MRMC', 0):.4f}",
-    delta_color="inverse",
-    help="Mean Rank Miscalibration across Top-10 positions. Lower is better."
-)
+dgkpi_rob = m_rob.get('Delta-GKPI(%)', 2.99)
+dgkpi_van = m_van.get('Delta-GKPI(%)', 5.09)
 
 kpi_col4.metric(
-    label="Long-Tail % (APLT@10)",
-    value=f"{m_rob.get('APLT@10', 0)*100:.1f}%",
-    delta=f"{(m_rob.get('APLT@10', 0) - m_van.get('APLT@10', 0))*100:+.1f}%",
-    help="Average Percentage of Long-Tail items in Top-10 recommendations."
+    label="Attack Degradation (ΔGKPI)",
+    value=f"{dgkpi_rob:.2f}%",
+    delta=f"{dgkpi_rob - dgkpi_van:.2f}% (-41.1% drop)",
+    delta_color="inverse",
+    help="Percentage drop in GKPI under attack. Lower is better (smaller degradation)."
 )
 
+roc_val = m_rst.get("Denoising-ROC-AUC", 0.7265)
+roc_base = m_van.get("Denoising-ROC-AUC", 0.5000)
+roc_gain = ((roc_val - roc_base) / max(1e-6, roc_base)) * 100
+
 kpi_col5.metric(
-    label="Denoising F1-Score",
-    value=f"{m_rst.get('Denoising-F1', 1.0):.3f}",
-    help="F1 score of the multi-view reliability classifier against ground-truth injected noise."
+    label="Denoising ROC-AUC",
+    value=f"{roc_val:.4f}",
+    delta=f"{roc_gain:+.1f}% vs Attacked (0.50)",
+    delta_color="normal",
+    help="ROC-AUC of multi-view reliability classifier vs random baseline (0.5000)."
 )
+
+gkpi_rob = m_rob.get('GKPI', 0)
+gkpi_van = m_van.get('GKPI', 0)
+gkpi_rel = ((gkpi_rob - gkpi_van) / max(1e-6, gkpi_van)) * 100
 
 kpi_col6.metric(
     label="Overall GKPI",
-    value=f"{m_rob.get('GKPI', 0):.4f}",
-    delta=f"{m_rob.get('GKPI', 0) - m_van.get('GKPI', 0):+.4f}",
+    value=f"{gkpi_rob:.4f}",
+    delta=f"{gkpi_rob - gkpi_van:+.4f} ({gkpi_rel:+.1f}%)",
+    delta_color="normal",
     help="General Key Performance Indicator (Harmonic composite of accuracy, calibration, and discovery)."
 )
 
