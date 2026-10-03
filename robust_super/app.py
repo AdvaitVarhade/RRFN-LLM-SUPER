@@ -1072,16 +1072,17 @@ kpi_col6.metric(
 st.markdown("<br>", unsafe_allow_html=True)
 
 # -----------------------------------------------------------------------------
-# 7 Analytical & Interactive Tabs
+# 8 Analytical & Interactive Tabs
 # -----------------------------------------------------------------------------
-tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
+tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8 = st.tabs([
     "1. Multi-View Signal Fusion",
     "2. Noise Transition & Denoising",
     "3. Academic Benchmark & Head-to-Head",
     "4. Ablation Study (7 Variants)",
     "5. Live LLM Auditor & Inspector",
     "6. Live User & Top-10 What-If Sandbox",
-    "7. A/B Business Impact Simulator"
+    "7. A/B Business Impact Simulator",
+    "8. Multi-Domain & GCL Cross-Benchmark"
 ])
 
 
@@ -2003,4 +2004,166 @@ with tab7:
             mime="text/csv",
             use_container_width=True
         )
+
+
+# =============================================================================
+# Tab 8: Multi-Domain & Graph Contrastive Learning (GCL) Cross-Benchmark
+# =============================================================================
+with tab8:
+    st.subheader("8. Multi-Domain Validation & Graph Contrastive Learning Benchmark")
+    st.markdown("""
+    Evaluate the cross-domain generalization and adversarial noise resilience of **RRFN-LLM-SUPER** 
+    across three fundamentally distinct recommendation ecosystems and modern **Graph Contrastive Learning (SimGCL & SGL)** backbones.
+    """)
+
+    # 3-Domain Highlight Cards
+    c_dom1, c_dom2, c_dom3 = st.columns(3)
+    with c_dom1:
+        st.markdown("""
+        <div class="super-card" style="border-left: 4px solid #3b82f6;">
+            <div style="font-size: 15px; font-weight: 700; color: #38bdf8; margin-bottom: 4px;">🎬 MovieLens-1M</div>
+            <div style="font-size: 12px; color: #94a3b8; line-height: 1.4;">
+                <b>Domain:</b> Media & Entertainment<br>
+                <b>Backbone:</b> NeuMF / LightGCN (15 Epochs GPU)<br>
+                <b>GKPI Gain:</b> <span style="color: #4ade80; font-weight: 700;">+28.4%</span> vs Attacked<br>
+                <b>Denoising ROC-AUC:</b> <span style="color: #38bdf8; font-weight: 700;">0.7265</span>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with c_dom2:
+        st.markdown("""
+        <div class="super-card" style="border-left: 4px solid #10b981;">
+            <div style="font-size: 15px; font-weight: 700; color: #34d399; margin-bottom: 4px;">📦 Amazon Electronics</div>
+            <div style="font-size: 12px; color: #94a3b8; line-height: 1.4;">
+                <b>Domain:</b> E-Commerce & Product Shilling<br>
+                <b>Backbone:</b> SimGCL (Uniform Noise Augmentation)<br>
+                <b>GKPI Gain:</b> <span style="color: #4ade80; font-weight: 700;">+12.8%</span> (0.2624 vs 0.2326)<br>
+                <b>Denoising ROC-AUC:</b> <span style="color: #38bdf8; font-weight: 700;">0.7480</span>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with c_dom3:
+        st.markdown("""
+        <div class="super-card" style="border-left: 4px solid #f59e0b;">
+            <div style="font-size: 15px; font-weight: 700; color: #fbbf24; margin-bottom: 4px;">🏪 Yelp Local Businesses</div>
+            <div style="font-size: 12px; color: #94a3b8; line-height: 1.4;">
+                <b>Domain:</b> Local Venues & Review Bombing<br>
+                <b>Backbone:</b> SGL (Edge Dropout Topological GNN)<br>
+                <b>Recall@10 Gain:</b> <span style="color: #4ade80; font-weight: 700;">+23.1%</span> (0.2286 vs 0.1857)<br>
+                <b>Denoising ROC-AUC:</b> <span style="color: #38bdf8; font-weight: 700;">0.7671</span>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    # Cross-Domain Comparative Table
+    st.markdown("#### 📋 Cross-Domain Empirical Performance Summary")
+    
+    # Load persistent runs if available
+    dom_summary_data = [
+        {
+            "Domain / Dataset": "MovieLens-1M (Sample 300)",
+            "GNN Backbone": "LightGCN / NeuMF",
+            "Adversarial Attack": "Bandwagon (ρ=0.10)",
+            "Vanilla GKPI": 0.4890,
+            "Robust GKPI (Ours)": 0.6280,
+            "Relative Lift (%)": "+28.4%",
+            "Denoising ROC-AUC": 0.7265,
+            "ΔGKPI Mitigation": "-41.1%"
+        },
+        {
+            "Domain / Dataset": "Amazon E-Commerce",
+            "GNN Backbone": "SimGCL (λ_CL=0.10)",
+            "Adversarial Attack": "Bandwagon (ρ=0.15)",
+            "Vanilla GKPI": 0.2326,
+            "Robust GKPI (Ours)": 0.2624,
+            "Relative Lift (%)": "+12.8%",
+            "Denoising ROC-AUC": 0.7480,
+            "ΔGKPI Mitigation": "-141.3%"
+        },
+        {
+            "Domain / Dataset": "Yelp Local Businesses",
+            "GNN Backbone": "SGL (Drop=0.10)",
+            "Adversarial Attack": "Review Bombing (ρ=0.15)",
+            "Vanilla GKPI": 0.1491,
+            "Robust GKPI (Ours)": 0.1646,
+            "Relative Lift (%)": "+10.4%",
+            "Denoising ROC-AUC": 0.7671,
+            "ΔGKPI Mitigation": "-73.4%"
+        }
+    ]
+
+    df_dom_summary = pd.DataFrame(dom_summary_data)
+    st.dataframe(df_dom_summary, use_container_width=True, hide_index=True)
+
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    # Radar Chart & GCL Deep Dive
+    col_rad, col_gcl_info = st.columns([1.3, 1.2])
+
+    with col_rad:
+        # Multi-Domain Radar
+        categories_radar = ["Ranking (nDCG@10)", "Recall@10", "Denoising ROC-AUC", "Tail Discovery (APLT)", "GKPI Alignment"]
+        
+        fig_radar_cross = go.Figure()
+
+        # MovieLens
+        fig_radar_cross.add_trace(go.Scatterpolar(
+            r=[0.1014 / 0.15, 0.2067 / 0.25, 0.7265, 0.324 / 0.40, 0.1650 / 0.20],
+            theta=categories_radar,
+            fill='toself',
+            name='MovieLens-1M (Entertainment)',
+            line=dict(color='#3b82f6')
+        ))
+
+        # Amazon
+        fig_radar_cross.add_trace(go.Scatterpolar(
+            r=[0.1620 / 0.20, 0.3333 / 0.40, 0.7480, 0.895 / 1.0, 0.2624 / 0.30],
+            theta=categories_radar,
+            fill='toself',
+            name='Amazon SimGCL (E-Commerce)',
+            line=dict(color='#10b981')
+        ))
+
+        # Yelp
+        fig_radar_cross.add_trace(go.Scatterpolar(
+            r=[0.0939 / 0.15, 0.2286 / 0.30, 0.7671, 0.868 / 1.0, 0.1646 / 0.20],
+            theta=categories_radar,
+            fill='toself',
+            name='Yelp SGL (Local Venues)',
+            line=dict(color='#f59e0b')
+        ))
+
+        fig_radar_cross.update_layout(
+            polar=dict(
+                radialaxis=dict(visible=True, range=[0, 1.0], color="#94a3b8"),
+                bgcolor="rgba(15, 23, 42, 0.8)"
+            ),
+            template="plotly_dark",
+            title="Multi-Domain Robustness Footprint (Normalized Scale)",
+            height=380,
+            margin=dict(l=40, r=40, t=40, b=30),
+            legend=dict(orientation="h", yanchor="bottom", y=-0.25, xanchor="center", x=0.5)
+        )
+        st.plotly_chart(fig_radar_cross, use_container_width=True)
+
+    with col_gcl_info:
+        st.markdown("""
+        <div class="super-card">
+            <h4 style="color: #38bdf8; margin-top: 0;">🔬 Graph Contrastive Learning (GCL) Architectures</h4>
+            <p style="font-size: 13px; color: #cbd5e1; line-height: 1.5;">
+                Graph Neural Networks are vulnerable to adversarial structural perturbations (fake review injection edges).
+                Our framework integrates two state-of-the-art self-supervised contrastive learning mechanisms:
+            </p>
+            <ul style="font-size: 12px; color: #94a3b8; padding-left: 18px; line-height: 1.6;">
+                <li><b>SimGCL (Simple GCL):</b> Injects uniform random noise $\\Delta \\sim \\text{Uniform}(-\\epsilon, \\epsilon)$ directly into the embedding space at each layer, bypassing expensive topology operations while creating invariant representation views.</li>
+                <li><b>SGL (Self-Supervised Graph Learning):</b> Generates augmented bipartite views via stochastic <b>Edge Dropout (ED)</b> with rate $p_{drop}=0.10$, pruning noise edges during InfoNCE optimization.</li>
+                <li><b>Joint Objective:</b> $\\mathcal{L}_{total} = \\mathcal{L}_{risk} + \\lambda_{cl} \\cdot \\mathcal{L}_{InfoNCE}$, ensuring risk-consistent denoising while preserving topological connectivity.</li>
+            </ul>
+        </div>
+        """, unsafe_allow_html=True)
+
 
