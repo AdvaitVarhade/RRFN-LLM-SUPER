@@ -1,0 +1,15 @@
+\begin{table*}[t]
+\centering
+\small
+\caption{Adversarial Robustness and Popularity Debiasing Performance Comparison on MovieLens-1M.}
+\label{tab:benchmark_results}
+\begin{tabular}{lcccccccccc}
+\toprule
+\textbf{Method / System} & \textbf{Recall@10} $\uparrow$ & \textbf{nDCG@10} $\uparrow$ & \textbf{RMSE-PC} $\downarrow$ & \textbf{MRMC} $\downarrow$ & \textbf{APLT} (\%) $\uparrow$ & \textbf{LTC} (\%) $\uparrow$ & \textbf{Entropy} $\uparrow$ & \textbf{Novelty} $\uparrow$ & \textbf{GKPI} $\uparrow$ & \textbf{$\Delta$GKPI} (\%) $\downarrow$ \\
+\midrule
+Base Model (Uncalibrated, No SUPER) & 0.1857 & 0.0820 & 0.2146 & 0.2108 & 95.9\% & 43.6\% & 0.8781 & 6.91 & 0.1463 & +14.1\% \\
+Vanilla SUPER (YELP Attacked bandwagon) & 0.1857 & 0.0837 & 0.1126 & 0.1523 & 82.4\% & 49.5\% & 0.8914 & 6.74 & 0.1491 & +12.4\% \\
+\textbf{RRFN-LLM-SUPER (YELP + SGL)} & \textbf{0.2286} & \textbf{0.0939} & \textbf{0.1166} & \textbf{0.1366} & \textbf{86.9\%} & \textbf{44.7\%} & \textbf{0.8519} & \textbf{7.06} & \textbf{0.1646} & \textbf{+3.3\%} \\
+\bottomrule
+\end{tabular}
+\end{table*}

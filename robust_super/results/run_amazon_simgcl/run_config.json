@@ -1,0 +1,11 @@
+{
+  "dataset": "amazon",
+  "backbone": "SimGCL",
+  "attack_type": "bandwagon",
+  "noise_rate": 0.15,
+  "dual_epochs": 3,
+  "device": "cuda",
+  "gpu_name": "NVIDIA GeForce RTX 3050 Laptop GPU",
+  "lambda_cl": 0.1,
+  "timestamp": "2026-10-03 14:01:41"
+}

@@ -63,8 +63,9 @@ class LightGCN(nn.Module):
         
         # Normalized Laplacian: D^{-1/2} A D^{-1/2}
         rowsum = np.array(adj.sum(axis=1)).flatten()
-        d_inv = np.power(rowsum, -0.5, where=rowsum > 0)
-        d_inv[rowsum == 0] = 0.0
+        d_inv = np.zeros_like(rowsum, dtype=np.float32)
+        pos_mask = rowsum > 0
+        d_inv[pos_mask] = np.power(rowsum[pos_mask], -0.5)
         d_mat = sp.diags(d_inv)
         norm_adj = d_mat.dot(adj).dot(d_mat).tocoo()
 
@@ -72,7 +73,7 @@ class LightGCN(nn.Module):
         values = torch.from_numpy(norm_adj.data.astype(np.float32))
         shape = torch.Size(norm_adj.shape)
 
-        self.adj_norm = torch.sparse_coo_tensor(indices, values, shape, device=device)
+        self.adj_norm = torch.sparse_coo_tensor(indices, values, shape, device=device).coalesce()
 
     def forward(self, user_ids: torch.Tensor, item_ids: torch.Tensor) -> torch.Tensor:
         """Propagates embeddings across bipartite graph and predicts rating distribution."""
