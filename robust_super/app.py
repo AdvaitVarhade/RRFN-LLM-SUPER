@@ -74,6 +74,13 @@ from src.evaluation.robustness_metrics import (
     generate_latex_benchmark_table,
     generate_metric_comparison_summary
 )
+from src.evaluation.ab_simulator import (
+    estimate_ctr,
+    estimate_gmv_lift,
+    compute_tail_exposure_score,
+    generate_ab_report
+)
+
 
 
 # =============================================================================
@@ -1025,16 +1032,18 @@ kpi_col6.metric(
 st.markdown("<br>", unsafe_allow_html=True)
 
 # -----------------------------------------------------------------------------
-# 6 Analytical & Interactive Tabs
+# 7 Analytical & Interactive Tabs
 # -----------------------------------------------------------------------------
-tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
+tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
     "1. Multi-View Signal Fusion",
     "2. Noise Transition & Denoising",
     "3. Academic Benchmark & Head-to-Head",
     "4. Ablation Study (7 Variants)",
     "5. Live LLM Auditor & Inspector",
-    "6. Live User & Top-10 What-If Sandbox"
+    "6. Live User & Top-10 What-If Sandbox",
+    "7. A/B Business Impact Simulator"
 ])
+
 
 # =============================================================================
 # Tab 1: Multi-View Signal Fusion
@@ -1758,3 +1767,200 @@ with tab6:
                     "Movie Title": t_name
                 })
             st.dataframe(pd.DataFrame(sb_rows), use_container_width=True, hide_index=True)
+
+
+# =============================================================================
+# Tab 7: A/B Business Impact Simulator
+# =============================================================================
+with tab7:
+    st.subheader("7. A/B Testing Business Impact & Revenue Simulator")
+    st.markdown("""
+    Simulate real-world business KPIs and financial impact when deploying **RRFN-LLM-SUPER (Robust)** 
+    versus **Vanilla SUPER (Attacked)** in an online A/B testing environment.
+    Adjust business levers below to dynamically project Click-Through Rate (CTR) and Gross Merchandise Value (GMV) lifts.
+    """)
+
+    # Interactive Business Parameter Sliders
+    st.markdown("#### ⚙️ Business & Simulation Parameters")
+    col_p1, col_p2, col_p3 = st.columns(3)
+
+    with col_p1:
+        sim_dau = st.slider(
+            "Daily Active Users (DAU)",
+            min_value=1000, max_value=500000, value=50000, step=1000,
+            help="Total active platform users per day."
+        )
+        sim_avg_price = st.slider(
+            "Average Item / Order Price ($)",
+            min_value=5.0, max_value=500.0, value=45.0, step=5.0,
+            help="Average dollar value per purchased recommendation."
+        )
+
+    with col_p2:
+        sim_rollout_pct = st.slider(
+            "Treatment Rollout Percentage (%)",
+            min_value=5, max_value=100, value=50, step=5,
+            help="Percentage of total DAU routed to the robust treatment variant."
+        )
+        sim_conv_rate_pct = st.slider(
+            "Purchase Conversion Rate (%)",
+            min_value=0.5, max_value=20.0, value=3.0, step=0.5,
+            help="Probability of a user purchasing an item after clicking."
+        )
+
+    with col_p3:
+        sim_base_ctr_pct = st.slider(
+            "Baseline CTR (%)",
+            min_value=1.0, max_value=30.0, value=12.0, step=0.5,
+            help="Reference CTR at baseline nDCG (0.08)."
+        )
+        sim_sensitivity = st.slider(
+            "nDCG Sensitivity Multiplier",
+            min_value=0.5, max_value=5.0, value=1.8, step=0.1,
+            help="Sensitivity multiplier scaling relative nDCG gains to CTR lift."
+        )
+
+    # Convert percentage inputs to floats
+    rollout_frac = sim_rollout_pct / 100.0
+    conv_rate = sim_conv_rate_pct / 100.0
+    base_ctr = sim_base_ctr_pct / 100.0
+
+    # Generate A/B Report using ab_simulator module
+    sim_params = {
+        "base_ctr": base_ctr,
+        "sensitivity": sim_sensitivity,
+        "avg_price": sim_avg_price,
+        "dau": sim_dau,
+        "conversion_rate": conv_rate,
+        "rollout_fraction": rollout_frac,
+    }
+
+    ab_report = generate_ab_report(m_rob, m_van, sim_params=sim_params)
+
+    st.markdown("---")
+    st.markdown("#### 📊 Key Business Impact Metrics (KPI Cards)")
+
+    kpi_ab1, kpi_ab2, kpi_ab3, kpi_ab4 = st.columns(4)
+
+    kpi_ab1.metric(
+        label="Estimated CTR Lift",
+        value=f"{ab_report['ctr_robust']*100:.2f}%",
+        delta=f"{ab_report['ctr_lift_pct']:+.2f}% vs Baseline ({ab_report['ctr_vanilla']*100:.2f}%)",
+        delta_color="normal",
+        help="Estimated Click-Through Rate based on recommendation nDCG improvement."
+    )
+
+    kpi_ab2.metric(
+        label="Daily Revenue / GMV Lift",
+        value=f"${ab_report['daily_lift']:,.2f}",
+        delta=f"+${ab_report['daily_lift']:,.2f} / day",
+        delta_color="normal",
+        help="Projected daily Gross Merchandise Value increase."
+    )
+
+    kpi_ab3.metric(
+        label="Monthly GMV Lift (30 Days)",
+        value=f"${ab_report['monthly_lift']:,.2f}",
+        delta=f"+${ab_report['monthly_lift']:,.2f} / mo",
+        delta_color="normal",
+        help="Projected 30-day cumulative GMV lift."
+    )
+
+    kpi_ab4.metric(
+        label="Annual GMV Lift (365 Days)",
+        value=f"${ab_report['annual_lift']:,.2f}",
+        delta=f"+${ab_report['annual_lift']:,.2f} / yr",
+        delta_color="normal",
+        help="Projected 365-day cumulative annual GMV lift."
+    )
+
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    # Plotly Charts Section
+    col_chart1, col_chart2 = st.columns([1.5, 1.2])
+
+    # 1. Rollout Curve Line Chart (10% to 100%)
+    rollout_curve_data = []
+    for r_pct in range(10, 101, 10):
+        r_frac = r_pct / 100.0
+        gmv_r = estimate_gmv_lift(
+            ctr_robust=ab_report['ctr_robust'],
+            ctr_vanilla=ab_report['ctr_vanilla'],
+            avg_price=sim_avg_price,
+            dau=sim_dau,
+            conversion_rate=conv_rate,
+            rollout_fraction=r_frac
+        )
+        rollout_curve_data.append({
+            "Rollout Percentage (%)": r_pct,
+            "Daily Robust GMV ($)": round(gmv_r["daily_gmv_robust"], 2),
+            "Daily Vanilla GMV ($)": round(gmv_r["daily_gmv_vanilla"], 2),
+            "Daily GMV Lift ($)": round(gmv_r["daily_lift"], 2),
+            "Monthly GMV Lift ($)": round(gmv_r["monthly_lift"], 2),
+            "Annual GMV Lift ($)": round(gmv_r["annual_lift"], 2),
+        })
+
+    df_rollout = pd.DataFrame(rollout_curve_data)
+
+    with col_chart1:
+        fig_rollout = px.line(
+            df_rollout,
+            x="Rollout Percentage (%)",
+            y=["Daily GMV Lift ($)", "Monthly GMV Lift ($)", "Annual GMV Lift ($)"],
+            title="Projected Revenue / GMV Lift Scaling by Treatment Rollout %",
+            labels={"value": "GMV Lift ($)", "variable": "Time Horizon"},
+            markers=True,
+        )
+        fig_rollout.update_layout(
+            template="plotly_dark",
+            height=360,
+            margin=dict(l=20, r=20, t=40, b=20),
+            legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
+        )
+        st.plotly_chart(fig_rollout, use_container_width=True)
+
+    # 2. Grouped Bar Chart comparing Robust vs Vanilla for CTR, APLT, LTC
+    with col_chart2:
+        metric_comp_df = pd.DataFrame([
+            {"Metric": "CTR (Estimated)", "Model": "RRFN-LLM-SUPER (Ours)", "Score": round(ab_report["ctr_robust"], 4)},
+            {"Metric": "CTR (Estimated)", "Model": "Vanilla SUPER (Attacked)", "Score": round(ab_report["ctr_vanilla"], 4)},
+            {"Metric": "APLT@10 (Tail %)", "Model": "RRFN-LLM-SUPER (Ours)", "Score": round(ab_report["aplt_robust"], 4)},
+            {"Metric": "APLT@10 (Tail %)", "Model": "Vanilla SUPER (Attacked)", "Score": round(ab_report["aplt_vanilla"], 4)},
+            {"Metric": "LTC@10 (Tail Coverage)", "Model": "RRFN-LLM-SUPER (Ours)", "Score": round(ab_report["ltc_robust"], 4)},
+            {"Metric": "LTC@10 (Tail Coverage)", "Model": "Vanilla SUPER (Attacked)", "Score": round(ab_report["ltc_vanilla"], 4)},
+        ])
+
+        fig_bar = px.bar(
+            metric_comp_df,
+            x="Metric",
+            y="Score",
+            color="Model",
+            barmode="group",
+            title="Head-to-Head Business & Long-Tail Metrics Comparison",
+            color_discrete_sequence=["#3b82f6", "#ef4444"],
+            text_auto=".3f"
+        )
+        fig_bar.update_layout(
+            template="plotly_dark",
+            height=360,
+            margin=dict(l=20, r=20, t=40, b=20),
+            legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
+        )
+        st.plotly_chart(fig_bar, use_container_width=True)
+
+    # Downloadable CSV Section
+    st.markdown("---")
+    st.markdown("#### 📥 Export Simulation Data")
+    col_dl1, col_dl2 = st.columns([2, 1])
+    with col_dl1:
+        st.markdown("Download the full rollout curve dataset containing projections from 10% to 100% rollout fractions.")
+    with col_dl2:
+        csv_data = df_rollout.to_csv(index=False)
+        st.download_button(
+            label="📄 Download Rollout Curve (CSV)",
+            data=csv_data,
+            file_name="ab_business_impact_rollout.csv",
+            mime="text/csv",
+            use_container_width=True
+        )
+
