@@ -8,6 +8,7 @@ from typing import List, Tuple, Optional
 class LightGCN(nn.Module):
     """
     LightGCN backbone for collaborative filtering with 5-class rating classification.
+    Features optimized evaluation embedding caching for sub-millisecond candidate scoring.
     """
     def __init__(
         self,
@@ -34,6 +35,8 @@ class LightGCN(nn.Module):
         )
 
         self.adj_norm: Optional[torch.Tensor] = None
+        self._cached_user_embs: Optional[torch.Tensor] = None
+        self._cached_item_embs: Optional[torch.Tensor] = None
         self._init_weights()
 
     def _init_weights(self):
@@ -55,6 +58,10 @@ class LightGCN(nn.Module):
         rows = np.array(rows)
         cols = np.array(cols)
 
+        if len(rows) == 0:
+            rows = np.array([0])
+            cols = np.array([0])
+
         # Bipartite matrix R of size num_users x num_items
         R = sp.coo_matrix((np.ones(len(rows)), (rows, cols)), shape=(self.num_users, self.num_items))
         
@@ -63,8 +70,9 @@ class LightGCN(nn.Module):
         
         # Normalized Laplacian: D^{-1/2} A D^{-1/2}
         rowsum = np.array(adj.sum(axis=1)).flatten()
-        d_inv = np.power(rowsum, -0.5, where=rowsum > 0)
-        d_inv[rowsum == 0] = 0.0
+        d_inv = np.zeros_like(rowsum, dtype=np.float32)
+        pos_mask = rowsum > 0
+        d_inv[pos_mask] = np.power(rowsum[pos_mask], -0.5)
         d_mat = sp.diags(d_inv)
         norm_adj = d_mat.dot(adj).dot(d_mat).tocoo()
 
@@ -72,10 +80,12 @@ class LightGCN(nn.Module):
         values = torch.from_numpy(norm_adj.data.astype(np.float32))
         shape = torch.Size(norm_adj.shape)
 
-        self.adj_norm = torch.sparse_coo_tensor(indices, values, shape, device=device)
+        self.adj_norm = torch.sparse_coo_tensor(indices, values, shape, device=device).coalesce()
+        self._cached_user_embs = None
+        self._cached_item_embs = None
 
-    def forward(self, user_ids: torch.Tensor, item_ids: torch.Tensor) -> torch.Tensor:
-        """Propagates embeddings across bipartite graph and predicts rating distribution."""
+    def compute_all_embeddings(self) -> Tuple[torch.Tensor, torch.Tensor]:
+        """Computes final user and item embeddings after L-layer graph propagation."""
         all_embeddings = torch.cat([self.user_embedding.weight, self.item_embedding.weight], dim=0)
         embs = [all_embeddings]
 
@@ -91,7 +101,11 @@ class LightGCN(nn.Module):
 
         final_user_embs = final_embeddings[:self.num_users]
         final_item_embs = final_embeddings[self.num_users:]
+        return final_user_embs, final_item_embs
 
+    def forward(self, user_ids: torch.Tensor, item_ids: torch.Tensor) -> torch.Tensor:
+        """Propagates embeddings across bipartite graph and predicts rating distribution."""
+        final_user_embs, final_item_embs = self.compute_all_embeddings()
         u_emb = final_user_embs[user_ids]
         i_emb = final_item_embs[item_ids]
 
@@ -101,10 +115,30 @@ class LightGCN(nn.Module):
         return probs
 
     def score_items(self, user_id: int, item_ids: List[int], device: str = "cpu") -> torch.Tensor:
+        """Fast inference evaluation using precomputed cached embeddings."""
         self.eval()
+        if not item_ids:
+            return torch.tensor([], device=device)
+
         with torch.no_grad():
-            u_tensor = torch.full((len(item_ids),), user_id, dtype=torch.long, device=device)
-            i_tensor = torch.tensor(item_ids, dtype=torch.long, device=device)
-            probs = self.forward(u_tensor, i_tensor)
-            weights = torch.arange(1, self.num_classes + 1, dtype=torch.float32, device=device)
+            if self._cached_user_embs is None or self._cached_item_embs is None:
+                u_all, i_all = self.compute_all_embeddings()
+                self._cached_user_embs = u_all
+                self._cached_item_embs = i_all
+
+            u_vec = self._cached_user_embs[user_id].unsqueeze(0) # [1, D]
+            i_vecs = self._cached_item_embs[item_ids]            # [K, D]
+            u_expanded = u_vec.expand(len(item_ids), -1)         # [K, D]
+
+            combined = torch.cat([u_expanded, i_vecs], dim=-1)
+            logits = self.predictor(combined)
+            probs = F.softmax(logits, dim=-1)
+            weights = torch.arange(1, self.num_classes + 1, dtype=torch.float32, device=combined.device)
             return (probs * weights).sum(dim=-1)
+
+    def train(self, mode: bool = True):
+        super().train(mode)
+        if mode:
+            self._cached_user_embs = None
+            self._cached_item_embs = None
+        return self

@@ -48,11 +48,15 @@ if BASE_DIR not in sys.path:
     sys.path.insert(0, BASE_DIR)
 
 from src.data.loader import MovieLensLoader
+from src.data.amazon_loader import AmazonReviewLoader
+from src.data.yelp_loader import YelpLoader
 from src.data.preprocessor import preprocess_dataset, DataSplit
 from src.data.attack_simulator import AttackSimulator
 from src.models.neumf import NeuMF
 from src.models.lightgcn import LightGCN
 from src.models.vaecf import VaeCF
+from src.models.simgcl import SimGCL
+from src.models.sgl import SGL
 from src.rrfn.anchor_selector import AnchorSelector
 from src.rrfn.transition_matrix import NoiseTransitionMatrix
 from src.llm_auditor.prompt_builder import LLMPromptBuilder
@@ -181,6 +185,15 @@ def load_clean_dataset(dataset_choice: str):
     elif dataset_choice == "Full MovieLens-1M (1M Ratings)":
         loader = MovieLensLoader(data_dir=raw_dir, min_user_interactions=5, min_item_interactions=5)
         ratings_df, movies_df, users_df = loader.load_data()
+
+    elif dataset_choice == "Amazon E-Commerce Reviews":
+        loader = AmazonReviewLoader(data_dir=os.path.join(BASE_DIR, "data/amazon"), category="Electronics", min_user_interactions=5, min_item_interactions=5)
+        ratings_df, movies_df, users_df = loader.load_data()
+
+    elif dataset_choice == "Yelp Local Businesses":
+        loader = YelpLoader(data_dir=os.path.join(BASE_DIR, "data/yelp"), min_user_interactions=5, min_item_interactions=5)
+        ratings_df, movies_df, users_df = loader.load_data()
+
     else:
         # Fast synthetic benchmark
         loader = MovieLensLoader(data_dir="non_existent", min_user_interactions=2, min_item_interactions=2)
@@ -210,6 +223,7 @@ def run_interactive_simulation(
     epochs_preset: str = "Fast (3 epochs)",
     device_preference: str = "CPU (Safe & Fast Mode)",
     delta_T_reg: float = 0.01,
+    lambda_cl: float = 0.10,
     omega_1: float = 0.60,
     omega_2: float = 0.40,
     alpha: float = 0.50,
@@ -247,8 +261,18 @@ def run_interactive_simulation(
         top_k = 10
 
         # Backbone Model Factory
+        is_contrastive = backbone_type in ["SimGCL", "SGL"]
+
         def model_factory():
-            if backbone_type == "LightGCN":
+            if backbone_type == "SimGCL":
+                m = SimGCL(attacked_split.num_users, attacked_split.num_items, embedding_dim=32, num_layers=2, noise_eps=0.10)
+                m.set_adjacency(attacked_split.train_dict, device=device)
+                return m
+            elif backbone_type == "SGL":
+                m = SGL(attacked_split.num_users, attacked_split.num_items, embedding_dim=32, num_layers=2, drop_rate=0.10, augment_type="ED")
+                m.set_adjacency(attacked_split.train_dict, device=device)
+                return m
+            elif backbone_type == "LightGCN":
                 m = LightGCN(attacked_split.num_users, attacked_split.num_items, embedding_dim=32, num_layers=2)
                 m.set_adjacency(attacked_split.train_dict, device=device)
                 return m
@@ -263,7 +287,9 @@ def run_interactive_simulation(
             lr=0.003,
             delta_T_reg=delta_T_reg,
             epochs=dual_epochs,
-            early_stopping_patience=3
+            early_stopping_patience=3,
+            use_contrastive=is_contrastive,
+            lambda_cl=lambda_cl
         )
 
         # 2. Warm-Start Model & Anchor Selection
@@ -690,23 +716,36 @@ st.sidebar.header("Simulation Settings")
 
 dataset_mode = st.sidebar.selectbox(
     "Benchmark Dataset",
-    ["Interactive MovieLens (Fast 300-User Sample)", "Full MovieLens-1M (1M Ratings)", "Synthetic Fast Mode"],
+    ["Interactive MovieLens (Fast 300-User Sample)", "Full MovieLens-1M (1M Ratings)", "Amazon E-Commerce Reviews", "Yelp Local Businesses", "Synthetic Fast Mode"],
     index=0,
     help="Interactive sample provides ultra-fast simulation feedback (~1-2s)."
 )
 
 backbone_choice = st.sidebar.selectbox(
     "Model Backbone Architecture",
-    ["NeuMF (Neural Matrix Factorization)", "LightGCN (Graph Collaborative Filtering)", "VaeCF (Variational Autoencoder)"],
+    [
+        "NeuMF (Neural Matrix Factorization)",
+        "LightGCN (Graph Collaborative Filtering)",
+        "VaeCF (Variational Autoencoder)",
+        "SimGCL (Simple Graph Contrastive Learning)",
+        "SGL (Self-Supervised Graph Learning)"
+    ],
     index=0,
     help="Select neural collaborative filtering backbone."
 )
 backbone_map = {
     "NeuMF (Neural Matrix Factorization)": "NeuMF",
     "LightGCN (Graph Collaborative Filtering)": "LightGCN",
-    "VaeCF (Variational Autoencoder)": "VaeCF"
+    "VaeCF (Variational Autoencoder)": "VaeCF",
+    "SimGCL (Simple Graph Contrastive Learning)": "SimGCL",
+    "SGL (Self-Supervised Graph Learning)": "SGL"
 }
 selected_backbone = backbone_map[backbone_choice]
+
+if selected_backbone in ["SimGCL", "SGL"]:
+    lambda_cl = st.sidebar.slider("λ_CL (Contrastive Loss Weight)", min_value=0.01, max_value=0.50, value=0.10, step=0.01)
+else:
+    lambda_cl = 0.00
 
 training_intensity = st.sidebar.selectbox(
     "Training Intensity Preset",
@@ -801,7 +840,7 @@ clean_split, movies_df, users_df = load_clean_dataset(dataset_mode)
 
 # Session state simulation cache check
 sim_cache_key = (
-    dataset_mode, selected_backbone, training_intensity, device_choice, attack_type,
+    dataset_mode, selected_backbone, lambda_cl, training_intensity, device_choice, attack_type,
     noise_rate, alpha, beta, gamma, delta_T_reg, omega_1, omega_2,
     pareto_alpha, shrinkage_tau, filter_threshold, llm_provider,
     bool(gemini_api_key_input), reproducibility_seed
@@ -929,6 +968,7 @@ elif run_btn or "sim_data" not in st.session_state or st.session_state.get("sim_
         epochs_preset=training_intensity,
         device_preference=device_choice,
         delta_T_reg=delta_T_reg,
+        lambda_cl=lambda_cl,
         omega_1=omega_1,
         omega_2=omega_2,
         alpha=alpha,

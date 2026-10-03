@@ -1,0 +1,145 @@
+[
+  {
+    "Metric": "Recall@10",
+    "Category": "Ranking Accuracy",
+    "Clean Baseline": 0.22857142857142856,
+    "Base Model (Attacked)": 0.18571428571428572,
+    "Updated Model (Ours)": 0.22857142857142856,
+    "Absolute Diff": 0.042857142857142844,
+    "Relative Improvement (%)": 23.07692307692307,
+    "Higher is Better": 1,
+    "Outcome": "WIN (+)"
+  },
+  {
+    "Metric": "nDCG@10",
+    "Category": "Ranking Accuracy",
+    "Clean Baseline": 0.09749257630113249,
+    "Base Model (Attacked)": 0.08371701162031218,
+    "Updated Model (Ours)": 0.09387234375299046,
+    "Absolute Diff": 0.010155332132678274,
+    "Relative Improvement (%)": 12.130547825496311,
+    "Higher is Better": 1,
+    "Outcome": "WIN (+)"
+  },
+  {
+    "Metric": "RMSE-PC (Calibration Error)",
+    "Category": "Popularity Calibration",
+    "Clean Baseline": 0.12867696611590265,
+    "Base Model (Attacked)": 0.11257747701626543,
+    "Updated Model (Ours)": 0.11657350778541914,
+    "Absolute Diff": 0.003996030769153711,
+    "Relative Improvement (%)": -3.549582807381938,
+    "Higher is Better": 0,
+    "Outcome": "LOSS (-)"
+  },
+  {
+    "Metric": "MRMC (Rank Miscalibration)",
+    "Category": "Popularity Calibration",
+    "Clean Baseline": 0.1572341237797173,
+    "Base Model (Attacked)": 0.1523365875669156,
+    "Updated Model (Ours)": 0.13663405015919694,
+    "Absolute Diff": -0.015702537407718653,
+    "Relative Improvement (%)": 10.307791226333682,
+    "Higher is Better": 0,
+    "Outcome": "WIN (+)"
+  },
+  {
+    "Metric": "APLT@10 (Long-Tail %)",
+    "Category": "Fairness & Discovery",
+    "Clean Baseline": 0.86,
+    "Base Model (Attacked)": 0.8242857142857141,
+    "Updated Model (Ours)": 0.8685714285714284,
+    "Absolute Diff": 0.04428571428571437,
+    "Relative Improvement (%)": 5.372616984402092,
+    "Higher is Better": 1,
+    "Outcome": "WIN (+)"
+  },
+  {
+    "Metric": "LTC@10 (Catalog Coverage)",
+    "Category": "Fairness & Discovery",
+    "Clean Baseline": 0.44680851063829785,
+    "Base Model (Attacked)": 0.4946236559139785,
+    "Updated Model (Ours)": 0.44680851063829785,
+    "Absolute Diff": -0.04781514527568065,
+    "Relative Improvement (%)": -9.666975023126739,
+    "Higher is Better": 1,
+    "Outcome": "LOSS (-)"
+  },
+  {
+    "Metric": "Entropy (Exposure Spread)",
+    "Category": "Fairness & Discovery",
+    "Clean Baseline": 0.8515411878141284,
+    "Base Model (Attacked)": 0.8913889698837092,
+    "Updated Model (Ours)": 0.8518697848054915,
+    "Absolute Diff": -0.03951918507821772,
+    "Relative Improvement (%)": -4.433438870504916,
+    "Higher is Better": 1,
+    "Outcome": "LOSS (-)"
+  },
+  {
+    "Metric": "Novelty (Self-Information bits)",
+    "Category": "Fairness & Discovery",
+    "Clean Baseline": 7.031984758246417,
+    "Base Model (Attacked)": 6.736298003845193,
+    "Updated Model (Ours)": 7.055223783323357,
+    "Absolute Diff": 0.3189257794781639,
+    "Relative Improvement (%)": 4.734436916183276,
+    "Higher is Better": 1,
+    "Outcome": "WIN (+)"
+  },
+  {
+    "Metric": "GKPI (Holistic Harmonic Metric)",
+    "Category": "Overall Performance",
+    "Clean Baseline": 0.17025918058076644,
+    "Base Model (Attacked)": 0.1491112469741323,
+    "Updated Model (Ours)": 0.16463043882089395,
+    "Absolute Diff": 0.015519191846761649,
+    "Relative Improvement (%)": 10.407794288953873,
+    "Higher is Better": 1,
+    "Outcome": "WIN (+)"
+  },
+  {
+    "Metric": "\u0394GKPI (Attack Degradation %)",
+    "Category": "Adversarial Robustness",
+    "Clean Baseline": null,
+    "Base Model (Attacked)": 12.4210239556522,
+    "Updated Model (Ours)": 3.3059842885842885,
+    "Absolute Diff": -9.115039667067911,
+    "Relative Improvement (%)": 73.3839633480467,
+    "Higher is Better": 0,
+    "Outcome": "WIN (+)"
+  },
+  {
+    "Metric": "CSS (Calibration Stability Score)",
+    "Category": "Adversarial Robustness",
+    "Clean Baseline": null,
+    "Base Model (Attacked)": 0.016099489099637224,
+    "Updated Model (Ours)": 0.012103458330483513,
+    "Absolute Diff": -0.003996030769153711,
+    "Relative Improvement (%)": 24.820854527885327,
+    "Higher is Better": 0,
+    "Outcome": "WIN (+)"
+  },
+  {
+    "Metric": "Denoising Detection F1",
+    "Category": "Adversarial Robustness",
+    "Clean Baseline": null,
+    "Base Model (Attacked)": 0.9063729346970889,
+    "Updated Model (Ours)": 0.9063729346970889,
+    "Absolute Diff": 0.0,
+    "Relative Improvement (%)": 0.0,
+    "Higher is Better": 1,
+    "Outcome": "PAR"
+  },
+  {
+    "Metric": "Denoising Detection ROC-AUC",
+    "Category": "Adversarial Robustness",
+    "Clean Baseline": null,
+    "Base Model (Attacked)": 0.5,
+    "Updated Model (Ours)": 0.7670656804388422,
+    "Absolute Diff": 0.26706568043884216,
+    "Relative Improvement (%)": 53.41313608776843,
+    "Higher is Better": 1,
+    "Outcome": "WIN (+)"
+  }
+]

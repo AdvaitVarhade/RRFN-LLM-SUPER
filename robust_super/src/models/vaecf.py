@@ -6,6 +6,7 @@ from typing import List, Optional
 class VaeCF(nn.Module):
     """
     Variational Autoencoder Collaborative Filtering with 5-class rating probability output.
+    Optimized for vectorized candidate scoring.
     """
     def __init__(
         self,
@@ -75,9 +76,17 @@ class VaeCF(nn.Module):
 
     def score_items(self, user_id: int, item_ids: List[int], device: str = "cpu") -> torch.Tensor:
         self.eval()
+        if not item_ids:
+            return torch.tensor([], device=device)
+
         with torch.no_grad():
-            u_tensor = torch.full((len(item_ids),), user_id, dtype=torch.long, device=device)
-            i_tensor = torch.tensor(item_ids, dtype=torch.long, device=device)
-            probs = self.forward(u_tensor, i_tensor)
-            weights = torch.arange(1, self.num_classes + 1, dtype=torch.float32, device=device)
+            u_vec = self.user_emb.weight[user_id].unsqueeze(0).expand(len(item_ids), -1)
+            i_vecs = self.item_emb.weight[item_ids]
+            x = torch.cat([u_vec, i_vecs], dim=-1)
+
+            mu = self.enc_mu(x)
+            z = mu  # Deterministic mode in eval
+            logits = self.decoder(z)
+            probs = F.softmax(logits, dim=-1)
+            weights = torch.arange(1, self.num_classes + 1, dtype=torch.float32, device=x.device)
             return (probs * weights).sum(dim=-1)

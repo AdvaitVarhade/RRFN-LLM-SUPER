@@ -7,6 +7,7 @@ class NeuMF(nn.Module):
     """
     Neural Matrix Factorization with 5-class rating probability output.
     Combines Generalized Matrix Factorization (GMF) and Multi-Layer Perceptron (MLP).
+    Optimized for high-throughput candidate vector scoring.
     """
     def __init__(
         self,
@@ -87,14 +88,25 @@ class NeuMF(nn.Module):
 
     def score_items(self, user_id: int, item_ids: List[int], device: str = "cpu") -> torch.Tensor:
         """
-        Computes expected rating scores for candidate items for user_id:
+        Optimized vectorized candidate rating scoring:
         Expected rating = sum_{k=1}^5 k * P(Y=k)
         """
         self.eval()
+        if not item_ids:
+            return torch.tensor([], device=device)
+
         with torch.no_grad():
-            u_tensor = torch.full((len(item_ids),), user_id, dtype=torch.long, device=device)
-            i_tensor = torch.tensor(item_ids, dtype=torch.long, device=device)
-            probs = self.forward(u_tensor, i_tensor)  # [N, 5]
-            weights = torch.arange(1, self.num_classes + 1, dtype=torch.float32, device=device)
-            expected_ratings = (probs * weights).sum(dim=-1)
-            return expected_ratings
+            u_gmf = self.user_embed_gmf.weight[user_id].unsqueeze(0).expand(len(item_ids), -1)
+            i_gmf = self.item_embed_gmf.weight[item_ids]
+            gmf_vector = u_gmf * i_gmf
+
+            u_mlp = self.user_embed_mlp.weight[user_id].unsqueeze(0).expand(len(item_ids), -1)
+            i_mlp = self.item_embed_mlp.weight[item_ids]
+            mlp_input = torch.cat([u_mlp, i_mlp], dim=-1)
+            mlp_vector = self.mlp(mlp_input)
+
+            combined = torch.cat([gmf_vector, mlp_vector], dim=-1)
+            logits = self.prediction_head(combined)
+            probs = F.softmax(logits, dim=-1)
+            weights = torch.arange(1, self.num_classes + 1, dtype=torch.float32, device=combined.device)
+            return (probs * weights).sum(dim=-1)

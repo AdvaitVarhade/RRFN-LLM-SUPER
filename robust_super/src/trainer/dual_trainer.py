@@ -6,6 +6,7 @@ from typing import Dict, List, Tuple, Set, Optional
 
 from ..rrfn.transition_matrix import NoiseTransitionMatrix
 from ..rrfn.risk_loss import risk_consistent_loss
+from ..rrfn.contrastive_loss import infonce_loss, joint_risk_contrastive_loss
 from .scheduler import WarmupReduceLROnPlateau
 
 class InteractionDataset(Dataset):
@@ -58,7 +59,8 @@ def build_data_loader(
 
 class DualModelTrainer:
     """
-    Orchestrates decoupled dual training of M_pop and M_tail using risk-consistent loss.
+    Orchestrates decoupled dual training of M_pop and M_tail using risk-consistent loss
+    and optional graph contrastive learning (SimGCL / SGL).
     """
     def __init__(
         self,
@@ -69,7 +71,10 @@ class DualModelTrainer:
         delta_T_reg: float = 0.01,
         gradient_clip_norm: float = 5.0,
         epochs: int = 25,
-        early_stopping_patience: int = 8
+        early_stopping_patience: int = 8,
+        use_contrastive: bool = False,
+        lambda_cl: float = 0.1,
+        temperature_cl: float = 0.2
     ):
         self.model_factory = model_factory
         self.device = device
@@ -79,6 +84,9 @@ class DualModelTrainer:
         self.gradient_clip_norm = gradient_clip_norm
         self.epochs = epochs
         self.early_stopping_patience = early_stopping_patience
+        self.use_contrastive = use_contrastive
+        self.lambda_cl = lambda_cl
+        self.temperature_cl = temperature_cl
 
     def warm_train(
         self,
@@ -159,6 +167,17 @@ class DualModelTrainer:
                     weights=w_b,
                     lambda_reg=self.delta_T_reg
                 )
+
+                if self.use_contrastive and hasattr(model, "get_cl_embeddings"):
+                    v1, v2 = model.get_cl_embeddings()
+                    num_users = getattr(model, "num_users", 0)
+                    u_unique = torch.unique(u_b)
+                    i_unique = torch.unique(i_b)
+                    if num_users > 0 and len(u_unique) > 1 and len(i_unique) > 1:
+                        cl_u = infonce_loss(v1[u_unique], v2[u_unique], temperature=self.temperature_cl)
+                        cl_i = infonce_loss(v1[num_users + i_unique], v2[num_users + i_unique], temperature=self.temperature_cl)
+                        cl_total = cl_u + cl_i
+                        loss = joint_risk_contrastive_loss(loss, cl_total, lambda_cl=self.lambda_cl)
 
                 loss.backward()
                 nn.utils.clip_grad_norm_(params, self.gradient_clip_norm)
