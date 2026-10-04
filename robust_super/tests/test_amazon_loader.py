@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 import tempfile
 import os
-from robust_super.src.data.amazon_loader import AmazonReviewLoader
+from src.data.amazon_loader import AmazonReviewLoader
 
 def test_amazon_loader_synthetic_fallback():
     with tempfile.TemporaryDirectory() as tmpdir:

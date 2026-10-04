@@ -61,7 +61,7 @@ class SGL(LightGCN):
         aug_indices = indices[:, edge_mask]
         aug_values = values[edge_mask] * (1.0 / max(1e-6, 1.0 - drop_rate))  # Rescaling
 
-        return torch.sparse_coo_tensor(aug_indices, aug_values, shape, device=adj_sparse.device)
+        return torch.sparse_coo_tensor(aug_indices, aug_values, shape, device=adj_sparse.device).coalesce()
 
     def _propagate_with_adj(self, custom_adj: Optional[torch.Tensor]) -> torch.Tensor:
         """
@@ -97,3 +97,7 @@ class SGL(LightGCN):
         view1 = self._propagate_with_adj(aug_adj_1)
         view2 = self._propagate_with_adj(aug_adj_2)
         return view1, view2
+
+    def score_candidates_batch(self, user_ids: torch.Tensor, candidate_matrix: torch.Tensor) -> torch.Tensor:
+        """Batched multi-user candidate scoring."""
+        return super().score_candidates_batch(user_ids, candidate_matrix)

@@ -99,7 +99,7 @@ class DualModelTrainer:
         """
         model.to(self.device)
         optimizer = torch.optim.Adam(model.parameters(), lr=self.lr, weight_decay=self.weight_decay)
-        criterion = nn.CrossEntropyLoss()
+        criterion = nn.NLLLoss()
 
         model.train()
         for epoch in range(warm_epochs):
@@ -111,8 +111,8 @@ class DualModelTrainer:
 
                 optimizer.zero_grad()
                 probs = model(u_b, i_b)  # [B, 5]
-                # Log of probs for cross-entropy
-                log_probs = torch.log(probs + 1e-8)
+                # Log of probs for NLL loss (avoids double-softmax)
+                log_probs = torch.log(probs.clamp_min(1e-12))
                 loss = criterion(log_probs, labels)
                 loss.backward()
                 optimizer.step()

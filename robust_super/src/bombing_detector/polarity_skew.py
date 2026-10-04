@@ -8,51 +8,46 @@ def compute_polarity_skew(
     """
     Computes polarity skew S(i, t) - the fraction of extreme ratings (1 or 5)
     in the temporal neighborhood of each interaction.
-    Optimized with binary search and prefix sum counting.
+    Vectorized per-item prefix sums and window search for high performance.
     """
     window_seconds = time_window_hours * 3600
-    item_events: Dict[int, List[Tuple[int, int]]] = {} # item -> [(ts, rating)]
+    half_window = window_seconds // 2
+
+    item_interactions: Dict[int, List[Tuple[int, int, int]]] = {} # item -> [(u, rating, ts)]
 
     for u, interactions in train_dict.items():
         for item, rating, ts in interactions:
-            item_events.setdefault(item, []).append((ts, rating))
-
-    # Precompute sorted timestamp arrays and extreme rating indicator arrays
-    item_ts_arr: Dict[int, np.ndarray] = {}
-    item_extreme_prefix: Dict[int, np.ndarray] = {}
-
-    for item, events in item_events.items():
-        events.sort(key=lambda x: x[0])
-        ts_arr = np.array([e[0] for e in events], dtype=np.int64)
-        extreme_arr = np.array([1 if e[1] in (1, 5) else 0 for e in events], dtype=np.int32)
-        # Prefix sum for O(1) range count of extreme ratings
-        prefix = np.zeros(len(events) + 1, dtype=np.int32)
-        prefix[1:] = np.cumsum(extreme_arr)
-
-        item_ts_arr[item] = ts_arr
-        item_extreme_prefix[item] = prefix
+            item_interactions.setdefault(item, []).append((u, rating, ts))
 
     polarity_scores: Dict[Tuple[int, int], float] = {}
 
-    half_window = window_seconds // 2
-    for u, interactions in train_dict.items():
-        for item, rating, ts in interactions:
-            ts_arr = item_ts_arr[item]
-            if len(ts_arr) <= 2:
+    for item, events in item_interactions.items():
+        n = len(events)
+        if n <= 2:
+            for u, _, _ in events:
                 polarity_scores[(u, item)] = 0.5
-                continue
+            continue
 
-            l_idx = np.searchsorted(ts_arr, ts - half_window, side='left')
-            r_idx = np.searchsorted(ts_arr, ts + half_window, side='right')
-            n_window = r_idx - l_idx
+        # Sort events by timestamp
+        events.sort(key=lambda x: x[2])
+        users = [e[0] for e in events]
+        ts_arr = np.array([e[2] for e in events], dtype=np.int64)
+        extreme_arr = np.array([1 if e[1] in (1, 5) else 0 for e in events], dtype=np.int32)
 
-            if n_window <= 0:
-                polarity_scores[(u, item)] = 0.5
-                continue
+        prefix = np.zeros(n + 1, dtype=np.int32)
+        prefix[1:] = np.cumsum(extreme_arr)
 
-            prefix = item_extreme_prefix[item]
-            n_extreme = prefix[r_idx] - prefix[l_idx]
-            skew = n_extreme / float(n_window)
-            polarity_scores[(u, item)] = float(skew)
+        l_idx = np.searchsorted(ts_arr, ts_arr - half_window, side='left')
+        r_idx = np.searchsorted(ts_arr, ts_arr + half_window, side='right')
+        n_window = r_idx - l_idx
+
+        valid_mask = n_window > 0
+        skew = np.full(n, 0.5, dtype=np.float32)
+        if np.any(valid_mask):
+            n_extreme = prefix[r_idx[valid_mask]] - prefix[l_idx[valid_mask]]
+            skew[valid_mask] = n_extreme / n_window[valid_mask].astype(np.float32)
+
+        for u, s_val in zip(users, skew):
+            polarity_scores[(u, item)] = float(s_val)
 
     return polarity_scores

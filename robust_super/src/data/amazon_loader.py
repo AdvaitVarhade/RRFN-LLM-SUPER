@@ -1,9 +1,11 @@
 import os
+import re
 import json
 import gzip
 import pandas as pd
 import numpy as np
 from typing import Tuple, Dict, Optional, List
+from .preprocessor import safe_join_path
 
 class AmazonReviewLoader:
     """
@@ -15,12 +17,17 @@ class AmazonReviewLoader:
         data_dir: str,
         category: str = "Electronics",
         min_user_interactions: int = 5,
-        min_item_interactions: int = 5
+        min_item_interactions: int = 5,
+        use_synthetic: bool = False
     ):
         self.data_dir = data_dir
-        self.category = category
+        # Sanitize category against path traversal (only alphanumeric, underscores, hyphens)
+        raw_category = category if category is not None else "Electronics"
+        clean_cat = re.sub(r"[^a-zA-Z0-9_\-]", "", str(raw_category))
+        self.category = clean_cat if clean_cat else "Electronics"
         self.min_user_interactions = min_user_interactions
         self.min_item_interactions = min_item_interactions
+        self.use_synthetic = use_synthetic
         
         self.user_to_idx: Dict[str, int] = {}
         self.idx_to_user: Dict[int, str] = {}
@@ -36,10 +43,16 @@ class AmazonReviewLoader:
         Loads Amazon reviews. Checks for {category}_5.json.gz, {category}_5.json, or fallback synthetic.
         Returns (ratings_df, items_df, users_df).
         """
-        gz_path = os.path.join(self.data_dir, f"{self.category}_5.json.gz")
-        json_path = os.path.join(self.data_dir, f"{self.category}_5.json")
-        alt_gz = os.path.join(self.data_dir, "amazon_reviews.json.gz")
-        alt_json = os.path.join(self.data_dir, "amazon_reviews.json")
+        if self.use_synthetic:
+            return self._generate_synthetic_data()
+
+        try:
+            gz_path = safe_join_path(self.data_dir, f"{self.category}_5.json.gz")
+            json_path = safe_join_path(self.data_dir, f"{self.category}_5.json")
+            alt_gz = safe_join_path(self.data_dir, "amazon_reviews.json.gz")
+            alt_json = safe_join_path(self.data_dir, "amazon_reviews.json")
+        except ValueError:
+            return self._generate_synthetic_data()
 
         target_file = None
         for p in [gz_path, json_path, alt_gz, alt_json]:
@@ -52,13 +65,21 @@ class AmazonReviewLoader:
 
         rows = []
         is_gz = target_file.endswith(".gz")
-        opener = gzip.open(target_file, "rt", encoding="utf-8") if is_gz else open(target_file, "r", encoding="utf-8")
-        
+        try:
+            opener = gzip.open(target_file, "rt", encoding="utf-8") if is_gz else open(target_file, "r", encoding="utf-8")
+        except (gzip.BadGzipFile, EOFError, OSError):
+            return self._generate_synthetic_data()
+
         try:
             for line in opener:
-                if not line.strip():
+                line_str = line.strip()
+                if not line_str:
                     continue
-                item = json.loads(line)
+                try:
+                    item = json.loads(line_str)
+                except (json.JSONDecodeError, ValueError):
+                    continue
+
                 reviewer_id = item.get("reviewerID")
                 asin = item.get("asin")
                 overall = item.get("overall")
@@ -66,13 +87,26 @@ class AmazonReviewLoader:
                 review_text = item.get("reviewText", "")
                 
                 if reviewer_id and asin and overall is not None:
+                    try:
+                        rating_int = int(round(float(overall)))
+                    except (ValueError, TypeError):
+                        continue
+
+                    try:
+                        ts_val = int(time_val) if time_val is not None else 1000000
+                    except (ValueError, TypeError):
+                        ts_val = 1000000
+
                     rows.append({
                         "user_id": str(reviewer_id),
                         "item_id": str(asin),
-                        "rating": int(round(float(overall))),
-                        "timestamp": int(time_val) if time_val is not None else 1000000,
+                        "rating": rating_int,
+                        "timestamp": ts_val,
                         "review_text": str(review_text)
                     })
+        except (gzip.BadGzipFile, EOFError, OSError):
+            if not rows:
+                return self._generate_synthetic_data()
         finally:
             opener.close()
 
@@ -82,9 +116,14 @@ class AmazonReviewLoader:
         df = pd.DataFrame(rows)
         df = self._filter_k_core(df)
 
-        # Build contiguous 0-indexed mappings
+        if df.empty:
+            return self._generate_synthetic_data()
+
         unique_users = sorted(df["user_id"].unique())
         unique_items = sorted(df["item_id"].unique())
+
+        if len(unique_users) == 0 or len(unique_items) == 0:
+            return self._generate_synthetic_data()
 
         self.user_to_idx = {u: idx for idx, u in enumerate(unique_users)}
         self.idx_to_user = {idx: u for idx, u in enumerate(unique_users)}
@@ -113,11 +152,17 @@ class AmazonReviewLoader:
             "zip": ["00000"] * self.num_users
         })
 
-        self.global_mean_rating = float(ratings_df["rating"].mean())
+        if not ratings_df.empty and pd.notna(ratings_df["rating"].mean()):
+            self.global_mean_rating = float(ratings_df["rating"].mean())
+        else:
+            self.global_mean_rating = 4.0
+
         return ratings_df, items_df, users_df
 
     def _filter_k_core(self, df: pd.DataFrame) -> pd.DataFrame:
         """Iteratively filters users and items with insufficient interactions until convergence."""
+        if df.empty:
+            return df
         while True:
             u_counts = df["user_id"].value_counts()
             valid_users = u_counts[u_counts >= self.min_user_interactions].index
@@ -129,6 +174,8 @@ class AmazonReviewLoader:
             if len(new_df) == len(df):
                 break
             df = new_df
+            if df.empty:
+                break
         return df
 
     def _generate_synthetic_data(
@@ -190,5 +237,8 @@ class AmazonReviewLoader:
             "zip": ["00000"] * self.num_users
         })
 
-        self.global_mean_rating = float(ratings_df["rating"].mean())
+        if not ratings_df.empty and pd.notna(ratings_df["rating"].mean()):
+            self.global_mean_rating = float(ratings_df["rating"].mean())
+        else:
+            self.global_mean_rating = 4.0
         return ratings_df, items_df, users_df

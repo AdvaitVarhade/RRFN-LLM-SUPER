@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 import tempfile
 import os
-from robust_super.src.data.yelp_loader import YelpLoader
+from src.data.yelp_loader import YelpLoader
 
 def test_yelp_loader_synthetic_fallback():
     with tempfile.TemporaryDirectory() as tmpdir:

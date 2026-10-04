@@ -1,7 +1,31 @@
+import os
 from dataclasses import dataclass, field
 from typing import Dict, List, Tuple, Set, Optional
 import numpy as np
 import pandas as pd
+
+def safe_join_path(base_dir: str, *paths: str) -> str:
+    """
+    Safely joins a base directory with one or more subpaths, ensuring that
+    the resolved target path remains strictly within base_dir (preventing directory traversal).
+    
+    Raises:
+        ValueError: If any component attempts to escape base_dir via '../' or absolute path injection.
+    """
+    for p in paths:
+        if p and str(p).startswith(("\\\\", "//")):
+            raise ValueError(f"UNC path or absolute traversal prohibited: {p}")
+
+    base_abs = os.path.abspath(os.path.realpath(base_dir))
+    safe_parts = [p.lstrip("\\/") for p in paths if p]
+    joined = os.path.abspath(os.path.realpath(os.path.join(base_abs, *safe_parts)))
+    
+    norm_base = os.path.normcase(base_abs)
+    norm_cand = os.path.normcase(joined)
+    
+    if norm_cand != norm_base and not norm_cand.startswith(norm_base + os.sep):
+        raise ValueError(f"Path traversal detected: '{joined}' is outside base directory '{base_abs}'")
+    return joined
 
 @dataclass
 class DataSplit:
@@ -30,6 +54,24 @@ def preprocess_dataset(
       - Second-to-last interaction -> Validation
       - Remaining interactions -> Train
     """
+    if split_strategy != "leave_one_out":
+        raise ValueError(f"Unsupported split_strategy '{split_strategy}'. Allowed: ['leave_one_out']")
+
+    if ratings_df.empty:
+        return DataSplit(
+            train_dict={},
+            val_dict={},
+            test_dict={},
+            weight_dict={},
+            item_counts={},
+            user_mean_ratings={},
+            num_users=len(users_df) if "user_id" in users_df and not users_df.empty else 0,
+            num_items=len(movies_df) if "item_id" in movies_df and not movies_df.empty else 0,
+            items_df=movies_df.copy(),
+            users_df=users_df.copy(),
+            ground_truth_labels={}
+        )
+
     train_dict: Dict[int, List[Tuple[int, int, int]]] = {}
     val_dict: Dict[int, Tuple[int, int, int]] = {}
     test_dict: Dict[int, Tuple[int, int, int]] = {}
@@ -38,11 +80,20 @@ def preprocess_dataset(
     item_counts: Dict[int, int] = {}
     user_mean_ratings: Dict[int, float] = {}
 
-    # Strict bounds computation
-    max_u = int(max(ratings_df["user_id"].max(), users_df["user_id"].max() if "user_id" in users_df else 0))
-    max_i = int(max(ratings_df["item_id"].max(), movies_df["item_id"].max() if "item_id" in movies_df else 0))
-    num_users = max_u + 1
-    num_items = max_i + 1
+    # Strict bounds computation avoiding NaN reduction
+    u_cands = []
+    if "user_id" in ratings_df and not ratings_df["user_id"].empty and pd.notna(ratings_df["user_id"].max()):
+        u_cands.append(int(ratings_df["user_id"].max()))
+    if "user_id" in users_df and not users_df["user_id"].empty and pd.notna(users_df["user_id"].max()):
+        u_cands.append(int(users_df["user_id"].max()))
+    num_users = (max(u_cands) + 1) if u_cands else 0
+
+    i_cands = []
+    if "item_id" in ratings_df and not ratings_df["item_id"].empty and pd.notna(ratings_df["item_id"].max()):
+        i_cands.append(int(ratings_df["item_id"].max()))
+    if "item_id" in movies_df and not movies_df["item_id"].empty and pd.notna(movies_df["item_id"].max()):
+        i_cands.append(int(movies_df["item_id"].max()))
+    num_items = (max(i_cands) + 1) if i_cands else 0
 
     # Group ratings by user
     grouped = ratings_df.groupby("user_id")

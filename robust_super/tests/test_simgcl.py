@@ -1,6 +1,6 @@
 import torch
 import pytest
-from robust_super.src.models.simgcl import SimGCL
+from src.models.simgcl import SimGCL
 
 def test_simgcl_initialization_and_forward():
     num_users = 20

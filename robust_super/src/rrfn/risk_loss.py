@@ -21,8 +21,12 @@ def risk_consistent_loss(
         lambda_reg: Frobenius norm penalty coefficient for delta_T
         epsilon: numerical stability floor
     """
+    # Guard empty batch
+    if clean_probs.size(0) == 0:
+        return torch.tensor(0.0, device=clean_probs.device, requires_grad=True)
+
     # Map 1-indexed ratings (1..5) to 0-indexed (0..4) if necessary
-    if observed_ratings.max() > transition_module.num_classes - 1:
+    if observed_ratings.min() >= 1 and observed_ratings.max() <= transition_module.num_classes:
         labels = observed_ratings - 1
     else:
         labels = observed_ratings
@@ -35,10 +39,11 @@ def risk_consistent_loss(
     # Extract probability assigned to observed noisy label
     batch_size = clean_probs.size(0)
     p_observed = noisy_probs[torch.arange(batch_size, device=clean_probs.device), labels]
+    p_observed = p_observed.clamp(min=1e-12, max=1.0)
 
-    # Weighted negative log likelihood
-    nll = -torch.log(p_observed + epsilon)
-    weighted_loss = torch.mean(weights * nll)
+    # Weighted negative log likelihood normalized by sum of weights
+    nll = -torch.log(p_observed)
+    weighted_loss = torch.sum(weights * nll) / (weights.sum() + 1e-8)
 
     # Regularization on transition matrix slack delta_T
     reg = lambda_reg * torch.norm(transition_module.delta_T, p="fro") ** 2

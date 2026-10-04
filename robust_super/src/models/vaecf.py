@@ -40,6 +40,7 @@ class VaeCF(nn.Module):
             nn.Linear(embedding_dim, num_classes)
         )
 
+        self.register_buffer("rating_weights", torch.arange(1, num_classes + 1, dtype=torch.float32))
         self._init_weights()
 
     def _init_weights(self):
@@ -55,6 +56,7 @@ class VaeCF(nn.Module):
 
     def reparameterize(self, mu: torch.Tensor, logvar: torch.Tensor) -> torch.Tensor:
         if self.training:
+            logvar = torch.clamp(logvar, min=-20.0, max=20.0)
             std = torch.exp(0.5 * logvar)
             eps = torch.randn_like(std)
             return mu + eps * std
@@ -88,5 +90,34 @@ class VaeCF(nn.Module):
             z = mu  # Deterministic mode in eval
             logits = self.decoder(z)
             probs = F.softmax(logits, dim=-1)
-            weights = torch.arange(1, self.num_classes + 1, dtype=torch.float32, device=x.device)
-            return (probs * weights).sum(dim=-1)
+            return (probs * self.rating_weights).sum(dim=-1)
+
+    def score_candidates_batch(self, user_ids: torch.Tensor, candidate_matrix: torch.Tensor) -> torch.Tensor:
+        """
+        Batched multi-user candidate scoring for VaeCF:
+        user_ids: [B]
+        candidate_matrix: [B, C] (or [C] broadcast across users)
+        Returns: [B, C] expected ratings.
+        """
+        self.eval()
+        with torch.no_grad():
+            if candidate_matrix.dim() == 1:
+                candidate_matrix = candidate_matrix.unsqueeze(0).expand(user_ids.size(0), -1)
+
+            B, C = candidate_matrix.shape
+            if B == 0 or C == 0:
+                return torch.empty((B, C), dtype=torch.float32, device=user_ids.device)
+
+            dev = self.user_emb.weight.device
+            user_ids = user_ids.to(dev)
+            candidate_matrix = candidate_matrix.to(dev)
+
+            u = self.user_emb(user_ids).unsqueeze(1).expand(B, C, -1)
+            i = self.item_emb(candidate_matrix)
+            x = torch.cat([u, i], dim=-1)
+
+            mu = self.enc_mu(x)
+            z = mu  # Deterministic mode in eval
+            logits = self.decoder(z)
+            probs = F.softmax(logits, dim=-1)
+            return (probs * self.rating_weights).sum(dim=-1)

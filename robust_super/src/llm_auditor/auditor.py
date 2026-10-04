@@ -9,11 +9,47 @@ from .prompt_builder import LLMPromptBuilder
 from .cache import LLMCache
 from .mock_auditor import MockLLMAuditor
 
+def redact_secrets(text: str, secret: Optional[str] = None) -> str:
+    """
+    Scrubs API keys, credentials, and sensitive tokens from error strings,
+    URLs, and telemetry logs before caching or displaying in UI.
+
+    Parameters:
+        text: The input string containing potentially sensitive data.
+        secret: An optional explicit secret (e.g. self.api_key) to scrub.
+
+    Returns:
+        The sanitized string with credentials replaced by redaction placeholders.
+    """
+    if not text:
+        return ""
+    if not isinstance(text, str):
+        text = str(text)
+
+    # 1. Scrub explicit secret if provided
+    if secret and len(secret.strip()) >= 4:
+        text = text.replace(secret.strip(), "[REDACTED_API_KEY]")
+
+    # 2. Scrub Google / Gemini API keys (AIza...)
+    text = re.sub(r"AIza[0-9A-Za-z\-_]{35}", "[REDACTED_GEMINI_KEY]", text)
+
+    # 3. Scrub OpenAI API keys (sk-..., sk-proj-...)
+    text = re.sub(r"sk-(?:proj-)?[0-9A-Za-z\-_]{20,}", "[REDACTED_OPENAI_KEY]", text)
+
+    # 4. Scrub URL query parameters with keys/tokens (e.g., ?key=XYZ, &api_key=XYZ)
+    text = re.sub(r"([?&](?:key|api_key|access_token)=)[^&\s\"'\)]+", r"\1[REDACTED_KEY]", text, flags=re.IGNORECASE)
+
+    # 5. Scrub Authorization Bearer tokens
+    text = re.sub(r"(Bearer\s+)[0-9A-Za-z\-_\.]{16,}", r"\1[REDACTED_TOKEN]", text, flags=re.IGNORECASE)
+
+    return text
+
 class LLMAuditor:
     """
     Main LLM semantic auditor engine.
     Orchestrates pre-filtering, caching, parallel concurrency, and API / mock auditing.
     Supports both modern Google GenAI SDK (google.genai) with gemini-3.6-flash, legacy google.generativeai, and OpenAI.
+    Hardened with secret scrubbing, serialization protection, and sanitized error telemetry.
     """
     def __init__(
         self,
@@ -48,6 +84,21 @@ class LLMAuditor:
             "model_name": self.model_name
         }
         self.audit_records: List[Dict[str, Any]] = []
+
+    def scrub_secrets(self) -> None:
+        """Scrubs sensitive credentials from this auditor instance."""
+        self.api_key = None
+
+    def __getstate__(self) -> Dict[str, Any]:
+        """Excludes sensitive credentials upon serialization."""
+        state = self.__dict__.copy()
+        state["api_key"] = None  # Never serialize live credentials to disk
+        return state
+
+    def __setstate__(self, state: Dict[str, Any]) -> None:
+        self.__dict__.update(state)
+        if "api_key" not in self.__dict__:
+            self.api_key = None
 
     @staticmethod
     def _normalize_model_name(provider: str, model_name: str) -> str:
@@ -109,7 +160,7 @@ class LLMAuditor:
                 if len(self.audit_records) < 30:
                     self.audit_records.append({
                         "user_id": u, "item_id": item, "title": title, "genres": genres,
-                        "rating": rating, "score": score, "reason": reason, "prompt": prompt,
+                        "rating": rating, "score": score, "reason": redact_secrets(reason, secret=self.api_key), "prompt": prompt,
                         "is_cached": True, "source": self.provider, "ground_truth": gt
                     })
             elif self.provider != "mock" and len(to_query_live) < self.max_live_calls:
@@ -122,7 +173,7 @@ class LLMAuditor:
                 if len(self.audit_records) < 30:
                     self.audit_records.append({
                         "user_id": u, "item_id": item, "title": title, "genres": genres,
-                        "rating": rating, "score": score, "reason": reason, "prompt": prompt,
+                        "rating": rating, "score": score, "reason": redact_secrets(reason, secret=self.api_key), "prompt": prompt,
                         "is_cached": False, "source": "mock" if self.provider == "mock" else f"{self.provider}-batch",
                         "ground_truth": gt
                     })
@@ -133,9 +184,10 @@ class LLMAuditor:
                 u_id, itm_id, rat, p_text, hist = item_tuple
                 try:
                     sc, reas = self._call_live_api(u_id, itm_id, rat, hist)
-                    return (u_id, itm_id, rat, p_text, sc, reas, None)
+                    return (u_id, itm_id, rat, p_text, sc, redact_secrets(reas, secret=self.api_key), None)
                 except Exception as ex:
-                    return (u_id, itm_id, rat, p_text, self.fallback_score, f"API error: {str(ex)}", ex)
+                    sanitized_msg = redact_secrets(str(ex), secret=self.api_key)
+                    return (u_id, itm_id, rat, p_text, self.fallback_score, f"API error: {sanitized_msg}", ex)
 
             # Concurrent execution with up to 5 worker threads
             with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
@@ -145,6 +197,7 @@ class LLMAuditor:
                     title, genres = self.prompt_builder.item_info.get(itm_id, (f"Movie_{itm_id}", ["Unknown"]))
                     gt = gt_labels.get((u_id, itm_id), 1)
 
+                    reas = redact_secrets(reas, secret=self.api_key)
                     if err:
                         self.telemetry["errors"] += 1
                         u_mean = means.get(u_id, 3.0)
@@ -190,6 +243,7 @@ class LLMAuditor:
                 score, reason = self.mock.audit_interaction(user_id, item_id, rating, ground_truth_label=1, user_mean_rating=u_mean)
             else:
                 score, reason = self._call_live_api(user_id, item_id, rating, user_history)
+                reason = redact_secrets(reason, secret=self.api_key)
                 self.cache.put(user_id, item_id, rating, score, reason, self.model_name)
             is_cached = False
 
@@ -202,7 +256,7 @@ class LLMAuditor:
             "genres": genres,
             "rating": rating,
             "score": score,
-            "reason": reason,
+            "reason": redact_secrets(reason, secret=self.api_key),
             "prompt": prompt,
             "is_cached": is_cached,
             "latency_ms": latency_ms,
@@ -257,13 +311,13 @@ class LLMAuditor:
                 return self.fallback_score, f"Unsupported provider: {self.provider}"
         except Exception as e:
             self.telemetry["errors"] += 1
-            err_str = str(e)
+            err_str = redact_secrets(str(e), secret=self.api_key)
             if "429" in err_str or "RESOURCE_EXHAUSTED" in err_str:
                 reason = "Gemini API quota exceeded (429); heuristic fallback applied."
             elif "404" in err_str or "NOT_FOUND" in err_str:
                 reason = f"Gemini model {self.model_name} unavailable; heuristic fallback applied."
             else:
-                reason = f"Live API Notice: {err_str[:80]}"
+                reason = redact_secrets(f"Live API Notice: {err_str[:80]}", secret=self.api_key)
             return self.fallback_score, reason
 
     def _parse_json_response(self, text: str) -> Tuple[float, str]:
@@ -274,7 +328,7 @@ class LLMAuditor:
                 data = json.loads(match.group())
                 score = float(data.get("semantic_reliability", self.fallback_score))
                 reason = str(data.get("reason", ""))
-                return max(0.0, min(1.0, score)), reason
+                return max(0.0, min(1.0, score)), redact_secrets(reason, secret=self.api_key)
         except Exception:
             pass
         return self.fallback_score, "Fallback: could not parse JSON response"

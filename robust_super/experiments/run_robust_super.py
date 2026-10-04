@@ -176,11 +176,13 @@ def main():
                 scores_pop = M_pop.score_items(u, head_list, device=device)
                 scores_tail = M_tail.score_items(u, tail_list, device=device)
 
-                pop_sorted_idx = torch.topk(scores_pop, k=min(top_k, len(head_list))).indices.cpu().numpy()
-                tail_sorted_idx = torch.topk(scores_tail, k=min(top_k, len(tail_list))).indices.cpu().numpy()
+                k_pop = min(top_k, len(head_list))
+                pop_sorted_idx = torch.topk(scores_pop, k=k_pop).indices.cpu().numpy() if k_pop > 0 else []
+                k_tail = min(top_k, len(tail_list))
+                tail_sorted_idx = torch.topk(scores_tail, k=k_tail).indices.cpu().numpy() if k_tail > 0 else []
 
-                pop_cands = [head_list[idx] for idx in pop_sorted_idx]
-                tail_cands = [tail_list[idx] for idx in tail_sorted_idx]
+                pop_cands = [head_list[idx] for idx in pop_sorted_idx] if len(head_list) > 0 else []
+                tail_cands = [tail_list[idx] for idx in tail_sorted_idx] if len(tail_list) > 0 else []
 
                 _, b_u = blueprints.get(u, ([], []))
                 rec = merge_top_n(u, pop_cands, tail_cands, inclinations.get(u, 0.2), b_u, top_k=top_k)

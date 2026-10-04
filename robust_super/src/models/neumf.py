@@ -49,6 +49,7 @@ class NeuMF(nn.Module):
         final_input_dim = embedding_dim + mlp_layers[-1]
         self.prediction_head = nn.Linear(final_input_dim, num_classes)
 
+        self.register_buffer("rating_weights", torch.arange(1, num_classes + 1, dtype=torch.float32))
         self._init_weights()
 
     def _init_weights(self):
@@ -108,5 +109,38 @@ class NeuMF(nn.Module):
             combined = torch.cat([gmf_vector, mlp_vector], dim=-1)
             logits = self.prediction_head(combined)
             probs = F.softmax(logits, dim=-1)
-            weights = torch.arange(1, self.num_classes + 1, dtype=torch.float32, device=combined.device)
-            return (probs * weights).sum(dim=-1)
+            return (probs * self.rating_weights).sum(dim=-1)
+
+    def score_candidates_batch(self, user_ids: torch.Tensor, candidate_matrix: torch.Tensor) -> torch.Tensor:
+        """
+        Batched multi-user candidate scoring for NeuMF:
+        user_ids: [B]
+        candidate_matrix: [B, C] (or [C] broadcast across users)
+        Returns: [B, C] expected ratings.
+        """
+        self.eval()
+        with torch.no_grad():
+            if candidate_matrix.dim() == 1:
+                candidate_matrix = candidate_matrix.unsqueeze(0).expand(user_ids.size(0), -1)
+
+            B, C = candidate_matrix.shape
+            if B == 0 or C == 0:
+                return torch.empty((B, C), dtype=torch.float32, device=user_ids.device)
+
+            dev = self.user_embed_gmf.weight.device
+            user_ids = user_ids.to(dev)
+            candidate_matrix = candidate_matrix.to(dev)
+
+            u_gmf = self.user_embed_gmf(user_ids).unsqueeze(1).expand(B, C, -1)
+            i_gmf = self.item_embed_gmf(candidate_matrix)
+            gmf_vector = u_gmf * i_gmf
+
+            u_mlp = self.user_embed_mlp(user_ids).unsqueeze(1).expand(B, C, -1)
+            i_mlp = self.item_embed_mlp(candidate_matrix)
+            mlp_input = torch.cat([u_mlp, i_mlp], dim=-1)
+            mlp_vector = self.mlp(mlp_input)
+
+            combined = torch.cat([gmf_vector, mlp_vector], dim=-1)
+            logits = self.prediction_head(combined)
+            probs = F.softmax(logits, dim=-1)
+            return (probs * self.rating_weights).sum(dim=-1)

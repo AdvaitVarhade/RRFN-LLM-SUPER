@@ -1,7 +1,7 @@
 from .loader import MovieLensLoader
 from .amazon_loader import AmazonReviewLoader
 from .yelp_loader import YelpLoader
-from .preprocessor import DataSplit, preprocess_dataset
+from .preprocessor import DataSplit, preprocess_dataset, safe_join_path
 from .attack_simulator import AttackSimulator
 
 DATASET_LOADERS = {
@@ -26,6 +26,7 @@ __all__ = [
     "YelpLoader",
     "DataSplit",
     "preprocess_dataset",
+    "safe_join_path",
     "AttackSimulator",
     "DATASET_LOADERS",
     "get_dataset_loader"

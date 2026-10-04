@@ -1,6 +1,6 @@
 import torch
 import pytest
-from robust_super.src.rrfn.contrastive_loss import infonce_loss, joint_risk_contrastive_loss
+from src.rrfn.contrastive_loss import infonce_loss, joint_risk_contrastive_loss
 
 def test_infonce_loss_positive_and_gradient():
     torch.manual_seed(42)

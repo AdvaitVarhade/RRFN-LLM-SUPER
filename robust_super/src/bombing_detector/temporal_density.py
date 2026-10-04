@@ -7,48 +7,49 @@ def compute_temporal_acceleration(
 ) -> Dict[Tuple[int, int], float]:
     """
     Computes temporal rating burst acceleration A(i, t) for each interaction.
-    Optimized with O(log N) binary search (np.searchsorted) for high performance.
+    Fully vectorized per-item binary search (np.searchsorted) for high performance.
     """
     window_seconds = time_window_hours * 3600
-    item_timestamps: Dict[int, List[int]] = {}
+    item_interactions: Dict[int, List[Tuple[int, int]]] = {}
 
-    # 1. Collect all interaction timestamps per item
+    # 1. Group interactions by item: item -> [(user, timestamp)]
     for u, interactions in train_dict.items():
         for item, rating, ts in interactions:
-            item_timestamps.setdefault(item, []).append(ts)
-
-    # Convert to sorted numpy arrays once
-    item_ts_arrays: Dict[int, np.ndarray] = {
-        item: np.sort(np.array(ts_list, dtype=np.int64))
-        for item, ts_list in item_timestamps.items()
-    }
+            item_interactions.setdefault(item, []).append((u, ts))
 
     acceleration_scores: Dict[Tuple[int, int], float] = {}
 
-    # 2. Vectorized / binary-search density calculation
-    for u, interactions in train_dict.items():
-        for item, rating, ts in interactions:
-            arr = item_ts_arrays[item]
-            if len(arr) <= 3:
+    # 2. Vectorized per-item window search
+    for item, pairs in item_interactions.items():
+        n = len(pairs)
+        if n <= 3:
+            for u, _ in pairs:
                 acceleration_scores[(u, item)] = 1.0
-                continue
+            continue
 
-            # Binary search range counts
-            idx_curr_r = np.searchsorted(arr, ts, side='right')
-            idx_curr_l = np.searchsorted(arr, ts - window_seconds, side='left')
-            window_count = idx_curr_r - idx_curr_l
+        # Sort pairs by timestamp
+        pairs.sort(key=lambda x: x[1])
+        users = [p[0] for p in pairs]
+        ts_arr = np.array([p[1] for p in pairs], dtype=np.int64)
 
-            idx_b1_l = np.searchsorted(arr, ts - 2 * window_seconds, side='left')
-            b1 = idx_curr_l - idx_b1_l
+        # Vectorized binary search over entire timestamp array simultaneously
+        curr_r = np.searchsorted(ts_arr, ts_arr, side='right')
+        curr_l = np.searchsorted(ts_arr, ts_arr - window_seconds, side='left')
+        window_count = curr_r - curr_l
 
-            idx_b2_l = np.searchsorted(arr, ts - 3 * window_seconds, side='left')
-            b2 = idx_b1_l - idx_b2_l
+        b1_l = np.searchsorted(ts_arr, ts_arr - 2 * window_seconds, side='left')
+        b1 = curr_l - b1_l
 
-            idx_b3_l = np.searchsorted(arr, ts - 4 * window_seconds, side='left')
-            b3 = idx_b2_l - idx_b3_l
+        b2_l = np.searchsorted(ts_arr, ts_arr - 3 * window_seconds, side='left')
+        b2 = b1_l - b2_l
 
-            b_avg = (b1 + b2 + b3) / 3.0
-            accel = window_count / (b_avg + 1.0)
-            acceleration_scores[(u, item)] = float(min(10.0, accel))
+        b3_l = np.searchsorted(ts_arr, ts_arr - 4 * window_seconds, side='left')
+        b3 = b2_l - b3_l
+
+        b_avg = (b1 + b2 + b3) / 3.0
+        accel = np.minimum(10.0, window_count / (b_avg + 1.0))
+
+        for u, a_val in zip(users, accel):
+            acceleration_scores[(u, item)] = float(a_val)
 
     return acceleration_scores

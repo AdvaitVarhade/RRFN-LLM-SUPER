@@ -462,6 +462,10 @@ def main():
 
     # Save full state pickle for high-fidelity interactive dashboard inspection
     import pickle
+    if hasattr(llm_auditor, "scrub_secrets"):
+        llm_auditor.scrub_secrets()
+    elif hasattr(llm_auditor, "api_key"):
+        llm_auditor.api_key = None
     full_sim_data = {
         "attacked_split": attacked_split,
         "clean_split": clean_split,

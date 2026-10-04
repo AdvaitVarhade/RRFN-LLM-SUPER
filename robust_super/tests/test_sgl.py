@@ -1,6 +1,6 @@
 import torch
 import pytest
-from robust_super.src.models.sgl import SGL
+from src.models.sgl import SGL
 
 def test_sgl_initialization_and_forward():
     num_users = 20

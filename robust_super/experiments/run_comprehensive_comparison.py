@@ -120,8 +120,10 @@ def run_full_benchmark_comparison(
     for u in eval_users:
         sp = M_pop_clean.score_items(u, h_list_c, device=device)
         st = M_tail_clean.score_items(u, t_list_c, device=device)
-        pc = [h_list_c[idx] for idx in torch.topk(sp, k=min(top_k, len(h_list_c))).indices.cpu().numpy()]
-        tc = [t_list_c[idx] for idx in torch.topk(st, k=min(top_k, len(t_list_c))).indices.cpu().numpy()]
+        k_pc = min(top_k, len(h_list_c))
+        pc = [h_list_c[idx] for idx in torch.topk(sp, k=k_pc).indices.cpu().numpy()] if k_pc > 0 else []
+        k_tc = min(top_k, len(t_list_c))
+        tc = [t_list_c[idx] for idx in torch.topk(st, k=k_tc).indices.cpu().numpy()] if k_tc > 0 else []
         _, bu = bp_clean.get(u, ([], []))
         recs_clean[u] = merge_top_n(u, pc, tc, inclin_clean.get(u, 0.2), bu, top_k=top_k)
 
@@ -196,16 +198,20 @@ def run_full_benchmark_comparison(
                 # Base model recommendations (Dynamic attacked inclination & dynamic blueprint)
                 sp_b = M_pop_base.score_items(u, h_list_base, device=device)
                 st_b = M_tail_base.score_items(u, t_list_base, device=device)
-                pc_b = [h_list_base[idx] for idx in torch.topk(sp_b, k=min(top_k, len(h_list_base))).indices.cpu().numpy()]
-                tc_b = [t_list_base[idx] for idx in torch.topk(st_b, k=min(top_k, len(t_list_base))).indices.cpu().numpy()]
+                k_pc_b = min(top_k, len(h_list_base))
+                pc_b = [h_list_base[idx] for idx in torch.topk(sp_b, k=k_pc_b).indices.cpu().numpy()] if k_pc_b > 0 else []
+                k_tc_b = min(top_k, len(t_list_base))
+                tc_b = [t_list_base[idx] for idx in torch.topk(st_b, k=k_tc_b).indices.cpu().numpy()] if k_tc_b > 0 else []
                 _, bu_b = bp_base.get(u, ([], []))
                 recs_base[u] = merge_top_n(u, pc_b, tc_b, inclin_base.get(u, 0.2), bu_b, top_k=top_k)
 
                 # Updated model recommendations (Robust reliability-weighted inclination & denoised blueprint)
                 sp_r = M_pop_rob.score_items(u, h_list_rob, device=device)
                 st_r = M_tail_rob.score_items(u, t_list_rob, device=device)
-                pc_r = [h_list_rob[idx] for idx in torch.topk(sp_r, k=min(top_k, len(h_list_rob))).indices.cpu().numpy()]
-                tc_r = [t_list_rob[idx] for idx in torch.topk(st_r, k=min(top_k, len(t_list_rob))).indices.cpu().numpy()]
+                k_pc_r = min(top_k, len(h_list_rob))
+                pc_r = [h_list_rob[idx] for idx in torch.topk(sp_r, k=k_pc_r).indices.cpu().numpy()] if k_pc_r > 0 else []
+                k_tc_r = min(top_k, len(t_list_rob))
+                tc_r = [t_list_rob[idx] for idx in torch.topk(st_r, k=k_tc_r).indices.cpu().numpy()] if k_tc_r > 0 else []
                 _, bu_r = bp_rob.get(u, ([], []))
                 recs_rob[u] = merge_top_n(u, pc_r, tc_r, inclin_rob.get(u, 0.2), bu_r, top_k=top_k)
 

@@ -49,9 +49,12 @@ def pareto_partition(
     tail_set = all_items - head_set
 
     # If tail is empty, ensure at least one tail item
-    if len(tail_set) == 0 and len(head_set) > 1:
-        last_item = sorted_items[-1][0]
-        head_set.remove(last_item)
-        tail_set.add(last_item)
+    if len(tail_set) == 0:
+        if len(head_set) > 1:
+            last_item = sorted_items[-1][0]
+            head_set.remove(last_item)
+            tail_set.add(last_item)
+        elif len(head_set) == 1:
+            tail_set = set(head_set)
 
     return head_set, tail_set

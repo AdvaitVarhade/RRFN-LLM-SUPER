@@ -63,6 +63,18 @@ class NoiseTransitionMatrix(nn.Module):
         T_final = F.softmax(T_combined, dim=-1)
         return T_final
 
+    def get_inverse(self, reg_lambda: float = 1e-4) -> torch.Tensor:
+        """
+        Computes Tikhonov-regularized pseudo-inverse of T_final:
+        T_inv = (T.T @ T + reg_lambda * I)^{-1} @ T.T
+        Guarantees well-conditioned pseudo-inversion without LinAlgError crashes.
+        """
+        T = self.get_T_final()
+        I = torch.eye(T.size(0), device=T.device, dtype=T.dtype)
+        reg_lambda = max(float(reg_lambda), 1e-8)
+        T_inv = torch.linalg.solve(T.T @ T + reg_lambda * I, T.T)
+        return T_inv
+
     def forward(self, clean_probs: torch.Tensor) -> torch.Tensor:
         """
         Computes predicted noisy probability distribution:

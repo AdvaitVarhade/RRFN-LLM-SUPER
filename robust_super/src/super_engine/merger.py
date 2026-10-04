@@ -17,6 +17,9 @@ def merge_top_n(
     4. Deterministically switches if requested pool quota is exhausted.
     5. Fills remaining slots if blueprint covers fewer than top_k items.
     """
+    if top_k <= 0:
+        return []
+
     # 1. Hard Quotas
     n_pop = int(np.floor(top_k * pop_tilde_u))
     # Ensure at least 1 tail item if possible unless pop_tilde_u == 1.0
@@ -31,42 +34,49 @@ def merge_top_n(
     c_tail = tail_candidates[:n_tail]
 
     rec_list: List[int] = []
+    seen: Set[int] = set()
     idx_pop = 0
     idx_tail = 0
+
+    def add_item(item: int) -> bool:
+        if item not in seen:
+            rec_list.append(item)
+            seen.add(item)
+            return True
+        return False
 
     # 3. Interleave using blueprint
     b_limit = min(top_k, len(blueprint_b_u))
     for k in range(b_limit):
+        if len(rec_list) >= top_k:
+            break
         b_k = blueprint_b_u[k]
         if b_k == 1 and idx_pop < len(c_pop):
-            rec_list.append(c_pop[idx_pop])
+            add_item(c_pop[idx_pop])
             idx_pop += 1
         elif b_k == 0 and idx_tail < len(c_tail):
-            rec_list.append(c_tail[idx_tail])
+            add_item(c_tail[idx_tail])
             idx_tail += 1
         elif idx_pop < len(c_pop):
-            rec_list.append(c_pop[idx_pop])
+            add_item(c_pop[idx_pop])
             idx_pop += 1
         elif idx_tail < len(c_tail):
-            rec_list.append(c_tail[idx_tail])
+            add_item(c_tail[idx_tail])
             idx_tail += 1
 
-    # 4. Residual filling
+    # 4. Residual filling from truncated pools
     while len(rec_list) < top_k and idx_pop < len(c_pop):
-        rec_list.append(c_pop[idx_pop])
+        add_item(c_pop[idx_pop])
         idx_pop += 1
     while len(rec_list) < top_k and idx_tail < len(c_tail):
-        rec_list.append(c_tail[idx_tail])
+        add_item(c_tail[idx_tail])
         idx_tail += 1
 
-    # If still fewer than top_k (e.g. pool ran out of items), fill with remaining candidates
+    # 5. If still fewer than top_k (e.g. pool ran out of items), fill with remaining candidates
     if len(rec_list) < top_k:
-        seen = set(rec_list)
         for item in pop_candidates + tail_candidates:
-            if item not in seen:
-                rec_list.append(item)
-                seen.add(item)
-                if len(rec_list) == top_k:
-                    break
+            add_item(item)
+            if len(rec_list) == top_k:
+                break
 
     return rec_list[:top_k]

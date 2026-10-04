@@ -4,7 +4,7 @@ from src.data.preprocessor import preprocess_dataset
 from src.data.attack_simulator import AttackSimulator
 
 def test_attack_simulator_all_types():
-    loader = MovieLensLoader(data_dir="non_existent", min_user_interactions=2, min_item_interactions=2)
+    loader = MovieLensLoader(data_dir="non_existent", min_user_interactions=2, min_item_interactions=2, use_synthetic=True)
     ratings_df, movies_df, users_df = loader.load_data()
     clean_split = preprocess_dataset(ratings_df, movies_df, users_df)
 

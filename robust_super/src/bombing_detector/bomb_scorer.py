@@ -18,9 +18,11 @@ def compute_bomb_scores(
     Computes R_bomb(u, i) in [0.0, 1.0].
     Higher value = authentic / benign interaction.
     Lower value = anomalous coordinated review bombing.
+    Vectorized array operations over all interaction keys.
     """
-    R_bomb: Dict[Tuple[int, int], float] = {}
-    all_keys = set(temporal_accel.keys()) | set(polarity_skew.keys())
+    all_keys = list(set(temporal_accel.keys()) | set(polarity_skew.keys()))
+    if not all_keys:
+        return {}
 
     # Renormalize weights
     total_omega = omega_1 + omega_2 + omega_3
@@ -28,24 +30,49 @@ def compute_bomb_scores(
     w2 = omega_2 / max(1e-6, total_omega)
     w3 = omega_3 / max(1e-6, total_omega)
 
-    for key in all_keys:
-        a = temporal_accel.get(key, 1.0)
-        s = polarity_skew.get(key, 0.5)
-        sim = semantic_sim.get(key, 0.0)
+    a = np.array([temporal_accel.get(k, 1.0) for k in all_keys], dtype=np.float32)
+    s = np.array([polarity_skew.get(k, 0.5) for k in all_keys], dtype=np.float32)
+    sim = np.array([semantic_sim.get(k, 0.0) for k in all_keys], dtype=np.float32)
 
-        # Normalize acceleration: a in [1, 5] -> normalized signal
-        norm_a = min(1.0, max(0.0, (a - 1.0) / (burst_threshold - 1.0 + 1e-6)))
-        norm_s = min(1.0, max(0.0, (s - 0.5) / (polarity_threshold - 0.5 + 1e-6)))
+    norm_a = np.clip((a - 1.0) / (burst_threshold - 1.0 + 1e-6), 0.0, 1.0)
+    norm_s = np.clip((s - 0.5) / (polarity_threshold - 0.5 + 1e-6), 0.0, 1.0)
 
-        bombing_signal = (w1 * norm_a) + (w2 * norm_s) + (w3 * sim)
-        # Dynamically scaled calibrated logistic transformation
-        suspicion = 1.0 / (1.0 + np.exp(-(sigmoid_slope * (bombing_signal - sigmoid_midpoint) + sigmoid_bias)))
-        
-        # Reliability is 1 - suspicion
-        r_bomb = float(np.clip(1.0 - suspicion, 0.05, 1.0))
-        R_bomb[key] = r_bomb
+    bombing_signal = (w1 * norm_a) + (w2 * norm_s) + (w3 * sim)
+    # Dynamically scaled calibrated logistic transformation with exp argument clamped
+    logit = -(sigmoid_slope * (bombing_signal - sigmoid_midpoint) + sigmoid_bias)
+    logit_clamped = np.clip(logit, -50.0, 50.0)
+    suspicion = 1.0 / (1.0 + np.exp(logit_clamped))
 
-    return R_bomb
+    # Reliability is 1 - suspicion
+    r_bomb = np.clip(1.0 - suspicion, 0.05, 1.0)
+    return {k: float(v) for k, v in zip(all_keys, r_bomb)}
+
+def _compute_binary_f1(y_true: np.ndarray, y_pred: np.ndarray, total_pos_true: int) -> float:
+    tp = int(np.count_nonzero(y_true & y_pred))
+    total_pos_pred = int(np.count_nonzero(y_pred))
+    denom = total_pos_true + total_pos_pred
+    if denom == 0:
+        return 0.0
+    return float(2.0 * tp / denom)
+
+def _compute_binary_roc_auc(y_true: np.ndarray, y_score: np.ndarray) -> float:
+    desc_indices = np.argsort(y_score, kind="mergesort")[::-1]
+    y_score_sorted = y_score[desc_indices]
+    y_true_sorted = y_true[desc_indices]
+
+    diff_indices = np.where(np.diff(y_score_sorted))[0]
+    threshold_idxs = np.r_[diff_indices, y_true.size - 1]
+
+    tps = np.cumsum(y_true_sorted)[threshold_idxs]
+    fps = (1 + threshold_idxs) - tps
+
+    if tps[-1] == 0 or fps[-1] == 0:
+        return 0.5
+
+    tpr = np.r_[0, tps / tps[-1]]
+    fpr = np.r_[0, fps / fps[-1]]
+
+    return float(np.sum(np.diff(fpr) * (tpr[1:] + tpr[:-1]) / 2.0))
 
 def sweep_omega_sensitivity(
     temporal_accel: Dict[Tuple[int, int], float],
@@ -57,38 +84,50 @@ def sweep_omega_sensitivity(
     """
     Sweeps omega_1 (temporal) vs omega_2 (polarity) from 0.0 to 1.0
     and calculates F1 detection score against ground truth labels.
+    Vectorized 2D matrix multiplication broadcasting:
+    W @ X computes all steps simultaneously.
     """
-    from sklearn.metrics import f1_score, roc_auc_score
+    if not ground_truth_labels:
+        return []
+
+    n_keys = len(ground_truth_labels)
+    gt = np.fromiter(ground_truth_labels.values(), dtype=np.int32, count=n_keys)
+    a = np.fromiter((temporal_accel.get(k, 1.0) for k in ground_truth_labels), dtype=np.float32, count=n_keys)
+    s = np.fromiter((polarity_skew.get(k, 0.5) for k in ground_truth_labels), dtype=np.float32, count=n_keys)
+
+    norm_a = np.clip((a - 1.0) / (2.5 - 1.0 + 1e-6), 0.0, 1.0)
+    norm_s = np.clip((s - 0.5) / (0.70 - 0.5 + 1e-6), 0.0, 1.0)
+
+    w1_vals = np.linspace(0.0, 1.0, steps, dtype=np.float32)
+    W = np.stack([w1_vals, 1.0 - w1_vals], axis=1)  # [steps, 2]
+    feats = np.stack([norm_a, norm_s], axis=0)      # [2, N]
+
+    # 2D Matrix multiplication computes all steps simultaneously
+    signals = W @ feats                             # [steps, N]
+    logits = -(4.0 * (signals - 0.50))
+    logits_clamped = np.clip(logits, -50.0, 50.0)
+    suspicions = 1.0 / (1.0 + np.exp(logits_clamped))
+    scores = np.clip(1.0 - suspicions, 0.05, 1.0)   # [steps, N]
+
     results = []
-    
-    omega_1_vals = np.linspace(0.0, 1.0, steps)
-    for w1 in omega_1_vals:
-        w2 = 1.0 - w1
-        r_bomb = compute_bomb_scores(temporal_accel, polarity_skew, semantic_sim, omega_1=w1, omega_2=w2, omega_3=0.0)
-        
-        y_true = []
-        y_pred = []
-        y_scores = []
-        for key, gt in ground_truth_labels.items():
-            score = r_bomb.get(key, 0.5)
-            y_true.append(gt)
-            y_scores.append(score)
-            y_pred.append(1 if score >= 0.5 else 0)
-            
-        y_true_arr = np.array(y_true)
-        if len(np.unique(y_true_arr)) > 1:
-            f1 = float(f1_score(y_true_arr, y_pred, average="binary", zero_division=0))
-            auc = float(roc_auc_score(y_true_arr, y_scores))
+    has_binary_classes = bool(len(np.unique(gt)) > 1)
+    total_pos_true = int(np.count_nonzero(gt)) if has_binary_classes else 0
+
+    for idx, w1 in enumerate(w1_vals):
+        sc = scores[idx]
+        pred = (sc >= 0.50).astype(np.int32)
+        if has_binary_classes:
+            f1 = _compute_binary_f1(gt, pred, total_pos_true)
+            auc = _compute_binary_roc_auc(gt, sc)
         else:
             f1 = 1.0
             auc = 1.0
-            
         results.append({
-            "omega_1_temporal": float(round(w1, 2)),
-            "omega_2_polarity": float(round(w2, 2)),
+            "omega_1_temporal": float(round(float(w1), 2)),
+            "omega_2_polarity": float(round(float(1.0 - w1), 2)),
             "Denoising_F1": f1,
             "ROC_AUC": auc
         })
-        
+
     return results
 

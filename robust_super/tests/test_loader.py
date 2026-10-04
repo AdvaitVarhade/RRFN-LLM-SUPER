@@ -4,7 +4,7 @@ from src.data.loader import MovieLensLoader
 from src.data.preprocessor import preprocess_dataset
 
 def test_movielens_loader_and_preprocessor():
-    loader = MovieLensLoader(data_dir="non_existent_dir", min_user_interactions=2, min_item_interactions=2)
+    loader = MovieLensLoader(data_dir="non_existent_dir", min_user_interactions=2, min_item_interactions=2, use_synthetic=True)
     ratings_df, movies_df, users_df = loader.load_data()
 
     assert not ratings_df.empty
@@ -31,3 +31,11 @@ def test_movielens_loader_and_preprocessor():
             test_item, _, _ = split.test_dict[u]
         # Valid split
         assert len(train_items) > 0
+
+def test_movielens_loader_synthetic_flag():
+    loader = MovieLensLoader(data_dir="", use_synthetic=True)
+    ratings_df, movies_df, users_df = loader.load_data()
+    assert len(ratings_df) > 0
+    assert loader.num_users == 50
+    assert loader.num_items == 100
+    assert loader.global_mean_rating > 0.0

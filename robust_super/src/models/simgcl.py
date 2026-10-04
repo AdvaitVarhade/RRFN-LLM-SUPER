@@ -61,3 +61,7 @@ class SimGCL(LightGCN):
         view1 = self._propagate_with_noise(noise_scale=self.noise_eps)
         view2 = self._propagate_with_noise(noise_scale=self.noise_eps)
         return view1, view2
+
+    def score_candidates_batch(self, user_ids: torch.Tensor, candidate_matrix: torch.Tensor) -> torch.Tensor:
+        """Batched multi-user candidate scoring."""
+        return super().score_candidates_batch(user_ids, candidate_matrix)

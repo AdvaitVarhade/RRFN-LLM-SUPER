@@ -57,10 +57,33 @@ def main():
     np.random.seed(args.seed)
     random.seed(args.seed)
 
+    # Whitelists
+    ALLOWED_DATASETS = {"movielens", "amazon", "amazon_electronics", "yelp"}
+    ALLOWED_BACKBONES = {"simgcl", "sgl", "lightgcn", "vaecf", "neumf"}
+    ALLOWED_ATTACKS = {"bandwagon", "nuke_bomb", "random_flip", "agas", "none"}
+
+    dataset_tag = args.dataset.lower().strip()
+    if dataset_tag not in ALLOWED_DATASETS:
+        raise ValueError(f"Invalid dataset '{args.dataset}'. Allowed datasets: {sorted(ALLOWED_DATASETS)}")
+
+    backbone_tag = args.backbone.lower().strip()
+    if backbone_tag not in ALLOWED_BACKBONES:
+        raise ValueError(f"Invalid backbone '{args.backbone}'. Allowed backbones: {sorted(ALLOWED_BACKBONES)}")
+
+    attack_tag = args.attack.lower().strip()
+    if attack_tag not in ALLOWED_ATTACKS:
+        raise ValueError(f"Invalid attack '{args.attack}'. Allowed attacks: {sorted(ALLOWED_ATTACKS)}")
+
+    from src.data.preprocessor import safe_join_path
+
     # Output directory
-    dataset_tag = args.dataset.lower()
-    backbone_tag = args.backbone.lower()
-    out_dir = args.outdir or os.path.join(ROBUST_DIR, "results", f"run_{dataset_tag}_{backbone_tag}")
+    if args.outdir:
+        if os.path.isabs(args.outdir):
+            out_dir = os.path.abspath(os.path.realpath(args.outdir))
+        else:
+            out_dir = safe_join_path(ROBUST_DIR, args.outdir)
+    else:
+        out_dir = safe_join_path(ROBUST_DIR, "results", f"run_{dataset_tag}_{backbone_tag}")
     os.makedirs(out_dir, exist_ok=True)
     print(f"[OUT] Output Directory: {out_dir}")
 
@@ -91,7 +114,7 @@ def main():
     # ── Load Dataset ─────────────────────────────────────────────────────────
     print(f"\n[DATA] Ingesting dataset: {args.dataset.upper()}...")
     t0 = time.time()
-    raw_dir = os.path.join(ROBUST_DIR, "data", dataset_tag)
+    raw_dir = safe_join_path(ROBUST_DIR, "data", dataset_tag)
     os.makedirs(raw_dir, exist_ok=True)
 
     loader = get_dataset_loader(dataset_tag, data_dir=raw_dir, min_user_interactions=10, min_item_interactions=5)

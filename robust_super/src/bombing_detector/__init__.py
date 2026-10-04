@@ -1,11 +1,12 @@
 from .temporal_density import compute_temporal_acceleration
 from .polarity_skew import compute_polarity_skew
 from .semantic_similarity import compute_semantic_similarity
-from .bomb_scorer import compute_bomb_scores
+from .bomb_scorer import compute_bomb_scores, sweep_omega_sensitivity
 
 __all__ = [
     "compute_temporal_acceleration",
     "compute_polarity_skew",
     "compute_semantic_similarity",
-    "compute_bomb_scores"
+    "compute_bomb_scores",
+    "sweep_omega_sensitivity"
 ]

@@ -6,6 +6,7 @@ from .preprocessor import DataSplit
 class AttackSimulator:
     """
     Simulates various data poisoning, rating corruption, and review-bombing attacks on recommender datasets.
+    Hardened against empty train splits, zero-size reductions, and missing weight_dict entries.
     """
     def __init__(self, seed: int = 42):
         self.seed = seed
@@ -72,27 +73,31 @@ class AttackSimulator:
         all_item_ids = [i for i, _ in sorted_items]
         
         top_head_fillers = all_item_ids[:min(50, len(all_item_ids))]
-        tail_candidates = all_item_ids[-min(100, len(all_item_ids)):]
+        tail_candidates = all_item_ids[-min(100, len(all_item_ids)):] if all_item_ids else []
 
-        if not target_items:
+        if not target_items and tail_candidates:
             target_items = list(np.random.choice(tail_candidates, size=min(5, len(tail_candidates)), replace=False))
+        elif not target_items:
+            target_items = []
 
-        num_fake_users = max(1, int(attack_rate * split.num_users))
-        median_ts = int(np.median([ts for u_list in split.train_dict.values() for _, _, ts in u_list]))
+        num_fake_users = max(1, int(attack_rate * split.num_users)) if split.num_users > 0 else 0
+        all_ts = [ts for u_list in split.train_dict.values() for _, _, ts in u_list]
+        median_ts = int(np.median(all_ts)) if all_ts else 1000000
 
         for fake_idx in range(num_fake_users):
             fake_user_id = split.num_users + fake_idx
             fake_interactions = []
 
-            # 1. Filler items (15 to 30 items)
-            num_fillers = np.random.randint(15, min(31, len(top_head_fillers)))
-            chosen_fillers = np.random.choice(top_head_fillers, size=num_fillers, replace=False)
-            for f_item in chosen_fillers:
-                rating = int(np.random.choice([4, 5], p=[0.3, 0.7]))
-                ts = median_ts + np.random.randint(-86400, 86400)
-                fake_interactions.append((int(f_item), rating, ts))
-                split.ground_truth_labels[(fake_user_id, int(f_item))] = 0
-                split.weight_dict[(fake_user_id, int(f_item))] = 1.0
+            # 1. Filler items
+            if top_head_fillers:
+                num_fillers = np.random.randint(1, min(31, len(top_head_fillers)) + 1)
+                chosen_fillers = np.random.choice(top_head_fillers, size=min(num_fillers, len(top_head_fillers)), replace=False)
+                for f_item in chosen_fillers:
+                    rating = int(np.random.choice([4, 5], p=[0.3, 0.7]))
+                    ts = median_ts + np.random.randint(-86400, 86400)
+                    fake_interactions.append((int(f_item), rating, ts))
+                    split.ground_truth_labels[(fake_user_id, int(f_item))] = 0
+                    split.weight_dict[(fake_user_id, int(f_item))] = 1.0
 
             # 2. Target items (Push: 5★)
             for t_item in target_items:
@@ -114,21 +119,24 @@ class AttackSimulator:
         sorted_items = sorted(split.item_counts.items(), key=lambda x: -x[1])
         top_head_items = [i for i, _ in sorted_items[:min(20, len(sorted_items))]]
 
-        if not target_items:
+        if not target_items and top_head_items:
             target_items = list(np.random.choice(top_head_items, size=min(3, len(top_head_items)), replace=False))
+        elif not target_items:
+            target_items = []
 
-        num_fake_users = max(1, int(attack_rate * split.num_users))
-        burst_center_ts = int(np.median([ts for u_list in split.train_dict.values() for _, _, ts in u_list]))
+        num_fake_users = max(1, int(attack_rate * split.num_users)) if split.num_users > 0 else 0
+        all_ts = [ts for u_list in split.train_dict.values() for _, _, ts in u_list]
+        burst_center_ts = int(np.median(all_ts)) if all_ts else 1000000
         window_seconds = time_window_hours * 3600
 
         for fake_idx in range(num_fake_users):
             fake_user_id = split.num_users + fake_idx
             fake_interactions = []
 
-            # 1. Random fillers (3 to 8 items)
-            num_fillers = np.random.randint(3, 9)
+            # 1. Random fillers
             filler_pool = [i for i, _ in sorted_items[20:]]
             if filler_pool:
+                num_fillers = np.random.randint(1, min(9, len(filler_pool)) + 1)
                 chosen_fillers = np.random.choice(filler_pool, size=min(num_fillers, len(filler_pool)), replace=False)
                 for f_item in chosen_fillers:
                     r = int(np.random.choice([3, 4, 5]))
@@ -153,16 +161,20 @@ class AttackSimulator:
         """
         AGAS (Agentic Group Shilling Attack - ICDM 2026):
         Simulates coordinator-worker attack with two diverse worker groups and multi-round activation.
+        Populates weight_dict for all fake interactions.
         """
         sorted_items = sorted(split.item_counts.items(), key=lambda x: -x[1])
-        tail_candidates = [i for i, _ in sorted_items[-min(150, len(sorted_items)):]]
+        tail_candidates = [i for i, _ in sorted_items[-min(150, len(sorted_items)):]] if sorted_items else []
 
-        if not target_items:
+        if not target_items and tail_candidates:
             target_items = list(np.random.choice(tail_candidates, size=min(3, len(tail_candidates)), replace=False))
+        elif not target_items:
+            target_items = []
 
-        num_fake_users = max(2, int(attack_rate * split.num_users))
+        num_fake_users = max(2, int(attack_rate * split.num_users)) if split.num_users > 0 else 0
         half_users = num_fake_users // 2
-        burst_ts = int(np.median([ts for u_list in split.train_dict.values() for _, _, ts in u_list]))
+        all_ts = [ts for u_list in split.train_dict.values() for _, _, ts in u_list]
+        burst_ts = int(np.median(all_ts)) if all_ts else 1000000
 
         # Group 1: Moderate fillers + 5★ target
         top_pool = [i for i, _ in sorted_items[:100]]
@@ -176,15 +188,17 @@ class AttackSimulator:
                 ts = burst_ts + np.random.randint(-86400, 0)
                 fake_list.append((int(f), r, ts))
                 split.ground_truth_labels[(fake_id, int(f))] = 0
+                split.weight_dict[(fake_id, int(f))] = 1.0
             for t in target_items:
                 fake_list.append((int(t), 5, burst_ts))
                 split.ground_truth_labels[(fake_id, int(t))] = 0
+                split.weight_dict[(fake_id, int(t))] = 1.0
             split.train_dict[fake_id] = fake_list
             split.user_mean_ratings[fake_id] = float(np.mean([r for _, r, _ in fake_list])) if fake_list else 4.0
 
         # Group 2: Niche fillers + 5★ target (Round 2 adaptation)
         mid_pool = [i for i, _ in sorted_items[100:300]]
-        if not mid_pool:
+        if not mid_pool and sorted_items:
             mid_pool = [i for i, _ in sorted_items[max(0, len(sorted_items)//2):]] or [i for i, _ in sorted_items]
         g2_size = min(10, len(mid_pool))
         for idx in range(half_users, num_fake_users):
@@ -196,9 +210,11 @@ class AttackSimulator:
                 ts = burst_ts + np.random.randint(0, 86400)
                 fake_list.append((int(f), r, ts))
                 split.ground_truth_labels[(fake_id, int(f))] = 0
+                split.weight_dict[(fake_id, int(f))] = 1.0
             for t in target_items:
                 fake_list.append((int(t), 5, burst_ts + 43200))
                 split.ground_truth_labels[(fake_id, int(t))] = 0
+                split.weight_dict[(fake_id, int(t))] = 1.0
             split.train_dict[fake_id] = fake_list
             split.user_mean_ratings[fake_id] = float(np.mean([r for _, r, _ in fake_list])) if fake_list else 3.0
 

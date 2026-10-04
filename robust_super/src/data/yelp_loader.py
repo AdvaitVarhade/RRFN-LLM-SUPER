@@ -3,6 +3,7 @@ import json
 import pandas as pd
 import numpy as np
 from typing import Tuple, Dict, Optional, List
+from .preprocessor import safe_join_path
 
 class YelpLoader:
     """
@@ -14,11 +15,13 @@ class YelpLoader:
         self,
         data_dir: str,
         min_user_interactions: int = 5,
-        min_item_interactions: int = 5
+        min_item_interactions: int = 5,
+        use_synthetic: bool = False
     ):
         self.data_dir = data_dir
         self.min_user_interactions = min_user_interactions
         self.min_item_interactions = min_item_interactions
+        self.use_synthetic = use_synthetic
         
         self.user_to_idx: Dict[str, int] = {}
         self.idx_to_user: Dict[int, str] = {}
@@ -34,9 +37,15 @@ class YelpLoader:
         Loads Yelp reviews and business metadata.
         Returns (ratings_df, businesses_df, users_df).
         """
-        review_path = os.path.join(self.data_dir, "yelp_academic_dataset_review.json")
-        business_path = os.path.join(self.data_dir, "yelp_academic_dataset_business.json")
-        alt_review = os.path.join(self.data_dir, "yelp_reviews.json")
+        if self.use_synthetic:
+            return self._generate_synthetic_data()
+
+        try:
+            review_path = safe_join_path(self.data_dir, "yelp_academic_dataset_review.json")
+            business_path = safe_join_path(self.data_dir, "yelp_academic_dataset_business.json")
+            alt_review = safe_join_path(self.data_dir, "yelp_reviews.json")
+        except ValueError:
+            return self._generate_synthetic_data()
 
         target_review = None
         for p in [review_path, alt_review]:
@@ -48,31 +57,42 @@ class YelpLoader:
             return self._generate_synthetic_data()
 
         rows = []
-        with open(target_review, "r", encoding="utf-8") as f:
-            for line in f:
-                if not line.strip():
-                    continue
-                item = json.loads(line)
-                u_id = item.get("user_id")
-                b_id = item.get("business_id")
-                stars = item.get("stars")
-                date_str = item.get("date")
-                text = item.get("text", "")
-                
-                if u_id and b_id and stars is not None:
-                    # Convert ISO date to timestamp
+        try:
+            with open(target_review, "r", encoding="utf-8") as f:
+                for line in f:
+                    line_str = line.strip()
+                    if not line_str:
+                        continue
                     try:
-                        ts = int(pd.to_datetime(date_str).timestamp()) if date_str else 1000000
-                    except Exception:
-                        ts = 1000000
+                        item = json.loads(line_str)
+                    except (json.JSONDecodeError, ValueError):
+                        continue
 
-                    rows.append({
-                        "user_id": str(u_id),
-                        "item_id": str(b_id),
-                        "rating": int(round(float(stars))),
-                        "timestamp": ts,
-                        "review_text": str(text)
-                    })
+                    u_id = item.get("user_id")
+                    b_id = item.get("business_id")
+                    stars = item.get("stars")
+                    date_str = item.get("date")
+                    text = item.get("text", "")
+                    
+                    if u_id and b_id and stars is not None:
+                        try:
+                            rating_int = int(round(float(stars)))
+                        except (ValueError, TypeError):
+                            continue
+                        try:
+                            ts = int(pd.to_datetime(date_str).timestamp()) if date_str else 1000000
+                        except Exception:
+                            ts = 1000000
+
+                        rows.append({
+                            "user_id": str(u_id),
+                            "item_id": str(b_id),
+                            "rating": rating_int,
+                            "timestamp": ts,
+                            "review_text": str(text)
+                        })
+        except (OSError, IOError):
+            return self._generate_synthetic_data()
 
         if not rows:
             return self._generate_synthetic_data()
@@ -80,8 +100,14 @@ class YelpLoader:
         df = pd.DataFrame(rows)
         df = self._filter_k_core(df)
 
+        if df.empty:
+            return self._generate_synthetic_data()
+
         unique_users = sorted(df["user_id"].unique())
         unique_items = sorted(df["item_id"].unique())
+
+        if len(unique_users) == 0 or len(unique_items) == 0:
+            return self._generate_synthetic_data()
 
         self.user_to_idx = {u: idx for idx, u in enumerate(unique_users)}
         self.idx_to_user = {idx: u for idx, u in enumerate(unique_users)}
@@ -100,16 +126,31 @@ class YelpLoader:
         business_names = {}
         business_cats = {}
         if os.path.exists(business_path):
-            with open(business_path, "r", encoding="utf-8") as f:
-                for line in f:
-                    if not line.strip():
-                        continue
-                    b = json.loads(line)
-                    bid = b.get("business_id")
-                    if bid in self.item_to_idx:
-                        business_names[self.item_to_idx[bid]] = b.get("name", f"Business_{bid}")
-                        cats = b.get("categories", "Local Business")
-                        business_cats[self.item_to_idx[bid]] = [c.strip() for c in cats.split(",")] if cats else ["Local Business"]
+            try:
+                with open(business_path, "r", encoding="utf-8") as f:
+                    for line in f:
+                        line_str = line.strip()
+                        if not line_str:
+                            continue
+                        try:
+                            b = json.loads(line_str)
+                        except (json.JSONDecodeError, ValueError):
+                            continue
+
+                        bid = b.get("business_id")
+                        if bid in self.item_to_idx:
+                            idx = self.item_to_idx[bid]
+                            business_names[idx] = b.get("name", f"Business_{bid}")
+                            raw_cats = b.get("categories")
+                            if isinstance(raw_cats, str) and raw_cats.strip():
+                                parsed = [c.strip() for c in raw_cats.split(",") if c.strip()]
+                            elif isinstance(raw_cats, list):
+                                parsed = [str(c).strip() for c in raw_cats if str(c).strip()]
+                            else:
+                                parsed = ["Local Business"]
+                            business_cats[idx] = parsed if parsed else ["Local Business"]
+            except (OSError, IOError):
+                pass
 
         businesses_df = pd.DataFrame({
             "item_id": np.arange(self.num_items),
@@ -125,11 +166,17 @@ class YelpLoader:
             "zip": ["00000"] * self.num_users
         })
 
-        self.global_mean_rating = float(ratings_df["rating"].mean())
+        if not ratings_df.empty and pd.notna(ratings_df["rating"].mean()):
+            self.global_mean_rating = float(ratings_df["rating"].mean())
+        else:
+            self.global_mean_rating = 3.8
+
         return ratings_df, businesses_df, users_df
 
     def _filter_k_core(self, df: pd.DataFrame) -> pd.DataFrame:
         """Iteratively filters users and items with insufficient interactions until convergence."""
+        if df.empty:
+            return df
         while True:
             u_counts = df["user_id"].value_counts()
             valid_users = u_counts[u_counts >= self.min_user_interactions].index
@@ -141,6 +188,8 @@ class YelpLoader:
             if len(new_df) == len(df):
                 break
             df = new_df
+            if df.empty:
+                break
         return df
 
     def _generate_synthetic_data(
@@ -203,5 +252,8 @@ class YelpLoader:
             "zip": ["10001"] * self.num_users
         })
 
-        self.global_mean_rating = float(ratings_df["rating"].mean())
+        if not ratings_df.empty and pd.notna(ratings_df["rating"].mean()):
+            self.global_mean_rating = float(ratings_df["rating"].mean())
+        else:
+            self.global_mean_rating = 3.8
         return ratings_df, businesses_df, users_df
