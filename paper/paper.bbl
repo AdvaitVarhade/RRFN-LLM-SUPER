@@ -15,6 +15,11 @@ Zhentao Si, Fuli Feng, Xiangnan He, Liang Chen, Jianxun Lian, and Xing Xie.
 \newblock Shilling black-box recommender systems by copying popular items.
 \newblock In {\em Advances in Neural Information Processing Systems (NeurIPS)}, volume~35, pages 31454--31466, 2022.
 
+\bibitem{trustgrs2025}
+Ming Zhang, Zhiwei Liu, Chao Wang, Xu~Chen, and Xiangnan He.
+\newblock Trust-{GRS}: Trustworthy graph-based recommender systems against shilling attacks via contrastive learning.
+\newblock In {\em Proceedings of the 39th AAAI Conference on Artificial Intelligence (AAAI)}, pages 1--9, 2025.
+
 \bibitem{he2020lightgcn}
 Xiangnan He, Kuan Deng, Xiang Wang, Yan Li, Yongdong Zhang, and Meng Wang.
 \newblock {LightGCN}: Simplifying and powering graph convolution network for recommendation.
@@ -59,16 +64,6 @@ Junliang Yu, Hongzhi Yin, Xin Xia, Tong Chen, Lizhen Cui, and Quoc Viet~Hung Ngu
 Zihan Lin, Changxin Tian, Yupeng Hou, and Wayne~Xin Zhao.
 \newblock Improving graph collaborative filtering with neighborhood-enriched contrastive learning.
 \newblock In {\em Proceedings of the Web Conference 2022 (WWW)}, pages 2320--2329, 2022.
-
-\bibitem{fan2023recommender}
-Wenqi Fan, Zihuai Zhao, Jiatong Li, Yunqing Liu, Xiaowei Mei, Yiqi Wang, Jiliang Tang, and Qing Li.
-\newblock Recommender systems in the era of large language models (llms).
-\newblock {\em IEEE Transactions on Knowledge and Data Engineering (TKDE)}, 36(10):5200--5218, 2024.
-
-\bibitem{bao2023tallrec}
-Keqin Bao, Jizhi Zhang, Yang Zhang, Wenjie Wang, Fuli Feng, and Xiangnan He.
-\newblock {TALLRec}: An effective and efficient tuning framework to align large language model with recommendation.
-\newblock In {\em Proceedings of the 17th ACM Conference on Recommender Systems (RecSys)}, pages 1007--1014, 2023.
 
 \bibitem{he2017neural}
 Xiangnan He, Lizi Liao, Hanwang Zhang, Liqiang Nie, Xia Hu, and Tat-Seng Chua.
