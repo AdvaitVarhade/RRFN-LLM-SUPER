@@ -396,7 +396,7 @@ def generate_super_blueprint_flow():
              "Interests Restored",
              "",
              "Tail Inclination:",
-             r"$\alpha_u = \frac{|B_u \cap \mathcal{I}_{\mathrm{tail}}|}{|B_u| + \epsilon}$"
+             r"$\alpha_u = \frac{\sum_{\mathrm{tail}} w_{ui}}{\sum w_{ui} + \epsilon}$"
          ]),
 
         # Step 4

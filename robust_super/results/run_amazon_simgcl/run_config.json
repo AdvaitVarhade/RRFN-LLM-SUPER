@@ -3,9 +3,9 @@
   "backbone": "SimGCL",
   "attack_type": "bandwagon",
   "noise_rate": 0.15,
-  "dual_epochs": 3,
+  "dual_epochs": 12,
   "device": "cuda",
   "gpu_name": "NVIDIA GeForce RTX 3050 Laptop GPU",
-  "lambda_cl": 0.1,
-  "timestamp": "2026-10-03 14:01:41"
+  "lambda_cl": 0.15,
+  "timestamp": "2026-10-09 21:47:55"
 }
