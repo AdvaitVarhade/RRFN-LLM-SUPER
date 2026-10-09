@@ -1,0 +1,93 @@
+\begin{thebibliography}{10}
+
+\bibitem{wu2021robust}
+Haolun Wu, Chen Ma, Yingxue Zhang, Xu~Chen, Xiao Huang, and Mark Coates.
+\newblock Robust collaborative filtering to counter coordinated shilling attacks.
+\newblock {\em ACM Transactions on Information Systems (TOIS)}, 40(4):1--26, 2021.
+
+\bibitem{abdollahpouri2019popularity}
+Himan Abdollahpouri, Robin Burke, and Bamshad Mobasher.
+\newblock Managing popularity bias in recommender systems with personalized re-ranking.
+\newblock In {\em Proceedings of the 32nd International Florida Artificial Intelligence Research Society Conference (FLAIRS)}, pages 413--418, 2019.
+
+\bibitem{si2022shilling}
+Zhentao Si, Fuli Feng, Xiangnan He, Liang Chen, Jianxun Lian, and Xing Xie.
+\newblock Shilling black-box recommender systems by copying popular items.
+\newblock In {\em Advances in Neural Information Processing Systems (NeurIPS)}, volume~35, pages 31454--31466, 2022.
+
+\bibitem{he2020lightgcn}
+Xiangnan He, Kuan Deng, Xiang Wang, Yan Li, Yongdong Zhang, and Meng Wang.
+\newblock {LightGCN}: Simplifying and powering graph convolution network for recommendation.
+\newblock In {\em Proceedings of the 43rd International ACM SIGIR Conference on Research and Development in Information Retrieval (SIGIR)}, pages 639--648, 2020.
+
+\bibitem{yang2022super}
+Mengyue Yang, Quanyu Dai, Zhenhua Dong, Xu~Chen, Xiuqiang He, and Jun Wang.
+\newblock Calibrated long-tail recommendation via soft blueprint merging.
+\newblock In {\em Proceedings of the 16th ACM Conference on Recommender Systems (RecSys)}, pages 245--255, 2022.
+
+\bibitem{steck2018calibrated}
+Harald Steck.
+\newblock Calibrated recommendations.
+\newblock In {\em Proceedings of the 12th ACM Conference on Recommender Systems (RecSys)}, pages 11--19, 2018.
+
+\bibitem{patrini2017making}
+Giorgio Patrini, Alessandro Rozza, Aditya~Krishna Menon, Richard Nock, and Lizhen Qu.
+\newblock Making deep neural networks robust to label noise: A loss correction approach.
+\newblock {\em IEEE Conference on Computer Vision and Pattern Recognition (CVPR)}, pages 1944--1952, 2017.
+
+\bibitem{gao2022self}
+Chen Gao, Chaochao Chen, Xiangnan He, Dongsheng Li, Jinpeng Wang, and Yong Li.
+\newblock Self-guided learning to denoise for robust recommendation.
+\newblock In {\em Proceedings of the 45th International ACM SIGIR Conference on Research and Development in Information Retrieval (SIGIR)}, pages 1304--1313, 2022.
+
+\bibitem{zheng2021disentangling}
+Yu~Zheng, Chen Gao, Xiangnan He, Yong Li, and Depeng Jin.
+\newblock Disentangling user interest and conformity for recommendation with causal embedding.
+\newblock In {\em Proceedings of the Web Conference 2021 (WWW)}, pages 2980--2991, 2021.
+
+\bibitem{wu2021sgl}
+Jiancan Wu, Xiang Wang, Fuli Feng, Xiangnan He, Liang Chen, Jianxun Lian, and Xing Xie.
+\newblock Self-supervised graph learning for recommendation.
+\newblock In {\em Proceedings of the 44th International ACM SIGIR Conference on Research and Development in Information Retrieval (SIGIR)}, pages 726--735, 2021.
+
+\bibitem{yu2022simgcl}
+Junliang Yu, Hongzhi Yin, Xin Xia, Tong Chen, Lizhen Cui, and Quoc Viet~Hung Nguyen.
+\newblock Are graph augmentations necessary? simple graph contrastive learning for recommendation.
+\newblock In {\em Proceedings of the 45th International ACM SIGIR Conference on Research and Development in Information Retrieval (SIGIR)}, pages 1294--1303, 2022.
+
+\bibitem{lin2022ncl}
+Zihan Lin, Changxin Tian, Yupeng Hou, and Wayne~Xin Zhao.
+\newblock Improving graph collaborative filtering with neighborhood-enriched contrastive learning.
+\newblock In {\em Proceedings of the Web Conference 2022 (WWW)}, pages 2320--2329, 2022.
+
+\bibitem{fan2023recommender}
+Wenqi Fan, Zihuai Zhao, Jiatong Li, Yunqing Liu, Xiaowei Mei, Yiqi Wang, Jiliang Tang, and Qing Li.
+\newblock Recommender systems in the era of large language models (llms).
+\newblock {\em IEEE Transactions on Knowledge and Data Engineering (TKDE)}, 36(10):5200--5218, 2024.
+
+\bibitem{bao2023tallrec}
+Keqin Bao, Jizhi Zhang, Yang Zhang, Wenjie Wang, Fuli Feng, and Xiangnan He.
+\newblock {TALLRec}: An effective and efficient tuning framework to align large language model with recommendation.
+\newblock In {\em Proceedings of the 17th ACM Conference on Recommender Systems (RecSys)}, pages 1007--1014, 2023.
+
+\bibitem{he2017neural}
+Xiangnan He, Lizi Liao, Hanwang Zhang, Liqiang Nie, Xia Hu, and Tat-Seng Chua.
+\newblock Neural collaborative filtering.
+\newblock In {\em Proceedings of the 26th International Conference on World Wide Web (WWW)}, pages 173--182, 2017.
+
+\bibitem{liang2018variational}
+Dawen Liang, Rahul~G. Krishnan, Matthew~D. Hoffman, and Tony Jebara.
+\newblock Variational autoencoders for collaborative filtering.
+\newblock In {\em Proceedings of the 2018 World Wide Web Conference (WWW)}, pages 687--696, 2018.
+
+\bibitem{harper2015movielens}
+F.~Maxwell Harper and Joseph~A. Konstan.
+\newblock The {MovieLens} datasets: History and context.
+\newblock {\em ACM Transactions on Interactive Intelligent Systems (TiiS)}, 5(4):19:1--19:19, 2015.
+
+\bibitem{ni2019justifying}
+Jianmo Ni, Jiacheng Li, and Julian McAuley.
+\newblock Justifying recommendations using distantly-labeled reviews and fine-grained aspects.
+\newblock In {\em Proceedings of the 2019 Conference on Empirical Methods in Natural Language Processing (EMNLP)}, pages 188--197, 2019.
+
+\end{thebibliography}
