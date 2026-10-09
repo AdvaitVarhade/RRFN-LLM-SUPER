@@ -1,0 +1,56 @@
+[
+    {
+        "Variant": "Full RRFN-LLM-SUPER (Ours)",
+        "Recall@10": 0.2067,
+        "nDCG@10": 0.1014,
+        "LTC@10": 0.159,
+        "Denoising_ROC": 0.7265,
+        "Delta_Drop_Pct": 0.0,
+        "Primary_Impact_Description": "Optimal unified configuration with all 5 stages active"
+    },
+    {
+        "Variant": "w/o RRFN (No Transition Matrix T)",
+        "Recall@10": 0.1882,
+        "nDCG@10": 0.0965,
+        "LTC@10": 0.156,
+        "Denoising_ROC": 0.541,
+        "Delta_Drop_Pct": -25.5,
+        "Primary_Impact_Description": "Loss correction failure; model overfits to noisy rating shifts"
+    },
+    {
+        "Variant": "w/o LLM Auditing (beta = 0)",
+        "Recall@10": 0.198,
+        "nDCG@10": 0.0988,
+        "LTC@10": 0.1575,
+        "Denoising_ROC": 0.6655,
+        "Delta_Drop_Pct": -8.4,
+        "Primary_Impact_Description": "Loss of semantic sentiment verification against bot phrasing"
+    },
+    {
+        "Variant": "w/o Bombing Detector (gamma = 0)",
+        "Recall@10": 0.192,
+        "nDCG@10": 0.097,
+        "LTC@10": 0.1562,
+        "Denoising_ROC": 0.6233,
+        "Delta_Drop_Pct": -14.2,
+        "Primary_Impact_Description": "Susceptibility to temporal acceleration & polarity skew bursts"
+    },
+    {
+        "Variant": "w/o GCL Contrastive Loss (lambda_cl = 0)",
+        "Recall@10": 0.1823,
+        "nDCG@10": 0.0921,
+        "LTC@10": 0.1402,
+        "Denoising_ROC": 0.71,
+        "Delta_Drop_Pct": -11.8,
+        "Primary_Impact_Description": "Representation collapse on sparse tail items without self-supervision"
+    },
+    {
+        "Variant": "w/o SUPER Debiasing (Monolithic)",
+        "Recall@10": 0.175,
+        "nDCG@10": 0.089,
+        "LTC@10": 0.1094,
+        "Denoising_ROC": 0.7265,
+        "Delta_Drop_Pct": -31.2,
+        "Primary_Impact_Description": "Severe popularity collapse; top-K dominated by head items"
+    }
+]

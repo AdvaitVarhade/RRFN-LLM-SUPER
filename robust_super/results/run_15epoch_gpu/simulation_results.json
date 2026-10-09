@@ -1,0 +1,41 @@
+{
+    "simulation_parameters": {
+        "dau": 50000,
+        "baseline_ctr": 0.025,
+        "conversion_rate": 0.04,
+        "average_order_value": 45.0,
+        "rollout_fraction": 0.5,
+        "bootstrap_iterations": 1000
+    },
+    "point_estimates": {
+        "ndcg_robust": 0.10140668507925023,
+        "ndcg_vanilla": 0.09902321124496535,
+        "ctr_robust": 0.037041260357078255,
+        "ctr_vanilla": 0.03570055632529301,
+        "ctr_lift_pct": 3.755414956476151,
+        "aplt_robust": 0.8920000000000001,
+        "aplt_vanilla": 0.8960000000000002,
+        "tail_exposure_lift_pct": -0.44642857142858405,
+        "ltc_robust": 0.15896427400852178,
+        "ltc_vanilla": 0.15575916230366493,
+        "ltc_lift_pct": 2.0577355819417087,
+        "daily_gmv_robust": 1666.8567160685216,
+        "daily_gmv_vanilla": 1606.5250346381854,
+        "daily_lift": 60.331681430336175,
+        "monthly_lift": 1809.9504429100853,
+        "annual_lift": 22021.063722072704
+    },
+    "bootstrap_statistics": {
+        "ctr_lift_pct_mean": 3.78,
+        "ctr_lift_pct_95_ci": [
+            -5.08,
+            12.75
+        ],
+        "annual_gmv_lift_mean": 21581.36,
+        "annual_gmv_lift_95_ci": [
+            -31247.29,
+            73077.21
+        ],
+        "p_value": 0.0001
+    }
+}

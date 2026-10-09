@@ -1,0 +1,6 @@
+{
+    "num_interactions": 42000,
+    "vectorized_latency_ms": 4.95,
+    "unvectorized_latency_ms": 2668.667,
+    "speedup_factor": 539.1
+}
