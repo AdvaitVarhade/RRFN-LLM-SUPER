@@ -619,59 +619,50 @@ def generate_loss_history_figure():
 
 def generate_dashboard_multipanel_collage():
     """
-    Figure 8: 4-Panel High-Resolution Interactive Dashboard Collage
-    Combines screenshots from:
-    - Tab 1: Multi-View Signal Fusion
-    - Tab 2: Noise Transition Matrix & Denoising Diagnostics
-    - Tab 3: Academic Benchmark & Head-to-Head
-    - Tab 6: Live User & Top-10 What-If Sandbox
+    Figure 8: 4-Panel High-Resolution Interactive Dashboard Demonstration
+    Combines user-captured live telemetry screenshots:
+    - (a) Tab 1: Multi-View MIRF Signal Fusion & Weight Distribution
+    - (b) Tab 2: Noise Transition Matrix & Denoising Diagnostics
+    - (c) Tab 3: Academic Benchmark & Head-to-Head Robustness Curves
+    - (d) Tab 7: A/B Business Impact Simulator & GMV Scaling
     """
     img_t1_path = os.path.join(OUTPUT_DIR, "screenshot_tab1_multiview_fusion.png")
     img_t2_path = os.path.join(OUTPUT_DIR, "screenshot_tab2_noise_transition.png")
     img_t3_path = os.path.join(OUTPUT_DIR, "screenshot_tab3_academic_benchmark.png")
-    img_t6_path = os.path.join(OUTPUT_DIR, "screenshot_tab6_user_sandbox.png")
+    img_t7_path = os.path.join(OUTPUT_DIR, "screenshot_tab7_ab_simulator.png")
 
-    if not all(os.path.exists(p) for p in [img_t1_path, img_t2_path, img_t3_path, img_t6_path]):
+    if not all(os.path.exists(p) for p in [img_t1_path, img_t2_path, img_t3_path, img_t7_path]):
         print("Skipping dashboard collage: one or more screenshot files missing.")
         return
 
     im1 = Image.open(img_t1_path)
     im2 = Image.open(img_t2_path)
     im3 = Image.open(img_t3_path)
-    im6 = Image.open(img_t6_path)
+    im7 = Image.open(img_t7_path)
 
-    def crop_top(im, max_h=1200):
-        w, h = im.size
-        return im.crop((0, 0, w, min(h, max_h)))
+    fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(15.0, 9.2))
 
-    im1_c = crop_top(im1, 1100)
-    im2_c = crop_top(im2, 1100)
-    im3_c = crop_top(im3, 1100)
-    im6_c = crop_top(im6, 1100)
-
-    fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(15.0, 10.5))
-
-    ax1.imshow(im1_c)
-    ax1.set_title("(a) Multi-View MIRF Signal Fusion & Weight Distribution Telemetry", fontsize=12.5, weight='bold', pad=10)
+    ax1.imshow(im1)
+    ax1.set_title("(a) Multi-View MIRF Signal Fusion & Weight Distribution Telemetry", fontsize=13.0, weight='bold', pad=8)
     ax1.axis('off')
 
-    ax2.imshow(im2_c)
-    ax2.set_title("(b) Noise Transition Matrix Inversion & Denoising Diagnostics", fontsize=12.5, weight='bold', pad=10)
+    ax2.imshow(im2)
+    ax2.set_title("(b) Noise Transition Matrix Inversion & Denoising Diagnostics", fontsize=13.0, weight='bold', pad=8)
     ax2.axis('off')
 
-    ax3.imshow(im3_c)
-    ax3.set_title("(c) Head-to-Head Academic Benchmarks & Attack Budget Curves", fontsize=12.5, weight='bold', pad=10)
+    ax3.imshow(im3)
+    ax3.set_title("(c) Head-to-Head Academic Benchmarks & Attack Budget Curves", fontsize=13.0, weight='bold', pad=8)
     ax3.axis('off')
 
-    ax4.imshow(im6_c)
-    ax4.set_title("(d) Live User Inspector & Popularity-Calibrated Top-10 Sandbox", fontsize=12.5, weight='bold', pad=10)
+    ax4.imshow(im7)
+    ax4.set_title("(d) A/B Business Impact Simulator & GMV Revenue Scaling", fontsize=13.0, weight='bold', pad=8)
     ax4.axis('off')
 
     plt.tight_layout()
     plt.savefig(os.path.join(OUTPUT_DIR, "fig8_dashboard_multipanel.png"), bbox_inches='tight')
     plt.savefig(os.path.join(OUTPUT_DIR, "fig8_dashboard_multipanel.pdf"), bbox_inches='tight')
     plt.close()
-    print("Saved high-res fig8_dashboard_multipanel.[pdf/png]")
+    print("Saved high-res fig8_dashboard_multipanel.[pdf/png] using user screenshots.")
 
 
 if __name__ == "__main__":
