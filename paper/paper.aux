@@ -9,16 +9,13 @@
 \citation{yang2022super}
 \@writefile{toc}{\contentsline {section}{\numberline {1}Introduction and Motivation}{1}{section.1}\protected@file@percent }
 \newlabel{sec:intro}{{1}{1}{Introduction and Motivation}{section.1}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {1.1}Grounding Key Concepts: SUP and RRFN}{1}{subsection.1.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {1.1}Grounding Key Concepts: SUP, RRFN, and MIRF}{1}{subsection.1.1}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces End-to-end system architecture of the RRFN-LLM-SUPER framework, illustrating data ingestion, noise transition modeling, the Multi-view Interaction Reliability Filter (MIRF), graph contrastive learning, dual partition training, and SUPER blueprint calibrated merging.}}{2}{figure.1}\protected@file@percent }
+\newlabel{fig:architecture}{{1}{2}{End-to-end system architecture of the RRFN-LLM-SUPER framework, illustrating data ingestion, noise transition modeling, the Multi-view Interaction Reliability Filter (MIRF), graph contrastive learning, dual partition training, and SUPER blueprint calibrated merging}{figure.1}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {1.2}Summary of Contributions}{2}{subsection.1.2}\protected@file@percent }
 \citation{wu2021robust,si2022shilling}
 \citation{patrini2017making}
 \citation{gao2022self}
-\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces End-to-end system architecture of the RRFN-LLM-SUPER framework, illustrating data ingestion, noise transition modeling, tri-view reliability fusion, graph contrastive learning, dual partition training, and SUPER blueprint calibrated merging.}}{2}{figure.1}\protected@file@percent }
-\newlabel{fig:architecture}{{1}{2}{End-to-end system architecture of the RRFN-LLM-SUPER framework, illustrating data ingestion, noise transition modeling, tri-view reliability fusion, graph contrastive learning, dual partition training, and SUPER blueprint calibrated merging}{figure.1}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {1.2}Summary of Contributions}{2}{subsection.1.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {2}Related Work and Positioning}{2}{section.2}\protected@file@percent }
-\newlabel{sec:related}{{2}{2}{Related Work and Positioning}{section.2}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.1}Robust Collaborative Filtering \& Noise Denoising}{2}{subsection.2.1}\protected@file@percent }
 \citation{zheng2021disentangling}
 \citation{steck2018calibrated,abdollahpouri2019popularity}
 \citation{yang2022super}
@@ -34,6 +31,9 @@
 \citation{yu2022simgcl}
 \citation{zheng2021disentangling}
 \citation{yang2022super}
+\@writefile{toc}{\contentsline {section}{\numberline {2}Related Work and Positioning}{3}{section.2}\protected@file@percent }
+\newlabel{sec:related}{{2}{3}{Related Work and Positioning}{section.2}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.1}Robust Collaborative Filtering \& Noise Denoising}{3}{subsection.2.1}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {2.2}Popularity Bias \& Long-Tail Calibration}{3}{subsection.2.2}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {2.3}Graph Neural Networks \& Contrastive Learning}{3}{subsection.2.3}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {2.4}Large Language Models in Recommender Systems}{3}{subsection.2.4}\protected@file@percent }
@@ -41,42 +41,53 @@
 \newlabel{sec:formulation}{{3}{3}{Problem Formulation \& Mathematical Foundations}{section.3}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {3.1}Noise Transition Probability Model}{3}{subsection.3.1}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {3.2}Pareto Catalog Decomposition}{3}{subsection.3.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {4}The RRFN-LLM-SUPER Methodology}{3}{section.4}\protected@file@percent }
-\newlabel{sec:methodology}{{4}{3}{The RRFN-LLM-SUPER Methodology}{section.4}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.1}Stage 1: Anchor Selection \& Tikhonov-Regularized Noise Inversion}{3}{subsection.4.1}\protected@file@percent }
-\@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces Comprehensive Comparison of Related Recommender Paradigms against RRFN-LLM-SUPER.}}{4}{table.1}\protected@file@percent }
-\newlabel{tab:positioning}{{1}{4}{Comprehensive Comparison of Related Recommender Paradigms against RRFN-LLM-SUPER}{table.1}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces Empirical (a) ROC curve (AUC = 0.726) and (b) Precision-Recall curve (AP = 0.684) for review-bombing detection under 15\% bandwagon shilling attack.}}{4}{figure.2}\protected@file@percent }
-\newlabel{fig:roc_pr}{{2}{4}{Empirical (a) ROC curve (AUC = 0.726) and (b) Precision-Recall curve (AP = 0.684) for review-bombing detection under 15\% bandwagon shilling attack}{figure.2}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.2}Stage 2: Tri-View Reliability Auditing \& Fusion}{4}{subsection.4.2}\protected@file@percent }
-\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces Sensitivity analysis of the review-bombing detection F1-score and ROC-AUC with respect to temporal burst weight $\omega _1$.}}{4}{figure.3}\protected@file@percent }
-\newlabel{fig:omega_sweep}{{3}{4}{Sensitivity analysis of the review-bombing detection F1-score and ROC-AUC with respect to temporal burst weight $\omega _1$}{figure.3}{}}
 \citation{he2020lightgcn}
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.3}Stage 3: Graph Contrastive Learning \& Dual Partition Models}{5}{subsection.4.3}\protected@file@percent }
-\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces Dual partition model convergence over 15 CUDA training epochs on MovieLens-100K.}}{5}{figure.4}\protected@file@percent }
-\newlabel{fig:loss_curves}{{4}{5}{Dual partition model convergence over 15 CUDA training epochs on MovieLens-100K}{figure.4}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces Comprehensive Comparison of Related Recommender Paradigms against RRFN-LLM-SUPER with MIRF.}}{4}{table.1}\protected@file@percent }
+\newlabel{tab:positioning}{{1}{4}{Comprehensive Comparison of Related Recommender Paradigms against RRFN-LLM-SUPER with MIRF}{table.1}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {4}The RRFN-LLM-SUPER Methodology}{4}{section.4}\protected@file@percent }
+\newlabel{sec:methodology}{{4}{4}{The RRFN-LLM-SUPER Methodology}{section.4}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.1}Stage 1: Anchor Selection \& Tikhonov-Regularized Noise Inversion}{4}{subsection.4.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.2}Stage 2: Multi-view Interaction Reliability Filter (MIRF)}{4}{subsection.4.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.3}Stage 3: Graph Contrastive Learning \& Dual Partition Models}{4}{subsection.4.3}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces Architecture of the Multi-view Interaction Reliability Filter (MIRF), showing the synthesis of statistical prediction divergence ($R_{\text  {RRFN}}$), prompt-audited LLM review text analysis ($R_{\text  {LLM}}$), and vectorized burst detection ($R_{\text  {bomb}}$) to compute sample-level trust weights $w_i$.}}{5}{figure.2}\protected@file@percent }
+\newlabel{fig:mirf_pipeline}{{2}{5}{Architecture of the Multi-view Interaction Reliability Filter (MIRF), showing the synthesis of statistical prediction divergence ($R_{\text {RRFN}}$), prompt-audited LLM review text analysis ($R_{\text {LLM}}$), and vectorized burst detection ($R_{\text {bomb}}$) to compute sample-level trust weights $w_i$}{figure.2}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces Empirical (a) ROC curve (AUC = 0.726) and (b) Precision-Recall curve (AP = 0.684) for MIRF review-bombing detection under 15\% bandwagon attack.}}{5}{figure.3}\protected@file@percent }
+\newlabel{fig:roc_pr}{{3}{5}{Empirical (a) ROC curve (AUC = 0.726) and (b) Precision-Recall curve (AP = 0.684) for MIRF review-bombing detection under 15\% bandwagon attack}{figure.3}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces Sensitivity analysis of the MIRF detection F1-score and ROC-AUC with respect to temporal burst weight $\omega _1$.}}{5}{figure.4}\protected@file@percent }
+\newlabel{fig:omega_sweep}{{4}{5}{Sensitivity analysis of the MIRF detection F1-score and ROC-AUC with respect to temporal burst weight $\omega _1$}{figure.4}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {4.4}Stage 4: Denoised SUPER Blueprint \& Top-K Merging}{5}{subsection.4.4}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.5}Formal Algorithmic Procedures}{5}{subsection.4.5}\protected@file@percent }
+\citation{yang2022super}
 \citation{yang2022super}
 \citation{yang2022super}
 \citation{yang2022super}
 \citation{harper2015movielens}
 \citation{ni2019justifying}
+\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces Dual partition model convergence over 15 CUDA training epochs on MovieLens-100K.}}{6}{figure.5}\protected@file@percent }
+\newlabel{fig:loss_curves}{{5}{6}{Dual partition model convergence over 15 CUDA training epochs on MovieLens-100K}{figure.5}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.5}Formal Algorithmic Procedures}{6}{subsection.4.5}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {4.6}Computational Complexity Analysis}{6}{subsection.4.6}\protected@file@percent }
 \@writefile{toc}{\contentsline {section}{\numberline {5}Comprehensive SUP vs. Our Algorithm Comparison}{6}{section.5}\protected@file@percent }
 \newlabel{sec:sup_vs_ours}{{5}{6}{Comprehensive SUP vs. Our Algorithm Comparison}{section.5}{}}
 \@writefile{toc}{\contentsline {section}{\numberline {6}Experimental Evaluation}{6}{section.6}\protected@file@percent }
 \newlabel{sec:experiments}{{6}{6}{Experimental Evaluation}{section.6}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {6.1}Experimental Setup}{6}{subsection.6.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {6.2}Main Benchmark Results}{6}{subsection.6.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {6.3}Ablation Study}{6}{subsection.6.3}\protected@file@percent }
-\@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces Detailed 14-Dimension Comparison between Standalone SUP~\cite  {yang2022super} and RRFN-LLM-SUPER (Ours).}}{7}{table.2}\protected@file@percent }
-\newlabel{tab:sup_comparison}{{2}{7}{Detailed 14-Dimension Comparison between Standalone SUP~\cite {yang2022super} and RRFN-LLM-SUPER (Ours)}{table.2}{}}
-\@writefile{lot}{\contentsline {table}{\numberline {3}{\ignorespaces Empirical Benchmark Comparison across Baselines and RRFN-LLM-SUPER on MovieLens-100K (CUDA, 15 Epochs, $\rho =0.15$ Attack).}}{7}{table.3}\protected@file@percent }
-\newlabel{tab:movielens_benchmark}{{3}{7}{Empirical Benchmark Comparison across Baselines and RRFN-LLM-SUPER on MovieLens-100K (CUDA, 15 Epochs, $\rho =0.15$ Attack)}{table.3}{}}
-\@writefile{lot}{\contentsline {table}{\numberline {4}{\ignorespaces Multi-Domain Benchmark Comparison on Amazon Reviews (SimGCL) and Yelp Academic (SGL) under $\rho =0.15$ Attack.}}{7}{table.4}\protected@file@percent }
-\newlabel{tab:multidomain_benchmark}{{4}{7}{Multi-Domain Benchmark Comparison on Amazon Reviews (SimGCL) and Yelp Academic (SGL) under $\rho =0.15$ Attack}{table.4}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces SUPER Denoised Blueprint and Calibrated Quota Merging flow, illustrating the purification of user history via MIRF trust filtering ($w_{ui} \ge \theta _{\text  {trust}}$) to compute personalized tail inclination $\alpha _u$ and Assemble top-$K$ recommendations.}}{7}{figure.6}\protected@file@percent }
+\newlabel{fig:super_flow}{{6}{7}{SUPER Denoised Blueprint and Calibrated Quota Merging flow, illustrating the purification of user history via MIRF trust filtering ($w_{ui} \ge \theta _{\text {trust}}$) to compute personalized tail inclination $\alpha _u$ and Assemble top-$K$ recommendations}{figure.6}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.2}Main Benchmark Results}{7}{subsection.6.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.3}Ablation Study}{7}{subsection.6.3}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {6.4}A/B Business Simulation \& Financial Projections}{7}{subsection.6.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {7}Discussion, Limitations \& Threats to Validity}{7}{section.7}\protected@file@percent }
+\newlabel{sec:discussion}{{7}{7}{Discussion, Limitations \& Threats to Validity}{section.7}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces Detailed 14-Dimension Comparison between Standalone SUP~\cite  {yang2022super} and RRFN-LLM-SUPER with MIRF (Ours).}}{8}{table.2}\protected@file@percent }
+\newlabel{tab:sup_comparison}{{2}{8}{Detailed 14-Dimension Comparison between Standalone SUP~\cite {yang2022super} and RRFN-LLM-SUPER with MIRF (Ours)}{table.2}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {3}{\ignorespaces Empirical Benchmark Comparison across Baselines and RRFN-LLM-SUPER on MovieLens-100K (CUDA, 15 Epochs, $\rho =0.15$ Attack).}}{8}{table.3}\protected@file@percent }
+\newlabel{tab:movielens_benchmark}{{3}{8}{Empirical Benchmark Comparison across Baselines and RRFN-LLM-SUPER on MovieLens-100K (CUDA, 15 Epochs, $\rho =0.15$ Attack)}{table.3}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {4}{\ignorespaces Multi-Domain Benchmark Comparison on Amazon Reviews (SimGCL) and Yelp Academic (SGL) under $\rho =0.15$ Attack.}}{9}{table.4}\protected@file@percent }
+\newlabel{tab:multidomain_benchmark}{{4}{9}{Multi-Domain Benchmark Comparison on Amazon Reviews (SimGCL) and Yelp Academic (SGL) under $\rho =0.15$ Attack}{table.4}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {7}{\ignorespaces Cross-domain multi-metric radar comparison across (a) MovieLens-100K, (b) Amazon Reviews with SimGCL, and (c) Yelp with SGL, showing consistent performance across accuracy, long-tail coverage, novelty, and denoising ROC.}}{9}{figure.7}\protected@file@percent }
+\newlabel{fig:radar}{{7}{9}{Cross-domain multi-metric radar comparison across (a) MovieLens-100K, (b) Amazon Reviews with SimGCL, and (c) Yelp with SGL, showing consistent performance across accuracy, long-tail coverage, novelty, and denoising ROC}{figure.7}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {8}{\ignorespaces Live interactive Streamlit application dashboard interface showing real-time multi-view MIRF signal fusion telemetry, noise detection ROC-AUC (+45\%), and calibrated top-10 recommendation sandbox.}}{9}{figure.8}\protected@file@percent }
+\newlabel{fig:dashboard_app}{{8}{9}{Live interactive Streamlit application dashboard interface showing real-time multi-view MIRF signal fusion telemetry, noise detection ROC-AUC (+45\%), and calibrated top-10 recommendation sandbox}{figure.8}{}}
 \bibstyle{unsrt}
 \bibdata{references}
 \bibcite{wu2021robust}{1}
@@ -85,12 +96,6 @@
 \bibcite{he2020lightgcn}{4}
 \bibcite{yang2022super}{5}
 \bibcite{steck2018calibrated}{6}
-\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces Cross-domain multi-metric radar comparison across (a) MovieLens-100K, (b) Amazon Reviews with SimGCL, and (c) Yelp with SGL, showing consistent performance across accuracy, long-tail coverage, novelty, and denoising ROC.}}{8}{figure.5}\protected@file@percent }
-\newlabel{fig:radar}{{5}{8}{Cross-domain multi-metric radar comparison across (a) MovieLens-100K, (b) Amazon Reviews with SimGCL, and (c) Yelp with SGL, showing consistent performance across accuracy, long-tail coverage, novelty, and denoising ROC}{figure.5}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {7}Discussion, Limitations \& Threats to Validity}{8}{section.7}\protected@file@percent }
-\newlabel{sec:discussion}{{7}{8}{Discussion, Limitations \& Threats to Validity}{section.7}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {8}Conclusion and Future Work}{8}{section.8}\protected@file@percent }
-\newlabel{sec:conclusion}{{8}{8}{Conclusion and Future Work}{section.8}{}}
 \bibcite{patrini2017making}{7}
 \bibcite{gao2022self}{8}
 \bibcite{zheng2021disentangling}{9}
@@ -101,6 +106,8 @@
 \bibcite{bao2023tallrec}{14}
 \bibcite{he2017neural}{15}
 \bibcite{liang2018variational}{16}
+\@writefile{toc}{\contentsline {section}{\numberline {8}Conclusion and Future Work}{10}{section.8}\protected@file@percent }
+\newlabel{sec:conclusion}{{8}{10}{Conclusion and Future Work}{section.8}{}}
 \bibcite{harper2015movielens}{17}
 \bibcite{ni2019justifying}{18}
-\gdef \@abspage@last{9}
+\gdef \@abspage@last{11}

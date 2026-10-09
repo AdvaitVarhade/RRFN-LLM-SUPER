@@ -1,6 +1,6 @@
 \documentclass[10pt,twocolumn]{article}
 
-\usepackage[margin=0.75in,top=0.85in,bottom=0.85in]{geometry}
+\usepackage[margin=0.68in,top=0.75in,bottom=0.80in]{geometry}
 \usepackage{amsmath,amssymb,amsfonts}
 \usepackage{array}
 \usepackage{booktabs}
@@ -19,7 +19,7 @@
     urlcolor=blue
 }
 
-\title{\textbf{\Large Robust Risk-Consistent Graph-Contrastive Learning for\\Popularity-Calibrated Recommendation}}
+\title{\textbf{\Large Robust Risk-Consistent Graph-Contrastive Learning for\\Popularity-Calibrated Recommendation with MIRF Auditing}}
 
 \author{
     \textbf{Advait Varhade}\thanks{Author is with the Department of Computer Science and Engineering. Email: advaitvarhade@project.org} \quad and \quad \textbf{Research Collaborators}
@@ -31,10 +31,10 @@
 \maketitle
 
 \begin{abstract}
-\noindent Collaborative filtering and graph-based recommendation systems deployed in real-world platforms suffer from dual systemic vulnerabilities: (1) susceptibility to coordinated adversarial shilling attacks and review-bombing campaigns that inject malicious feedback to manipulate item visibility, and (2) severe catalog popularity bias where Pareto-skewed interaction distributions starve niche long-tail items of exposure. Existing methods address either noise robustness or popularity debiasing in isolation, failing when both phenomena co-occur. In this paper, we propose \textbf{RRFN-LLM-SUPER}, an end-to-end framework uniting noise-transition estimation, multi-view Large Language Model (LLM) auditing, risk-aware Graph Contrastive Learning (GCL), and calibrated Pareto debiasing. RRFN-LLM-SUPER establishes an anchor-guided stochastic rating transition matrix with Tikhonov regularized pseudo-inversion, derives a sample-reliability weighted InfoNCE contrastive loss over dual perturbed graph views, and decouples the catalog into specialized head and tail models merged via user-specific tail inclination blueprints. We provide formal mathematical derivations, complete algorithmic formulations with $\mathcal{O}$-complexity bounds, and an exhaustive 14-dimension comparative analysis against standalone SUPER (SUP). Extensive empirical evaluations across three benchmark domains (MovieLens-100K, Amazon Reviews, and Yelp Academic) spanning five neural backbones (NeuMF, LightGCN, VaeCF, SimGCL, and SGL) demonstrate that RRFN-LLM-SUPER achieves a $+45\%$ ROC-AUC gain in review-bombing detection, eliminates singular gradient explosions, accelerates multi-view inference by $>175\times$ through vectorized 2D BLAS broadcasting, and yields statistically significant improvements in both long-tail coverage and projected Gross Merchandise Value (GMV) under 1,000-iteration Monte Carlo bootstrap simulations.
+\noindent Collaborative filtering and graph-based recommendation systems deployed in real-world platforms suffer from dual systemic vulnerabilities: (1) susceptibility to coordinated adversarial shilling attacks and review-bombing campaigns that inject malicious feedback to manipulate item visibility, and (2) severe catalog popularity bias where Pareto-skewed interaction distributions starve niche long-tail items of exposure. Existing methods address either noise robustness or popularity debiasing in isolation, failing when both phenomena co-occur. In this paper, we propose \textbf{RRFN-LLM-SUPER}, an end-to-end framework uniting noise-transition estimation, the \textbf{Multi-view Interaction Reliability Filter (MIRF)}, risk-aware Graph Contrastive Learning (GCL), and calibrated Pareto debiasing. RRFN-LLM-SUPER establishes an anchor-guided stochastic rating transition matrix with Tikhonov regularized pseudo-inversion, derives a sample-reliability weighted InfoNCE contrastive loss over dual perturbed graph views via MIRF, and decouples the catalog into specialized head and tail models merged via user-specific tail inclination blueprints. We provide formal mathematical derivations, complete algorithmic formulations with $\mathcal{O}$-complexity bounds, and an exhaustive 14-dimension comparative analysis against standalone SUPER (SUP). Extensive empirical evaluations across three benchmark domains (MovieLens-100K, Amazon Reviews, and Yelp Academic) spanning five neural backbones (NeuMF, LightGCN, VaeCF, SimGCL, and SGL) demonstrate that RRFN-LLM-SUPER achieves a $+45\%$ ROC-AUC gain in review-bombing detection, eliminates singular gradient explosions, accelerates multi-view inference by $>175\times$ through vectorized 2D BLAS broadcasting, and yields statistically significant improvements in both long-tail coverage and projected Gross Merchandise Value (GMV) under 1,000-iteration Monte Carlo bootstrap simulations.
 \end{abstract}
 
-\textbf{\textit{Keywords}}---Recommender Systems, Graph Neural Networks, Graph Contrastive Learning, Review-Bombing Detection, Popularity Bias, Long-Tail Calibration, Large Language Models.
+\textbf{\textit{Keywords}}---Recommender Systems, Graph Neural Networks, Graph Contrastive Learning, Multi-view Interaction Reliability Filter (MIRF), Review-Bombing Detection, Popularity Bias, Long-Tail Calibration, Large Language Models.
 
 \section{Introduction and Motivation}
 \label{sec:intro}
@@ -47,25 +47,33 @@ Second, user interaction behavior exhibits extreme Pareto concentration: approxi
 
 \begin{figure*}[!t]
 \centering
-\includegraphics[width=0.92\textwidth]{figures/fig1_system_architecture.pdf}
-\caption{End-to-end system architecture of the RRFN-LLM-SUPER framework, illustrating data ingestion, noise transition modeling, tri-view reliability fusion, graph contrastive learning, dual partition training, and SUPER blueprint calibrated merging.}
+\includegraphics[width=0.98\textwidth]{figures/fig1_system_architecture.pdf}
+\caption{End-to-end system architecture of the RRFN-LLM-SUPER framework, illustrating data ingestion, noise transition modeling, the Multi-view Interaction Reliability Filter (MIRF), graph contrastive learning, dual partition training, and SUPER blueprint calibrated merging.}
 \label{fig:architecture}
 \end{figure*}
 
-\subsection{Grounding Key Concepts: SUP and RRFN}
+\subsection{Grounding Key Concepts: SUP, RRFN, and MIRF}
 To establish conceptual and terminological precision throughout this paper:
 
 \textbf{1. What is SUP?} In existing literature, \textbf{SUP} (also known as \textbf{SUPER}) refers to \textit{Soft Blueprint Merging for Calibrated Long-Tail Recommendation}~\cite{yang2022super}. SUP addresses catalog popularity skew by partitioning items into Head ($M_{\text{pop}}$) and Tail ($M_{\text{tail}}$) models and soft-merging candidate lists based on user tail inclination $\alpha_u$. However, standalone SUP fundamentally assumes an idealized, uncorrupted interaction graph. When subjected to adversarial shilling or review-bombing noise, SUP's interaction blueprints ingest corrupted ratings, resulting in severe degradation of recommendation fidelity.
 
-\textbf{2. What is RRFN?} \textbf{RRFN} refers to the \textit{Robust Risk-consistent Fusion Network}. RRFN is a noise-transition modeling framework that constructs a $K \times K$ stochastic rating transition matrix $T_{ij} = P(\tilde{Y}=j \mid Y^*=i)$ from high-confidence anchor items, regularizes matrix inversion using Tikhonov regularization, optimizes a risk-consistent bounded loss function $\mathcal{L}_{\text{risk}}$, and synthesizes model prediction consistency, semantic LLM text auditing, and temporal-polarity burst detection into a sample reliability weight $w_i = R_{\text{fused}, i}$.
+\textbf{2. What is RRFN?} \textbf{RRFN} refers to the \textit{Robust Risk-consistent Fusion Network}. RRFN is a noise-transition modeling framework that constructs a $K \times K$ stochastic rating transition matrix $T_{ij} = P(\tilde{Y}=j \mid Y^*=i)$ from high-confidence anchor items, regularizes matrix inversion using Tikhonov regularization, and optimizes a risk-consistent bounded loss function $\mathcal{L}_{\text{risk}}$.
 
-\textbf{3. Our Unified Algorithm (RRFN-LLM-SUPER):} We propose \textbf{RRFN-LLM-SUPER}, an end-to-end architecture that unifies the noise-mitigation power of RRFN, the self-supervised representation alignment of Graph Contrastive Learning (SimGCL / SGL), and the calibrated debiasing of SUPER. By filtering interaction blueprints through multi-view reliability auditing and weighting the InfoNCE contrastive loss by sample-level trust weights, our approach simultaneously repels coordinated attacks and recovers long-tail catalog exposure.
+\textbf{3. What is MIRF?} \textbf{MIRF} stands for the \textbf{Multi-view Interaction Reliability Filter}. MIRF is the unified tri-view ensemble mechanism that synthesizes:
+\begin{itemize}
+    \item $R_{\text{RRFN}}$: Statistical model prediction consistency derived from the regularized transition matrix $T$.
+    \item $R_{\text{LLM}}$: Semantic LLM review-text verification evaluated via asynchronous prompt queries and cached in a thread-safe SQLite WAL database.
+    \item $R_{\text{bomb}}$: Vectorized temporal-polarity review-bombing burst detection computed via 2D BLAS matrix broadcasting.
+\end{itemize}
+MIRF produces a continuous sample reliability weight $w_{ui} = R_{\text{MIRF}}(u, i) \in [0, 1]$ for every interaction edge.
+
+\textbf{4. Our Unified Algorithm (RRFN-LLM-SUPER):} We propose \textbf{RRFN-LLM-SUPER}, an end-to-end architecture that unifies the noise-mitigation power of RRFN and MIRF, the self-supervised representation alignment of Graph Contrastive Learning (SimGCL / SGL), and the calibrated debiasing of SUPER. By filtering interaction blueprints through MIRF reliability auditing and weighting the InfoNCE contrastive loss by sample-level trust weights, our approach simultaneously repels coordinated attacks and recovers long-tail catalog exposure.
 
 \subsection{Summary of Contributions}
 The main contributions of this work are summarized as follows:
 \begin{enumerate}
     \item \textbf{Mathematical Noise Transition \& Risk-Consistent Loss}: We derive an anchor-selected $5 \times 5$ stochastic noise transition matrix $T$ equipped with Tikhonov-regularized pseudo-inversion $(T^T T + \lambda I)^{-1} T^T$, guaranteeing positive-definite stability and bounded loss optimization.
-    \item \textbf{Tri-View Reliability Auditing}: We formulate a multi-signal fusion layer combining model prediction divergence ($R_{\text{RRFN}}$), prompt-audited LLM semantic review verification ($R_{\text{LLM}}$) supported by a thread-safe SQLite WAL cache, and 2D BLAS vectorized temporal-polarity burst scoring ($R_{\text{bomb}}$), achieving a $>175\times$ computational acceleration.
+    \item \textbf{Multi-view Interaction Reliability Filter (MIRF)}: We formulate the MIRF ensemble layer combining model prediction divergence ($R_{\text{RRFN}}$), prompt-audited LLM semantic review verification ($R_{\text{LLM}}$) supported by a thread-safe SQLite WAL cache, and 2D BLAS vectorized temporal-polarity burst scoring ($R_{\text{bomb}}$), achieving a $>175\times$ computational acceleration.
     \item \textbf{Risk-Aware Graph Contrastive Learning}: We integrate SimGCL (latent space uniform noise injection) and SGL (structural edge/node dropout) backbones guided by a sample-reliability weighted InfoNCE contrastive loss, preventing poisoned interactions from corrupting graph embeddings.
     \item \textbf{Denoised SUPER Blueprint Merging}: We design a clean-anchor interaction blueprint engine that eliminates malicious feedback before calculating user tail inclinations $\alpha_u$, dynamically balancing head and tail exposure with zero-$k$ boundary protection.
     \item \textbf{Multi-Domain \& Business Simulation Benchmarking}: We evaluate RRFN-LLM-SUPER across three domains (MovieLens-100K, Amazon Reviews, Yelp Academic) and five backbones, reporting on 13 academic metrics and a 1,000-sample Monte Carlo bootstrap financial A/B simulation.
@@ -81,16 +89,17 @@ Early robust CF methods focused on heuristic filtering of shilling attacks using
 Popularity bias in recommender systems has been studied through causal graph interventions~\cite{zheng2021disentangling}, propensity score reweighting, and calibrated ranking~\cite{steck2018calibrated,abdollahpouri2019popularity}. Standalone SUPER~\cite{yang2022super} introduced soft blueprint merging to balance user-specific tail quotas. Nonetheless, prior debiasing literature uniformly presupposes clean training interactions; when adversarial actors inject popular items to execute bandwagon attacks, standalone debiasing algorithms misinterpret injected interactions as genuine user interest.
 
 \subsection{Graph Neural Networks \& Contrastive Learning}
-Graph Convolutional Networks, exemplified by LightGCN~\cite{he2020lightgcn}, learn user-item representations by linearly propagating embeddings across the bipartite adjacency graph. Self-supervised graph learning (SGL)~\cite{wu2021sgl} introduced edge/node dropout to enhance representation robustness. SimGCL~\cite{yu2022simgcl} discovered that injecting uniform noise directly into the latent embedding space outperforms complex structural graph augmentations while reducing graph convolution memory overhead. Neighborhood-enriched contrastive learning (NCL)~\cite{lin2022ncl} incorporates semantic clustering. Our work is the first to modulate InfoNCE contrastive loss via sample-level reliability weights derived from LLM and behavioral auditing.
+Graph Convolutional Networks, exemplified by LightGCN~\cite{he2020lightgcn}, learn user-item representations by linearly propagating embeddings across the bipartite adjacency graph. Self-supervised graph learning (SGL)~\cite{wu2021sgl} introduced edge/node dropout to enhance representation robustness. SimGCL~\cite{yu2022simgcl} discovered that injecting uniform noise directly into the latent embedding space outperforms complex structural graph augmentations while reducing graph convolution memory overhead. Neighborhood-enriched contrastive learning (NCL)~\cite{lin2022ncl} incorporates semantic clustering. Our work is the first to modulate InfoNCE contrastive loss via sample-level reliability weights derived from MIRF.
 
 \subsection{Large Language Models in Recommender Systems}
-Large Language Models (LLMs) have recently been explored for direct recommendation ranking and conversational search~\cite{fan2023recommender,bao2023tallrec}. However, direct LLM inference on millions of user-item pairs is computationally prohibitive and prone to hallucination. In RRFN-LLM-SUPER, LLMs are deployed selectively as high-precision asynchronous semantic auditors of suspicious review text, with predictions indexed in a persistent SQLite WAL cache.
+Large Language Models (LLMs) have recently been explored for direct recommendation ranking and conversational search~\cite{fan2023recommender,bao2023tallrec}. However, direct LLM inference on millions of user-item pairs is computationally prohibitive and prone to hallucination. In RRFN-LLM-SUPER, LLMs are deployed selectively as high-precision asynchronous semantic auditors of suspicious review text within the MIRF pipeline, with predictions indexed in a persistent SQLite WAL cache.
 
 \begin{table*}[!t]
-\caption{Comprehensive Comparison of Related Recommender Paradigms against RRFN-LLM-SUPER.}
+\caption{Comprehensive Comparison of Related Recommender Paradigms against RRFN-LLM-SUPER with MIRF.}
 \label{tab:positioning}
 \centering
-\footnotesize
+\setlength{\tabcolsep}{4pt}
+\resizebox{\textwidth}{!}{
 \begin{tabular}{lcccccc}
 \toprule
 \textbf{Method} & \textbf{Noise Transition ($T$)} & \textbf{LLM Semantic Audit} & \textbf{Contrastive GCL} & \textbf{Pareto Debiasing} & \textbf{Adversarial Defense} & \textbf{Multi-Domain Validated} \\
@@ -102,9 +111,9 @@ SGL~\cite{wu2021sgl} & No & No & Yes (Structural) & No & Moderate (Dropout) & No
 SimGCL~\cite{yu2022simgcl} & No & No & Yes (Latent Noise) & No & Moderate (Perturbation) & No \\
 DICE~\cite{zheng2021disentangling} & No & No & No & Yes (Causal) & Vulnerable & No \\
 Standalone SUP~\cite{yang2022super} & No & No & No & Yes (Soft Blueprint) & Vulnerable to Bandwagon & No \\
-\textbf{RRFN-LLM-SUPER (Ours)} & \textbf{Yes (Tikhonov Reg.)} & \textbf{Yes (Cached WAL)} & \textbf{Yes (Risk-InfoNCE)} & \textbf{Yes (Calibrated $\alpha_u$)} & \textbf{Robust (+45\% ROC-AUC)} & \textbf{Yes (ML, Amz, Yelp)} \\
+\textbf{RRFN-LLM-SUPER (Ours)} & \textbf{Yes (Tikhonov Reg.)} & \textbf{Yes (MIRF SQLite WAL)} & \textbf{Yes (Risk-InfoNCE)} & \textbf{Yes (Calibrated $\alpha_u$)} & \textbf{Robust (+45\% ROC-AUC)} & \textbf{Yes (ML, Amz, Yelp)} \\
 \bottomrule
-\end{tabular}
+\end{tabular}}
 \end{table*}
 
 \section{Problem Formulation \& Mathematical Foundations}
@@ -153,22 +162,15 @@ where $\lambda > 0$ is the Tikhonov damping factor (set to $10^{-4}$). The risk-
 \end{equation}
 where $\|\cdot\|_F$ denotes the Frobenius norm regularizing transition shifts against prior anchor estimate $\hat{T}$.
 
-\subsection{Stage 2: Tri-View Reliability Auditing \& Fusion}
-To evaluate interaction trustworthiness, we synthesize three complementary signal views:
-
-\begin{figure}[!t]
+\begin{figure*}[!t]
 \centering
-\includegraphics[width=0.48\textwidth]{figures/fig3_roc_pr_curves.pdf}
-\caption{Empirical (a) ROC curve (AUC = 0.726) and (b) Precision-Recall curve (AP = 0.684) for review-bombing detection under 15\% bandwagon shilling attack.}
-\label{fig:roc_pr}
-\end{figure}
+\includegraphics[width=0.92\textwidth]{figures/fig2_mirf_pipeline.pdf}
+\caption{Architecture of the Multi-view Interaction Reliability Filter (MIRF), showing the synthesis of statistical prediction divergence ($R_{\text{RRFN}}$), prompt-audited LLM review text analysis ($R_{\text{LLM}}$), and vectorized burst detection ($R_{\text{bomb}}$) to compute sample-level trust weights $w_i$.}
+\label{fig:mirf_pipeline}
+\end{figure*}
 
-\begin{figure}[!t]
-\centering
-\includegraphics[width=0.44\textwidth]{figures/fig4_omega_sensitivity.pdf}
-\caption{Sensitivity analysis of the review-bombing detection F1-score and ROC-AUC with respect to temporal burst weight $\omega_1$.}
-\label{fig:omega_sweep}
-\end{figure}
+\subsection{Stage 2: Multi-view Interaction Reliability Filter (MIRF)}
+To evaluate interaction trustworthiness, MIRF synthesizes three complementary signal views:
 
 \textbf{1. Statistical Model Consistency ($R_{\text{RRFN}}$)}:
 Measures the divergence between the observed rating $\tilde{r}_{ui}$ and the expectation under the corrected clean distribution:
@@ -190,12 +192,26 @@ Computes the temporal acceleration $Z_{\text{temp}}(i, t)$ over rolling window $
 \end{equation}
 In our implementation, computing $R_{\text{bomb}}$ over 42,000 interactions is accelerated from 4.38s to $<25$ms using 2D NumPy array matrix multiplication ($W @ X$).
 
-\textbf{Tri-View Synthesis}:
-The unified interaction reliability weight $w_{ui}$ is computed as:
+\textbf{MIRF Signal Synthesis}:
+The unified interaction reliability weight $w_{ui} = R_{\text{MIRF}}(u, i)$ is computed via the convex combination:
 \begin{equation}
     w_{ui} = \alpha R_{\text{RRFN}}(u, i) + \beta R_{\text{LLM}}(u, i) + \gamma R_{\text{bomb}}(u, i),
 \end{equation}
 where $\alpha + \beta + \gamma = 1$.
+
+\begin{figure}[!t]
+\centering
+\includegraphics[width=0.48\textwidth]{figures/fig3_roc_pr_curves.pdf}
+\caption{Empirical (a) ROC curve (AUC = 0.726) and (b) Precision-Recall curve (AP = 0.684) for MIRF review-bombing detection under 15\% bandwagon attack.}
+\label{fig:roc_pr}
+\end{figure}
+
+\begin{figure}[!t]
+\centering
+\includegraphics[width=0.45\textwidth]{figures/fig4_omega_sensitivity.pdf}
+\caption{Sensitivity analysis of the MIRF detection F1-score and ROC-AUC with respect to temporal burst weight $\omega_1$.}
+\label{fig:omega_sweep}
+\end{figure}
 
 \subsection{Stage 3: Graph Contrastive Learning \& Dual Partition Models}
 
@@ -220,7 +236,7 @@ SGL generates two views $\mathcal{G}', \mathcal{G}''$ via edge dropout with drop
 where $M', M''$ are binary masking matrices and isolated nodes are protected with $\max(d_u, 1.0)$.
 
 \textbf{Risk-Aware InfoNCE Contrastive Objective}:
-We modulate the InfoNCE contrastive loss with interaction reliability weights $w_i$:
+We modulate the InfoNCE contrastive loss with interaction reliability weights $w_i = R_{\text{MIRF}}(i)$:
 \begin{equation}
     \mathcal{L}_{\text{cl}} = -\sum_{i \in \mathcal{B}} w_i \log \frac{\exp(\text{sim}(\mathbf{z}_i', \mathbf{z}_i'') / \tau)}{\sum_{j \in \mathcal{B}} \exp(\text{sim}(\mathbf{z}_i', \mathbf{z}_j'') / \tau)},
 \end{equation}
@@ -235,10 +251,17 @@ Two separate models are optimized:
 
 \begin{figure}[!t]
 \centering
-\includegraphics[width=0.44\textwidth]{figures/fig6_loss_curves.pdf}
+\includegraphics[width=0.45\textwidth]{figures/fig6_loss_curves.pdf}
 \caption{Dual partition model convergence over 15 CUDA training epochs on MovieLens-100K.}
 \label{fig:loss_curves}
 \end{figure}
+
+\begin{figure*}[!t]
+\centering
+\includegraphics[width=0.92\textwidth]{figures/fig7_super_blueprint_flow.pdf}
+\caption{SUPER Denoised Blueprint and Calibrated Quota Merging flow, illustrating the purification of user history via MIRF trust filtering ($w_{ui} \ge \theta_{\text{trust}}$) to compute personalized tail inclination $\alpha_u$ and Assemble top-$K$ recommendations.}
+\label{fig:super_flow}
+\end{figure*}
 
 \subsection{Stage 4: Denoised SUPER Blueprint \& Top-K Merging}
 
@@ -263,12 +286,12 @@ The final list is populated by selecting the top $K_{\text{tail}}$ items from $C
 
 \subsection{Formal Algorithmic Procedures}
 
-\textbf{Algorithm 1: End-to-End RRFN-LLM-SUPER}:
+\textbf{Algorithm 1: End-to-End RRFN-LLM-SUPER with MIRF}:
 \begin{enumerate}
     \item \textbf{Input}: Interaction graph $\mathcal{G} = (\mathcal{U}, \mathcal{I}, \mathcal{E})$, ratings $\tilde{r}_{ui}$, review text $S_{ui}$, timestamps $t_{ui}$.
     \item \textbf{Anchor Selection}: Identify $\mathcal{A}_{\text{clean}} \subset \mathcal{I}$ and estimate $5 \times 5$ stochastic transition matrix $T$.
     \item \textbf{Tikhonov Inversion}: Compute regularized inverse $T^{\dagger}_{\lambda} = (T^T T + \lambda I)^{-1} T^T$.
-    \item \textbf{Tri-View Fusion}: Compute $w_{ui} = \alpha R_{\text{RRFN}} + \beta R_{\text{LLM}} + \gamma R_{\text{bomb}}$ via 2D BLAS acceleration.
+    \item \textbf{MIRF Filtering}: Compute $w_{ui} = R_{\text{MIRF}}(u, i) = \alpha R_{\text{RRFN}} + \beta R_{\text{LLM}} + \gamma R_{\text{bomb}}$ via 2D BLAS acceleration.
     \item \textbf{Catalog Partitioning}: Partition $\mathcal{I}$ into $\mathcal{I}_{\text{head}}$ and $\mathcal{I}_{\text{tail}}$ at $\rho_{\text{pareto}} = 0.20$.
     \item \textbf{Dual Contrastive Training}: Train $M_{\text{pop}}$ on $\mathcal{I}_{\text{head}}$ and $M_{\text{tail}}$ on $\mathcal{I}_{\text{tail}}$ with sample-weighted risk loss and contrastive InfoNCE loss ($\mathcal{L}_{\text{cl}}$).
     \item \textbf{Denoised Blueprint Extraction}: Construct clean history $B_u = \{i \mid w_{ui} \ge \theta_{\text{trust}}\}$.
@@ -284,22 +307,23 @@ The final list is populated by selecting the top $K_{\text{tail}}$ items from $C
 \section{Comprehensive SUP vs. Our Algorithm Comparison}
 \label{sec:sup_vs_ours}
 
-To rigorously position our contributions against prior work, Table~\ref{tab:sup_comparison} provides a comprehensive 14-dimension comparison between standalone SUPER (SUP)~\cite{yang2022super} and our proposed RRFN-LLM-SUPER.
+To rigorously position our contributions against prior work, Table~\ref{tab:sup_comparison} provides a comprehensive 14-dimension comparison between standalone SUPER (SUP)~\cite{yang2022super} and our proposed RRFN-LLM-SUPER with MIRF.
 
 \begin{table*}[!t]
-\caption{Detailed 14-Dimension Comparison between Standalone SUP~\cite{yang2022super} and RRFN-LLM-SUPER (Ours).}
+\caption{Detailed 14-Dimension Comparison between Standalone SUP~\cite{yang2022super} and RRFN-LLM-SUPER with MIRF (Ours).}
 \label{tab:sup_comparison}
 \centering
-\footnotesize
+\setlength{\tabcolsep}{3pt}
+\resizebox{\textwidth}{!}{
 \begin{tabular}{p{3.2cm}p{6.4cm}p{6.8cm}}
 \toprule
-\textbf{Dimension} & \textbf{Standalone SUP (SUPER)~\cite{yang2022super}} & \textbf{RRFN-LLM-SUPER (Our Framework)} \\
+\textbf{Dimension} & \textbf{Standalone SUP (SUPER)~\cite{yang2022super}} & \textbf{RRFN-LLM-SUPER with MIRF (Our Framework)} \\
 \midrule
 1. Primary Research Objective & Popularity debiasing and calibrated long-tail exposure. & Joint adversarial noise defense, GCL representation alignment, and popularity calibration. \\
-2. Core Mechanism & Dual Head/Tail model training with soft blueprint candidate merging. & Tri-view reliability auditing + Tikhonov noise transition + Risk-InfoNCE contrastive learning + Denoised SUPER. \\
-3. Noise Handling Capability & None. Assumes interaction graph $\mathcal{G}$ is completely clean. & Robust. Corrects rating shifts via $T$, downweights poisoned edges via $w_i$, and audits review text via LLMs. \\
+2. Core Mechanism & Dual Head/Tail model training with soft blueprint candidate merging. & MIRF reliability auditing + Tikhonov noise transition + Risk-InfoNCE contrastive learning + Denoised SUPER. \\
+3. Noise Handling Capability & None. Assumes interaction graph $\mathcal{G}$ is completely clean. & Robust. Corrects rating shifts via $T$, downweights poisoned edges via MIRF $w_i$, and audits review text via LLMs. \\
 4. Popularity Debiasing & Pareto item partition with unweighted blueprint tail inclination $\alpha_u$. & Denoised blueprint filtering removing fake interactions before computing calibrated user inclination $\alpha_u$. \\
-5. Role of RRFN & Absent. & Core Stage 1 \& 2 foundation providing stochastic transition matrix $T$ and fused sample weights $w_i$. \\
+5. Role of RRFN \& MIRF & Absent. & Core Stage 1 \& 2 foundation providing stochastic transition matrix $T$ and fused MIRF sample weights $w_i$. \\
 6. Graph Contrastive Learning & Not utilized. Relies on standard matrix factorization or baseline GCN. & SimGCL (latent uniform noise) and SGL (structural dropout) with sample-reliability weighted InfoNCE. \\
 7. LLM Integration & None. & High-precision prompt-based review verification with SQLite WAL caching and secret redaction. \\
 8. Optimization Objective & Standard cross-entropy or BPR loss on unweighted partition subsets. & Sample-weighted risk-consistent NLL loss ($\mathcal{L}_{\text{risk}}$) combined with contrastive InfoNCE ($\mathcal{L}_{\text{cl}}$). \\
@@ -310,7 +334,7 @@ To rigorously position our contributions against prior work, Table~\ref{tab:sup_
 13. Business Metric Modeling & Offline accuracy only (Recall, nDCG). & End-to-end A/B simulator projecting CTR, CVR, GMV lift with 1,000-sample bootstrap confidence intervals. \\
 14. Software Hardening & Unprotected against singular matrix inversion and $k=0$ empty candidate sets. & Hardened with Tikhonov regularized pseudo-inversion, float32 logvar clamping, and zero-$k$ guards. \\
 \bottomrule
-\end{tabular}
+\end{tabular}}
 \end{table*}
 
 \section{Experimental Evaluation}
@@ -334,7 +358,8 @@ To rigorously position our contributions against prior work, Table~\ref{tab:sup_
 \caption{Empirical Benchmark Comparison across Baselines and RRFN-LLM-SUPER on MovieLens-100K (CUDA, 15 Epochs, $\rho=0.15$ Attack).}
 \label{tab:movielens_benchmark}
 \centering
-\footnotesize
+\setlength{\tabcolsep}{3pt}
+\resizebox{\textwidth}{!}{
 \begin{tabular}{lcccccccc}
 \toprule
 \textbf{Method} & \textbf{Recall@10} $\uparrow$ & \textbf{nDCG@10} $\uparrow$ & \textbf{RMSE-PC} $\downarrow$ & \textbf{MRMC} $\downarrow$ & \textbf{LTC@10} $\uparrow$ & \textbf{Novelty} $\uparrow$ & \textbf{GKPI} $\uparrow$ & \textbf{Denoising-ROC} $\uparrow$ \\
@@ -344,14 +369,15 @@ Vanilla SUPER (Clean Baseline) & 0.2000 & 0.1052 & 0.1211 & 0.1698 & 0.1586 & 11
 Vanilla SUPER (Attacked $\rho=0.15$) & 0.1867 & 0.0990 & 0.1211 & 0.1655 & 0.1558 & 11.77 & 0.1628 & 0.5000 \\
 \textbf{RRFN-LLM-SUPER (Ours)} & \textbf{0.2067} & \textbf{0.1014} & \textbf{0.1188} & \textbf{0.1673} & \textbf{0.1590} & \textbf{11.94} & \textbf{0.1664} & \textbf{0.7265} \\
 \bottomrule
-\end{tabular}
+\end{tabular}}
 \end{table*}
 
 \begin{table*}[!t]
 \caption{Multi-Domain Benchmark Comparison on Amazon Reviews (SimGCL) and Yelp Academic (SGL) under $\rho=0.15$ Attack.}
 \label{tab:multidomain_benchmark}
 \centering
-\footnotesize
+\setlength{\tabcolsep}{4pt}
+\resizebox{\textwidth}{!}{
 \begin{tabular}{llccccccc}
 \toprule
 \textbf{Domain} & \textbf{Method} & \textbf{Recall@10} $\uparrow$ & \textbf{nDCG@10} $\uparrow$ & \textbf{RMSE-PC} $\downarrow$ & \textbf{MRMC} $\downarrow$ & \textbf{LTC@10} $\uparrow$ & \textbf{Novelty} $\uparrow$ & \textbf{GKPI} $\uparrow$ \\
@@ -366,14 +392,21 @@ Vanilla SUPER (Attacked $\rho=0.15$) & 0.1867 & 0.0990 & 0.1211 & 0.1655 & 0.155
 & Vanilla SUPER (Attacked) & 0.1857 & 0.0837 & 0.1126 & 0.1523 & 0.4946 & 6.74 & 0.1491 \\
 & \textbf{RRFN-LLM-SUPER (Ours)} & \textbf{0.2286} & \textbf{0.0939} & \textbf{0.1166} & \textbf{0.1366} & \textbf{0.4468} & \textbf{7.06} & \textbf{0.1646} \\
 \bottomrule
-\end{tabular}
+\end{tabular}}
 \end{table*}
 
 \begin{figure*}[!t]
 \centering
-\includegraphics[width=0.92\textwidth]{figures/fig5_multidomain_radar.pdf}
+\includegraphics[width=0.98\textwidth]{figures/fig5_multidomain_radar.pdf}
 \caption{Cross-domain multi-metric radar comparison across (a) MovieLens-100K, (b) Amazon Reviews with SimGCL, and (c) Yelp with SGL, showing consistent performance across accuracy, long-tail coverage, novelty, and denoising ROC.}
 \label{fig:radar}
+\end{figure*}
+
+\begin{figure*}[!t]
+\centering
+\includegraphics[width=0.95\textwidth]{figures/fig7_dashboard_overview.png}
+\caption{Live interactive Streamlit application dashboard interface showing real-time multi-view MIRF signal fusion telemetry, noise detection ROC-AUC (+45\%), and calibrated top-10 recommendation sandbox.}
+\label{fig:dashboard_app}
 \end{figure*}
 
 Table~\ref{tab:movielens_benchmark} reports quantitative performance on MovieLens-100K. Under a 15\% bandwagon shilling attack, Vanilla SUPER suffers noticeable degradation in Recall@10 ($0.2000 \rightarrow 0.1867$) and nDCG@10 ($0.1052 \rightarrow 0.0990$). In contrast, RRFN-LLM-SUPER recovers Recall@10 to \textbf{0.2067} and nDCG@10 to \textbf{0.1014}, while achieving an outstanding Denoising ROC-AUC of \textbf{0.7265} (compared to 0.5000 random chance for vanilla baselines).
@@ -410,7 +443,7 @@ Translating offline improvements into business revenue, our 1,000-sample Monte C
 \section{Conclusion and Future Work}
 \label{sec:conclusion}
 
-In this paper, we introduced \textbf{RRFN-LLM-SUPER}, a unified framework that resolves the dual vulnerabilities of adversarial review-bombing noise and catalog popularity bias in recommender systems. By coupling anchor-guided noise transition modeling with Tikhonov pseudo-inversion, multi-view LLM auditing, sample-reliability weighted Graph Contrastive Learning, and calibrated SUPER soft blueprint merging, our approach provides verifiable robustness and balanced catalog discovery. Extensive experiments across MovieLens, Amazon, and Yelp with five neural backbones validate that RRFN-LLM-SUPER achieves a $+45\%$ ROC-AUC gain in noise detection, accelerates inference by $>175\times$, and significantly elevates long-tail recommendation fidelity. Future work will extend the framework to multimodal vision-language contrastive representations and real-time streaming graph updates.
+In this paper, we introduced \textbf{RRFN-LLM-SUPER}, a unified framework that resolves the dual vulnerabilities of adversarial review-bombing noise and catalog popularity bias in recommender systems. By coupling anchor-guided noise transition modeling with Tikhonov pseudo-inversion, the Multi-view Interaction Reliability Filter (MIRF), sample-reliability weighted Graph Contrastive Learning, and calibrated SUPER soft blueprint merging, our approach provides verifiable robustness and balanced catalog discovery. Extensive experiments across MovieLens, Amazon, and Yelp with five neural backbones validate that RRFN-LLM-SUPER achieves a $+45\%$ ROC-AUC gain in noise detection, accelerates inference by $>175\times$, and significantly elevates long-tail recommendation fidelity. Future work will extend the framework to multimodal vision-language contrastive representations and real-time streaming graph updates.
 
 \bibliographystyle{unsrt}
 \bibliography{references}
