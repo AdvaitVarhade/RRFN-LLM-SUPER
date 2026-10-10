@@ -8,13 +8,15 @@ def evaluate_recommendations(
     head_items: Set[int],
     tail_items: Set[int],
     user_inclinations: Dict[int, float],
-    top_k: int = 10
+    top_k: int = 10,
+    target_items: Optional[Set[int]] = None
 ) -> Dict[str, float]:
     """
     Computes standard recommendation and debiasing metrics as formulated in SUPER (2026):
     - Accuracy: nDCG@K, Recall@K
     - Calibration: RMSE-PC, MRMC
     - Beyond-Accuracy: APLT, LTC, Entropy, Novelty
+    - Attack-Aware: Genuine LTC (g-LTC), Spam Target Exposure Rate (STER)
     - Holistic Summary: GKPI
     """
     eval_users = [u for u in test_dict if u in recommendations]
@@ -91,9 +93,17 @@ def evaluate_recommendations(
     aplt = float(np.mean(aplt_user_scores))
     novelty = float(np.mean(novelties))
 
-    # 7. Long-Tail Coverage (LTC)
+    # 7. Long-Tail Coverage (LTC) & Attack-Aware Metrics
     total_tail_items = max(1, len(tail_items))
     ltc = len(recommended_tail_items) / total_tail_items
+
+    target_set = set(target_items) if target_items else set()
+    genuine_tail_items = set(tail_items) - target_set
+    rec_genuine_tail = recommended_tail_items - target_set
+    rec_target_items = recommended_tail_items & target_set
+
+    g_ltc = len(rec_genuine_tail) / max(1, len(genuine_tail_items)) if genuine_tail_items else ltc
+    ster = len(rec_target_items) / max(1, len(target_set)) if target_set else 0.0
 
     # 8. Entropy across catalog
     total_recs = sum(item_exposure_counts.values())
@@ -127,6 +137,8 @@ def evaluate_recommendations(
         f"MRMC": mrmc,
         f"APLT@{top_k}": aplt,
         f"LTC@{top_k}": ltc,
+        f"g-LTC@{top_k}": g_ltc,
+        f"STER@{top_k}": ster,
         f"Entropy": norm_entropy,
         f"Novelty": novelty,
         f"GKPI": gkpi

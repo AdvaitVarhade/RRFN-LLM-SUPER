@@ -56,15 +56,6 @@ J.~Wu, X.~Wang, F.~Feng, X.~He, L.~Chen, J.~Lian, and X.~Xie, ``Self-supervised 
 \bibitem{yu2022simgcl}
 J.~Yu, H.~Yin, X.~Xia, T.~Chen, L.~Cui, and Q.~V.~H. Nguyen, ``Are graph augmentations necessary? simple graph contrastive learning for recommendation,'' in \emph{Proceedings of the 45th International ACM SIGIR Conference on Research and Development in Information Retrieval (SIGIR)}, 2022, pp. 1294--1303.
 
-\bibitem{lin2022ncl}
-Z.~Lin, C.~Tian, Y.~Hou, and W.~X. Zhao, ``Improving graph collaborative filtering with neighborhood-enriched contrastive learning,'' in \emph{Proceedings of the Web Conference 2022 (WWW)}, 2022, pp. 2320--2329.
-
-\bibitem{he2017neural}
-X.~He, L.~Liao, H.~Zhang, L.~Nie, X.~Hu, and T.-S. Chua, ``Neural collaborative filtering,'' in \emph{Proceedings of the 26th International Conference on World Wide Web (WWW)}, 2017, pp. 173--182.
-
-\bibitem{liang2018variational}
-D.~Liang, R.~G. Krishnan, M.~D. Hoffman, and T.~Jebara, ``Variational autoencoders for collaborative filtering,'' in \emph{Proceedings of the 2018 World Wide Web Conference (WWW)}, 2018, pp. 687--696.
-
 \bibitem{ni2019justifying}
 J.~Ni, J.~Li, and J.~McAuley, ``Justifying recommendations using distantly-labeled reviews and fine-grained aspects,'' in \emph{Proceedings of the 2019 Conference on Empirical Methods in Natural Language Processing (EMNLP)}, 2019, pp. 188--197.
 

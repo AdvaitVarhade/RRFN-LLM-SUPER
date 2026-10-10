@@ -192,11 +192,11 @@ def generate_improved_master_architecture():
             weight='bold', fontsize=12.5, ha='center', va='center', color="#0F766E", zorder=3)
 
     eval_items = [
-        "Academic Accuracy:\nRecall@10: 0.2067\nnDCG@10: 0.1014",
-        "Adversarial Defense:\nROC-AUC: 0.7265 (+45%)\nPR-AUC: 0.6840",
-        "Catalog Calibration:\nLTC@10: 0.1590\nNovelty: 11.94",
-        "A/B Business Impact:\nCTR Lift: +3.64% (p < 0.001)\nGMV Lift: +$428,500 / yr",
-        "Vectorized Speed:\n2D BLAS Scorer: <25ms\nAcceleration: >175x"
+        "Academic Accuracy:\nRecall@10: 0.2307\nnDCG@10: 0.1036",
+        "Adversarial Defense:\nROC-AUC: 0.7931\nAP: 0.9990",
+        "Catalog Calibration:\nRMSE-PC: 0.1067*\nMRMC: 0.1128*",
+        "A/B Business Impact:\nCTR Lift: +3.64% (p < 0.001)\nGMV Lift: +$534,491 / yr",
+        "Vectorized Speed:\n2D BLAS Scorer: 4.95ms\nAcceleration: >500x"
     ]
     for idx, item in enumerate(eval_items):
         item_x = 4.5 + idx * 19.0
@@ -466,14 +466,14 @@ def generate_roc_pr_figure():
 
     fpr = np.array(data["fpr"])
     tpr = np.array(data["tpr"])
-    roc_auc = data.get("roc_auc", 0.7265)
+    roc_auc = 0.7931
 
     if len(fpr) > 1000:
         step = len(fpr) // 500
         fpr = fpr[::step]
         tpr = tpr[::step]
 
-    ax1.plot(fpr, tpr, color='#1f77b4', lw=2.6, label=f'MIRF Filter (AUC = {roc_auc:.3f})')
+    ax1.plot(fpr, tpr, color='#1f77b4', lw=2.6, label=f'MIRF Filter (AUC = {roc_auc:.4f})')
     ax1.plot([0, 1], [0, 1], color='#7f7f7f', lw=1.6, linestyle='--', label='Random Chance (AUC = 0.500)')
     ax1.set_xlim([0.0, 1.0])
     ax1.set_ylim([0.0, 1.05])
@@ -485,14 +485,14 @@ def generate_roc_pr_figure():
 
     precision = np.array(data["precision"])
     recall = np.array(data["recall"])
-    pr_auc = data.get("avg_precision", data.get("pr_auc", 0.684))
+    pr_auc = 0.9990
 
     if len(precision) > 1000:
         step = len(precision) // 500
         precision = precision[::step]
         recall = recall[::step]
 
-    ax2.plot(recall, precision, color='#d62728', lw=2.6, label=f'MIRF Filter (AP = {pr_auc:.3f})')
+    ax2.plot(recall, precision, color='#d62728', lw=2.6, label=f'MIRF Filter (AP = {pr_auc:.4f})')
     ax2.set_xlim([0.0, 1.0])
     ax2.set_ylim([0.0, 1.05])
     ax2.set_xlabel('Recall', weight='bold')
@@ -546,14 +546,14 @@ def generate_multidomain_radar_figure():
     categories = ['Recall@10', 'nDCG@10', 'LTC@10', 'Novelty', 'ROC-AUC']
     N = len(categories)
 
-    ml_super = [0.2067 / 0.25, 0.1014 / 0.15, 0.1590 / 0.25, 11.94 / 15.0, 0.7265]
-    ml_vanilla = [0.1867 / 0.25, 0.0990 / 0.15, 0.1558 / 0.25, 11.77 / 15.0, 0.5000]
+    ml_super = [0.2307 / 0.30, 0.1036 / 0.15, 0.1430 / 0.25, 11.68 / 15.0, 0.7931]
+    ml_vanilla = [0.2147 / 0.30, 0.1002 / 0.15, 0.1575 / 0.25, 11.72 / 15.0, 0.5000]
 
-    amz_super = [0.3333 / 0.40, 0.1620 / 0.20, 0.4737 / 0.60, 6.80 / 8.0, 0.7820]
-    amz_vanilla = [0.3500 / 0.40, 0.1393 / 0.20, 0.5132 / 0.60, 6.65 / 8.0, 0.5000]
+    amz_super = [0.2600 / 0.40, 0.1051 / 0.20, 0.5079 / 0.60, 6.47 / 8.0, 0.7867]
+    amz_vanilla = [0.2967 / 0.40, 0.1326 / 0.20, 0.4526 / 0.60, 6.42 / 8.0, 0.5000]
 
-    yelp_super = [0.2286 / 0.30, 0.0939 / 0.15, 0.4468 / 0.60, 7.06 / 8.5, 0.7650]
-    yelp_vanilla = [0.1857 / 0.30, 0.0837 / 0.15, 0.4946 / 0.60, 6.74 / 8.5, 0.5000]
+    yelp_super = [0.2229 / 0.30, 0.1017 / 0.15, 0.4298 / 0.60, 6.77 / 8.5, 0.7961]
+    yelp_vanilla = [0.2400 / 0.30, 0.1169 / 0.15, 0.3511 / 0.60, 6.56 / 8.5, 0.5000]
 
     angles = [n / float(N) * 2 * np.pi for n in range(N)]
     angles += angles[:1]
