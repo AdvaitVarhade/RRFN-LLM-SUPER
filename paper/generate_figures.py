@@ -102,7 +102,7 @@ def generate_improved_master_architecture():
                                   edgecolor="#3B82F6", facecolor="#FFFFFF", lw=1.8, zorder=2)
     ax.add_patch(s1_b2)
     ax.text(13.25, 53.0, "Multi-Domain Datasets", weight='bold', fontsize=11.5, ha='center', color="#1E40AF", zorder=3)
-    ax.text(13.25, 45.5, "1. MovieLens-100K\n2. Amazon Electronics\n3. Yelp Academic", fontsize=10.5, weight='bold', ha='center', color="#1E293B", zorder=3)
+    ax.text(13.25, 45.5, "1. MovieLens-1M (Sub-Graph)\n2. Amazon Electronics\n3. Yelp Academic", fontsize=10.0, weight='bold', ha='center', color="#1E293B", zorder=3)
     ax.text(13.25, 34.0, "K-Core Pruning ($k \geq 5$)\nPareto Head/Tail Split\n" + r"$\mathcal{I} = \mathcal{I}_{\mathrm{head}} \cup \mathcal{I}_{\mathrm{tail}}$", fontsize=10.0, ha='center', color="#475569", zorder=3)
     ax.text(13.25, 25.5, r"$\rho_{\mathrm{pareto}} = 0.20 \ (80\%\ \mathrm{Int.})$", fontsize=10.5, weight='bold', ha='center', color="#1D4ED8", zorder=3)
 
@@ -572,7 +572,7 @@ def generate_multidomain_radar_figure():
         ax.set_ylim(0, 1.0)
         ax.set_title(title, size=12.5, weight='bold', pad=15)
 
-    plot_radar(ax1, ml_super, ml_vanilla, '(a) MovieLens-100K')
+    plot_radar(ax1, ml_super, ml_vanilla, '(a) MovieLens-1M')
     plot_radar(ax2, amz_super, amz_vanilla, '(b) Amazon (SimGCL)')
     plot_radar(ax3, yelp_super, yelp_vanilla, '(c) Yelp (SGL)')
 
