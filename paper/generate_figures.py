@@ -64,17 +64,17 @@ def draw_rounded_card(ax, x, y, w, h, bg_color, border_color, lw=1.8, radius=0.8
 def draw_header_pill(ax, x, y, w, h, title, subtitle="", bg_color="#1E293B", text_color="#FFFFFF", badge="STAGE", badge_bg="#F59E0B"):
     """Draws an enterprise header pill with a stage badge and dual titles."""
     draw_rounded_card(ax, x, y, w, h, bg_color=bg_color, border_color=bg_color, lw=1.0, radius=0.6, zorder=2)
-    badge_w = 4.3
+    badge_w = 4.4
     badge_h = h * 0.65
     badge_x = x + 0.7
     badge_y = y + (h - badge_h) / 2
     draw_rounded_card(ax, badge_x, badge_y, badge_w, badge_h, bg_color=badge_bg, border_color=badge_bg, radius=0.3, zorder=3)
-    ax.text(badge_x + badge_w/2, badge_y + badge_h/2, badge, weight='bold', fontsize=10.0, ha='center', va='center', color="#0F172A", zorder=4)
+    ax.text(badge_x + badge_w/2, badge_y + badge_h/2, badge, weight='bold', fontsize=10.8, ha='center', va='center', color="#0F172A", zorder=4)
     if subtitle:
-        ax.text(x + badge_w + 1.6, y + h * 0.62, title, weight='bold', fontsize=12.2, ha='left', va='center', color=text_color, zorder=4)
-        ax.text(x + badge_w + 1.6, y + h * 0.24, subtitle, fontsize=9.4, ha='left', va='center', color="#94A3B8", zorder=4)
+        ax.text(x + badge_w + 1.6, y + h * 0.62, title, weight='bold', fontsize=13.0, ha='left', va='center', color=text_color, zorder=4)
+        ax.text(x + badge_w + 1.6, y + h * 0.24, subtitle, fontsize=10.2, ha='left', va='center', color="#94A3B8", zorder=4)
     else:
-        ax.text(x + badge_w + 1.6, y + h * 0.50, title, weight='bold', fontsize=12.5, ha='left', va='center', color=text_color, zorder=4)
+        ax.text(x + badge_w + 1.6, y + h * 0.50, title, weight='bold', fontsize=13.5, ha='left', va='center', color=text_color, zorder=4)
 
 def generate_improved_master_architecture():
     """
@@ -99,9 +99,9 @@ def generate_improved_master_architecture():
     title_box = patches.Rectangle((0, 93.8), 100, 6.2, facecolor="#0F172A", edgecolor="#0284C7", lw=1.5, zorder=1)
     ax.add_patch(title_box)
     ax.text(50.0, 97.4, "RRFN-LLM-SUPER: Unified End-to-End Robust, Risk-Consistent & Popularity-Calibrated Graph Recommendation Architecture",
-            weight='bold', fontsize=16.8, ha='center', va='center', color="#38BDF8", zorder=3)
+            weight='bold', fontsize=18.0, ha='center', va='center', color="#38BDF8", zorder=3)
     ax.text(50.0, 95.1, "Joint Synergistic Ingestion of Adversarial Perturbations, Multi-View Reliability Auditing (MIRF), Risk-Aware Graph Contrastive Learning (GCL), and Calibrated Pareto Debiasing",
-            fontsize=11.2, ha='center', va='center', color="#E2E8F0", zorder=3)
+            fontsize=12.0, ha='center', va='center', color="#E2E8F0", zorder=3)
 
     # 5 Major Architectural Columns Definition
     # Y-range for columns: 18.2 to 92.8 (height = 74.6)
@@ -126,42 +126,42 @@ def generate_improved_master_architecture():
     
     # 1.1 Bipartite Graph Micro-Topology
     draw_rounded_card(ax, c1_x, 61.5, c1_w, 25.0, "#FFFFFF", "#38BDF8", lw=1.6, radius=0.6, zorder=2)
-    ax.text(c1_x + c1_w/2, 84.8, "Bipartite Graph Topology $\\mathcal{G} = (\\mathcal{U}, \\mathcal{I}, \\mathcal{E})$", weight='bold', fontsize=11.2, ha='center', color="#0369A1", zorder=3)
+    ax.text(c1_x + c1_w/2, 84.8, "Bipartite Graph Topology $\\mathcal{G} = (\\mathcal{U}, \\mathcal{I}, \\mathcal{E})$", weight='bold', fontsize=11.8, ha='center', color="#0369A1", zorder=3)
     
     # User nodes on left
     u_nodes = [("u_1", 79.5, "#0284C7", "Authentic"),
                ("u_2", 74.5, "#0284C7", "Authentic"),
                ("u_shill", 69.5, "#DC2626", "Bot")]
     for name, y_pos, color, tag in u_nodes:
-        circle = patches.Circle((c1_x + 3.0, y_pos), radius=1.4, facecolor=color, edgecolor="#0F172A", lw=1.4, zorder=4)
+        circle = patches.Circle((c1_x + 3.0, y_pos), radius=1.45, facecolor=color, edgecolor="#0F172A", lw=1.4, zorder=4)
         ax.add_patch(circle)
-        ax.text(c1_x + 3.0, y_pos, name, fontsize=9.2, weight='bold', ha='center', va='center', color="#FFFFFF", zorder=5)
+        ax.text(c1_x + 3.0, y_pos, name, fontsize=9.8, weight='bold', ha='center', va='center', color="#FFFFFF", zorder=5)
     
     # Item nodes on right (wider rectangles for clean text fit)
     i_nodes = [("i_head", 80.0, "#0D9488"),
                ("i_norm", 74.5, "#475569"),
                ("i_tgt", 69.0, "#EA580C")]
     for name, y_pos, color in i_nodes:
-        sq = patches.FancyBboxPatch((c1_x + c1_w - 5.3, y_pos - 1.3), 3.8, 2.6, boxstyle="round,pad=0.0,rounding_size=0.3",
+        sq = patches.FancyBboxPatch((c1_x + c1_w - 5.3, y_pos - 1.3), 3.9, 2.6, boxstyle="round,pad=0.0,rounding_size=0.3",
                                     facecolor=color, edgecolor="#0F172A", lw=1.4, zorder=4)
         ax.add_patch(sq)
-        ax.text(c1_x + c1_w - 3.4, y_pos, name, fontsize=9.2, weight='bold', ha='center', va='center', color="#FFFFFF", zorder=5)
+        ax.text(c1_x + c1_w - 3.35, y_pos, name, fontsize=9.8, weight='bold', ha='center', va='center', color="#FFFFFF", zorder=5)
 
     # Clean edges (green/blue solid)
-    ax.plot([c1_x + 4.4, c1_x + c1_w - 5.3], [79.5, 80.0], color="#16A34A", lw=2.6, zorder=3)
-    ax.plot([c1_x + 4.4, c1_x + c1_w - 5.3], [74.5, 74.5], color="#16A34A", lw=2.6, zorder=3)
-    ax.plot([c1_x + 4.4, c1_x + c1_w - 5.3], [79.5, 74.5], color="#0284C7", lw=2.0, zorder=3)
+    ax.plot([c1_x + 4.45, c1_x + c1_w - 5.3], [79.5, 80.0], color="#16A34A", lw=2.6, zorder=3)
+    ax.plot([c1_x + 4.45, c1_x + c1_w - 5.3], [74.5, 74.5], color="#16A34A", lw=2.6, zorder=3)
+    ax.plot([c1_x + 4.45, c1_x + c1_w - 5.3], [79.5, 74.5], color="#0284C7", lw=2.0, zorder=3)
     # Attack edges (red dashed / dotted)
-    ax.plot([c1_x + 4.4, c1_x + c1_w - 5.3], [69.5, 80.0], color="#DC2626", lw=2.4, linestyle='--', zorder=3)
-    ax.plot([c1_x + 4.4, c1_x + c1_w - 5.3], [69.5, 69.0], color="#DC2626", lw=2.6, linestyle=':', zorder=3)
+    ax.plot([c1_x + 4.45, c1_x + c1_w - 5.3], [69.5, 80.0], color="#DC2626", lw=2.4, linestyle='--', zorder=3)
+    ax.plot([c1_x + 4.45, c1_x + c1_w - 5.3], [69.5, 69.0], color="#DC2626", lw=2.6, linestyle=':', zorder=3)
     
     # Legend
-    ax.text(c1_x + c1_w/2, 65.5, "Solid Green: Clean Interactions ($r_{ui} \\in [1, 5]$)\nRed Dashed: 15% Bandwagon Camouflage & Push", fontsize=9.2, weight='bold', ha='center', color="#334155", zorder=3)
-    ax.text(c1_x + c1_w/2, 62.8, "Normalized Laplacian: $\\hat{A} = D^{-1/2} A D^{-1/2}$", fontsize=10.2, weight='bold', ha='center', color="#0369A1", zorder=3)
+    ax.text(c1_x + c1_w/2, 65.5, "Solid Green: Clean Interactions ($r_{ui} \\in [1, 5]$)\nRed Dashed: 15% Bandwagon Camouflage & Push", fontsize=9.8, weight='bold', ha='center', color="#334155", zorder=3)
+    ax.text(c1_x + c1_w/2, 62.8, "Normalized Laplacian: $\\hat{A} = D^{-1/2} A D^{-1/2}$", fontsize=11.0, weight='bold', ha='center', color="#0369A1", zorder=3)
 
     # 1.2 Multi-Domain Benchmark Ingestion
     draw_rounded_card(ax, c1_x, 39.0, c1_w, 21.5, "#FFFFFF", "#38BDF8", lw=1.6, radius=0.6, zorder=2)
-    ax.text(c1_x + c1_w/2, 58.8, "Multi-Domain Benchmark Ingestion", weight='bold', fontsize=11.2, ha='center', color="#0369A1", zorder=3)
+    ax.text(c1_x + c1_w/2, 58.8, "Multi-Domain Benchmark Ingestion", weight='bold', fontsize=11.8, ha='center', color="#0369A1", zorder=3)
     
     domains = [
         ("MovieLens-1M Sub-Graph", "6,040 U / 3,706 I / 1M Ratings", "15% Bandwagon Attack (\\beta = 0)"),
@@ -171,23 +171,23 @@ def generate_improved_master_architecture():
     for idx, (d_name, d_stat, d_note) in enumerate(domains):
         d_y = 54.0 - idx * 6.2
         draw_rounded_card(ax, c1_x + 0.6, d_y - 2.0, c1_w - 1.2, 5.2, "#F8FAFC", "#BAE6FD", lw=1.0, radius=0.4, zorder=3)
-        ax.text(c1_x + 1.2, d_y + 1.6, f"• {d_name}", weight='bold', fontsize=9.4, ha='left', color="#0F172A", zorder=4)
-        ax.text(c1_x + 1.2, d_y + 0.0, f"  {d_stat}", fontsize=8.8, ha='left', color="#475569", zorder=4)
-        ax.text(c1_x + 1.2, d_y - 1.4, f"  Challenge: {d_note}", fontsize=8.6, weight='bold', ha='left', color="#0369A1", zorder=4)
+        ax.text(c1_x + 1.2, d_y + 1.6, f"• {d_name}", weight='bold', fontsize=10.0, ha='left', color="#0F172A", zorder=4)
+        ax.text(c1_x + 1.2, d_y + 0.0, f"  {d_stat}", fontsize=9.2, ha='left', color="#475569", zorder=4)
+        ax.text(c1_x + 1.2, d_y - 1.4, f"  Challenge: {d_note}", fontsize=9.0, weight='bold', ha='left', color="#0369A1", zorder=4)
 
     # 1.3 Pareto Catalog Stratification Card
     draw_rounded_card(ax, c1_x, 19.2, c1_w, 18.8, "#FFFFFF", "#38BDF8", lw=1.6, radius=0.6, zorder=2)
-    ax.text(c1_x + c1_w/2, 36.3, "Pareto Catalog Stratification (80/20)", weight='bold', fontsize=11.2, ha='center', color="#0369A1", zorder=3)
+    ax.text(c1_x + c1_w/2, 36.3, "Pareto Catalog Stratification (80/20)", weight='bold', fontsize=11.8, ha='center', color="#0369A1", zorder=3)
     
     bar_w = c1_w - 2.0
     draw_rounded_card(ax, c1_x + 1.0, 30.5, bar_w * 0.28, 4.0, "#0284C7", "#0284C7", radius=0.3, zorder=3)
-    ax.text(c1_x + 1.0 + (bar_w * 0.28)/2, 32.5, "Head (20%)", fontsize=9.6, weight='bold', ha='center', va='center', color="#FFFFFF", zorder=4)
+    ax.text(c1_x + 1.0 + (bar_w * 0.28)/2, 32.5, "Head (20%)", fontsize=10.2, weight='bold', ha='center', va='center', color="#FFFFFF", zorder=4)
     draw_rounded_card(ax, c1_x + 1.0 + bar_w * 0.28 + 0.3, 30.5, bar_w * 0.72 - 0.3, 4.0, "#94A3B8", "#94A3B8", radius=0.3, zorder=3)
-    ax.text(c1_x + 1.0 + bar_w * 0.28 + 0.3 + (bar_w * 0.72 - 0.3)/2, 32.5, "Long-Tail Niche Catalog (80%)", fontsize=9.6, weight='bold', ha='center', va='center', color="#FFFFFF", zorder=4)
+    ax.text(c1_x + 1.0 + bar_w * 0.28 + 0.3 + (bar_w * 0.72 - 0.3)/2, 32.5, "Long-Tail Niche Catalog (80%)", fontsize=10.2, weight='bold', ha='center', va='center', color="#FFFFFF", zorder=4)
     
-    ax.text(c1_x + c1_w/2, 27.6, "$\\mathcal{I} = \\mathcal{I}_{\\mathrm{head}} \\cup \\mathcal{I}_{\\mathrm{tail}}, \\quad \\rho = 0.20$", fontsize=10.6, weight='bold', ha='center', color="#0F172A", zorder=3)
-    ax.text(c1_x + c1_w/2, 23.8, "• Head: 20% items consume 80% volume\n• Tail: 80% items starved of gradient signal", fontsize=9.2, ha='center', color="#334155", zorder=3)
-    ax.text(c1_x + c1_w/2, 20.4, "Enables decoupled dual-partition modeling", fontsize=9.0, style='italic', weight='bold', ha='center', color="#0284C7", zorder=3)
+    ax.text(c1_x + c1_w/2, 27.6, "$\\mathcal{I} = \\mathcal{I}_{\\mathrm{head}} \\cup \\mathcal{I}_{\\mathrm{tail}}, \\quad \\rho = 0.20$", fontsize=11.4, weight='bold', ha='center', color="#0F172A", zorder=3)
+    ax.text(c1_x + c1_w/2, 23.8, "• Head: 20% items consume 80% volume\n• Tail: 80% items starved of gradient signal", fontsize=9.8, ha='center', color="#334155", zorder=3)
+    ax.text(c1_x + c1_w/2, 20.4, "Enables decoupled dual-partition modeling", fontsize=9.6, style='italic', weight='bold', ha='center', color="#0284C7", zorder=3)
 
     # =========================================================================
     # STAGE 2: MIRF MULTI-VIEW RELIABILITY FILTER (x: 20.5, w: 19.8)
@@ -196,7 +196,7 @@ def generate_improved_master_architecture():
     
     # 2.1 View 1: Noise Matrix T & Tikhonov Inversion
     draw_rounded_card(ax, c2_x, 69.5, c2_w, 17.0, "#FFFFFF", "#F59E0B", lw=1.6, radius=0.6, zorder=2)
-    ax.text(c2_x + c2_w/2, 84.8, "View 1: Noise Transition & Tikhonov", weight='bold', fontsize=11.2, ha='center', va='center', color="#B45309", zorder=3)
+    ax.text(c2_x + c2_w/2, 84.8, "View 1: Noise Transition & Tikhonov", weight='bold', fontsize=11.8, ha='center', va='center', color="#B45309", zorder=3)
     
     # 5x5 Heatmap matrix T
     mat_x = c2_x + 0.8
@@ -208,21 +208,21 @@ def generate_improved_master_architecture():
             patches_rect = patches.Rectangle((mat_x + c*0.95, mat_y - r*0.95), 0.85, 0.85, facecolor=val_col, edgecolor="#B45309", lw=0.5, zorder=3)
             ax.add_patch(patches_rect)
             if r == c:
-                ax.text(mat_x + c*0.95 + 0.425, mat_y - r*0.95 + 0.425, "0.8", fontsize=7.6, weight='bold', ha='center', va='center', color=txt_col, zorder=4)
+                ax.text(mat_x + c*0.95 + 0.425, mat_y - r*0.95 + 0.425, "0.8", fontsize=8.2, weight='bold', ha='center', va='center', color=txt_col, zorder=4)
     
-    ax.text(c2_x + 6.0, 80.2, "Anchor Sets: $\\mathcal{A}_1, \\dots, \\mathcal{A}_5 \\subset \\mathcal{I}$", fontsize=9.6, weight='bold', ha='left', va='center', color="#0F172A", zorder=3)
-    ax.text(c2_x + 6.0, 77.2, "$T_{jk} = P(\\tilde{Y}=k \\mid Y^*=j)$", fontsize=9.8, weight='bold', ha='left', va='center', color="#B45309", zorder=3)
-    ax.text(c2_x + 6.0, 74.2, "$T^{\\dagger}_{\\lambda} = (T^T T + \\lambda I)^{-1} T^T$", fontsize=10.2, weight='bold', ha='left', va='center', color="#0F172A", zorder=3)
-    ax.text(c2_x + 6.0, 71.4, "Bound: $\\|T^{\\dagger}_{\\lambda}\\|_2 \\leq 1/(2\\sqrt{\\lambda})$ (Thm 1)", fontsize=9.4, weight='bold', ha='left', va='center', color="#78350F", zorder=3)
+    ax.text(c2_x + 6.0, 80.2, "Anchor Sets: $\\mathcal{A}_1, \\dots, \\mathcal{A}_5 \\subset \\mathcal{I}$", fontsize=10.2, weight='bold', ha='left', va='center', color="#0F172A", zorder=3)
+    ax.text(c2_x + 6.0, 77.2, "$T_{jk} = P(\\tilde{Y}=k \\mid Y^*=j)$", fontsize=10.4, weight='bold', ha='left', va='center', color="#B45309", zorder=3)
+    ax.text(c2_x + 6.0, 74.2, "$T^{\\dagger}_{\\lambda} = (T^T T + \\lambda I)^{-1} T^T$", fontsize=10.8, weight='bold', ha='left', va='center', color="#0F172A", zorder=3)
+    ax.text(c2_x + 6.0, 71.4, "Bound: $\\|T^{\\dagger}_{\\lambda}\\|_2 \\leq 1/(2\\sqrt{\\lambda})$ (Thm 1)", fontsize=9.8, weight='bold', ha='left', va='center', color="#78350F", zorder=3)
 
     # 2.2 View 2: Asynchronous LLM Review Auditor
     draw_rounded_card(ax, c2_x, 52.0, c2_w, 16.2, "#FFFFFF", "#F59E0B", lw=1.6, radius=0.6, zorder=2)
-    ax.text(c2_x + c2_w/2, 66.2, "View 2: Asynchronous LLM Review Auditor", weight='bold', fontsize=11.2, ha='center', va='center', color="#B45309", zorder=3)
+    ax.text(c2_x + c2_w/2, 66.2, "View 2: Asynchronous LLM Review Auditor", weight='bold', fontsize=11.8, ha='center', va='center', color="#B45309", zorder=3)
     
     # Left box: Review Prompt
     draw_rounded_card(ax, c2_x + 0.8, 55.8, 7.6, 7.8, "#F8FAFC", "#CBD5E1", lw=1.1, radius=0.4, zorder=3)
-    ax.text(c2_x + 4.6, 61.8, "Review Prompt", weight='bold', fontsize=9.6, ha='center', va='center', color="#0F172A", zorder=4)
-    ax.text(c2_x + 4.6, 58.5, "• Sentiment Skew\n• Shill Bot Pattern\n• Semantic Discrepancy", fontsize=8.6, ha='center', va='center', color="#334155", zorder=4)
+    ax.text(c2_x + 4.6, 61.8, "Review Prompt", weight='bold', fontsize=10.2, ha='center', va='center', color="#0F172A", zorder=4)
+    ax.text(c2_x + 4.6, 58.5, "• Sentiment Skew\n• Shill Bot Pattern\n• Semantic Discrepancy", fontsize=9.0, ha='center', va='center', color="#334155", zorder=4)
     
     # Arrow
     ax.annotate("", xy=(c2_x + 9.4, 59.7), xytext=(c2_x + 8.6, 59.7),
@@ -230,28 +230,28 @@ def generate_improved_master_architecture():
     
     # Right box: LLM Engine
     draw_rounded_card(ax, c2_x + 9.6, 55.8, 8.4, 7.8, "#FFFBEB", "#F59E0B", lw=1.1, radius=0.4, zorder=3)
-    ax.text(c2_x + 13.8, 61.8, "LLM Engine", weight='bold', fontsize=9.8, ha='center', va='center', color="#B45309", zorder=4)
-    ax.text(c2_x + 13.8, 58.5, "SQLite WAL Cache\n(>85% Hits, $\\mathcal{O}(1)$)\nAsynchronous Thread", fontsize=8.6, ha='center', va='center', color="#78350F", zorder=4)
+    ax.text(c2_x + 13.8, 61.8, "LLM Engine", weight='bold', fontsize=10.4, ha='center', va='center', color="#B45309", zorder=4)
+    ax.text(c2_x + 13.8, 58.5, "SQLite WAL Cache\n(>85% Hits, $\\mathcal{O}(1)$)\nAsynchronous Thread", fontsize=9.0, ha='center', va='center', color="#78350F", zorder=4)
     
-    ax.text(c2_x + c2_w/2, 53.6, "$R_{\\mathrm{LLM}}(u,i) = \\mathrm{LLMAudit}(\\mathrm{Review}_{ui}, r_{ui}) \\in [0, 1]$", fontsize=9.6, weight='bold', ha='center', va='center', color="#0F172A", zorder=3)
+    ax.text(c2_x + c2_w/2, 53.6, "$R_{\\mathrm{LLM}}(u,i) = \\mathrm{LLMAudit}(\\mathrm{Review}_{ui}, r_{ui}) \\in [0, 1]$", fontsize=10.2, weight='bold', ha='center', va='center', color="#0F172A", zorder=3)
 
     # 2.3 View 3: 2D Level-3 BLAS Burst Detector
     draw_rounded_card(ax, c2_x, 34.8, c2_w, 15.8, "#FFFFFF", "#F59E0B", lw=1.6, radius=0.6, zorder=2)
-    ax.text(c2_x + c2_w/2, 48.6, "View 3: 2D BLAS Review-Bomb Detector", weight='bold', fontsize=11.2, ha='center', va='center', color="#B45309", zorder=3)
+    ax.text(c2_x + c2_w/2, 48.6, "View 3: 2D BLAS Review-Bomb Detector", weight='bold', fontsize=11.8, ha='center', va='center', color="#B45309", zorder=3)
     
-    ax.text(c2_x + 1.2, 45.2, "• Temporal Window Density: $Z_{\\mathrm{temp}} = (|\\mathcal{E}_{\\Delta}| - \\mu)/\\sigma$", fontsize=9.2, ha='left', va='center', color="#0F172A", zorder=3)
-    ax.text(c2_x + 1.2, 42.4, "• Polarity Skew Deviation: $S_{\\mathrm{pol}} = |\\bar{r}_{\\Delta} - \\bar{r}_{\\mathrm{hist}}|$", fontsize=9.2, ha='left', va='center', color="#0F172A", zorder=3)
+    ax.text(c2_x + 1.2, 45.2, "• Temporal Window Density: $Z_{\\mathrm{temp}} = (|\\mathcal{E}_{\\Delta}| - \\mu)/\\sigma$", fontsize=9.6, ha='left', va='center', color="#0F172A", zorder=3)
+    ax.text(c2_x + 1.2, 42.4, "• Polarity Skew Deviation: $S_{\\mathrm{pol}} = |\\bar{r}_{\\Delta} - \\bar{r}_{\\mathrm{hist}}|$", fontsize=9.6, ha='left', va='center', color="#0F172A", zorder=3)
     
     draw_rounded_card(ax, c2_x + 0.8, 36.0, c2_w - 1.6, 5.0, "#FEF3C7", "#D97706", lw=1.0, radius=0.4, zorder=3)
-    ax.text(c2_x + c2_w/2, 39.4, "Vectorized 2D BLAS GEMM: $W \\cdot [Z, S]^T - \\theta$", weight='bold', fontsize=9.6, ha='center', va='center', color="#78350F", zorder=4)
-    ax.text(c2_x + c2_w/2, 37.3, "4.95 ms for 42,000 interactions (>500x Speedup)", fontsize=9.0, weight='bold', ha='center', va='center', color="#B45309", zorder=4)
+    ax.text(c2_x + c2_w/2, 39.4, "Vectorized 2D BLAS GEMM: $W \\cdot [Z, S]^T - \\theta$", weight='bold', fontsize=10.0, ha='center', va='center', color="#78350F", zorder=4)
+    ax.text(c2_x + c2_w/2, 37.3, "4.95 ms for 42,000 interactions (>500x Speedup)", fontsize=9.4, weight='bold', ha='center', va='center', color="#B45309", zorder=4)
 
     # 2.4 Convex Reliability Fusion Hub
     draw_rounded_card(ax, c2_x, 19.2, c2_w, 14.5, "#FEF3C7", "#D97706", lw=2.2, radius=0.6, zorder=2)
-    ax.text(c2_x + c2_w/2, 31.8, "Convex Reliability Fusion Hub", weight='bold', fontsize=11.6, ha='center', va='center', color="#78350F", zorder=3)
-    ax.text(c2_x + c2_w/2, 28.5, "$\\mathbf{w_{ui} = \\alpha R_{\\mathrm{RRFN}} + \\beta R_{\\mathrm{LLM}} + \\gamma R_{\\mathrm{bomb}}}$", weight='bold', fontsize=11.2, ha='center', va='center', color="#0F172A", zorder=3)
-    ax.text(c2_x + c2_w/2, 25.2, "$\\alpha + \\beta + \\gamma = 1.0, \\quad w_{ui} \\in [0, 1]$", fontsize=10.0, weight='bold', ha='center', va='center', color="#B45309", zorder=3)
-    ax.text(c2_x + c2_w/2, 21.2, "Continuous trust weight modulating downstream\nGCL contrastive loss, Risk Loss, and Blueprint", fontsize=9.2, ha='center', va='center', color="#451A03", zorder=3)
+    ax.text(c2_x + c2_w/2, 31.8, "Convex Reliability Fusion Hub", weight='bold', fontsize=12.2, ha='center', va='center', color="#78350F", zorder=3)
+    ax.text(c2_x + c2_w/2, 28.5, "$\\mathbf{w_{ui} = \\alpha R_{\\mathrm{RRFN}} + \\beta R_{\\mathrm{LLM}} + \\gamma R_{\\mathrm{bomb}}}$", weight='bold', fontsize=11.8, ha='center', va='center', color="#0F172A", zorder=3)
+    ax.text(c2_x + c2_w/2, 25.2, "$\\alpha + \\beta + \\gamma = 1.0, \\quad w_{ui} \\in [0, 1]$", fontsize=10.6, weight='bold', ha='center', va='center', color="#B45309", zorder=3)
+    ax.text(c2_x + c2_w/2, 21.2, "Continuous trust weight modulating downstream\nGCL contrastive loss, Risk Loss, and Blueprint", fontsize=9.6, ha='center', va='center', color="#451A03", zorder=3)
 
     # =========================================================================
     # STAGE 3: RISK-AWARE GRAPH CONTRASTIVE LEARNING (x: 41.1, w: 18.8)
@@ -260,45 +260,45 @@ def generate_improved_master_architecture():
     
     # 3.1 Neural GNN Backbone & Layer Aggregation
     draw_rounded_card(ax, c3_x, 69.5, c3_w, 17.0, "#FFFFFF", "#EC4899", lw=1.6, radius=0.6, zorder=2)
-    ax.text(c3_x + c3_w/2, 84.8, "Multi-Layer GNN Neighborhood Smoothing", weight='bold', fontsize=10.8, ha='center', va='center', color="#9D174D", zorder=3)
+    ax.text(c3_x + c3_w/2, 84.8, "Multi-Layer GNN Neighborhood Smoothing", weight='bold', fontsize=11.4, ha='center', va='center', color="#9D174D", zorder=3)
     
     gnn_layers = ["Layer 0:\n$\\mathbf{e}^{(0)}$", "Layer 1:\n$\\mathbf{e}^{(1)}$", "Layer 2:\n$\\mathbf{e}^{(2)}$"]
     for l_idx, l_name in enumerate(gnn_layers):
         lx = c3_x + 1.0 + l_idx * 5.3
         draw_rounded_card(ax, lx, 76.5, 4.6, 5.5, "#FDF2F8", "#F472B6", lw=1.0, radius=0.4, zorder=3)
-        ax.text(lx + 2.3, 79.2, l_name, fontsize=9.2, weight='bold', ha='center', va='center', color="#831843", zorder=4)
+        ax.text(lx + 2.3, 79.2, l_name, fontsize=9.6, weight='bold', ha='center', va='center', color="#831843", zorder=4)
         if l_idx < 2:
             ax.annotate("", xy=(lx + 5.0, 79.2), xytext=(lx + 4.7, 79.2),
                         arrowprops=dict(arrowstyle="->", lw=1.5, color="#DB2777"), zorder=4)
             
-    ax.text(c3_x + c3_w/2, 73.2, "$\\mathbf{e}_u^{(l+1)} = \\sum_{i \\in \\mathcal{N}_u} \\frac{1}{\\sqrt{d_u d_i}} \\mathbf{e}_i^{(l)}$", fontsize=10.4, weight='bold', ha='center', va='center', color="#0F172A", zorder=3)
-    ax.text(c3_x + c3_w/2, 70.8, "Backbones: LightGCN | SimGCL | SGL | NeuMF", fontsize=9.2, weight='bold', ha='center', va='center', color="#475569", zorder=3)
+    ax.text(c3_x + c3_w/2, 73.2, "$\\mathbf{e}_u^{(l+1)} = \\sum_{i \\in \\mathcal{N}_u} \\frac{1}{\\sqrt{d_u d_i}} \\mathbf{e}_i^{(l)}$", fontsize=11.0, weight='bold', ha='center', va='center', color="#0F172A", zorder=3)
+    ax.text(c3_x + c3_w/2, 70.8, "Backbones: LightGCN | SimGCL | SGL | NeuMF", fontsize=9.6, weight='bold', ha='center', va='center', color="#475569", zorder=3)
 
     # 3.2 Dual Contrastive Views: SimGCL & SGL
     draw_rounded_card(ax, c3_x, 47.5, c3_w, 20.5, "#FFFFFF", "#EC4899", lw=1.6, radius=0.6, zorder=2)
-    ax.text(c3_x + c3_w/2, 66.0, "Dual Contrastive Augmentations", weight='bold', fontsize=11.2, ha='center', va='center', color="#9D174D", zorder=3)
+    ax.text(c3_x + c3_w/2, 66.0, "Dual Contrastive Augmentations", weight='bold', fontsize=11.8, ha='center', va='center', color="#9D174D", zorder=3)
     
     # Branch A: SimGCL
     draw_rounded_card(ax, c3_x + 0.8, 57.0, c3_w - 1.6, 7.5, "#FDF2F8", "#F472B6", lw=1.0, radius=0.4, zorder=3)
-    ax.text(c3_x + 1.4, 62.5, "View A (SimGCL): Uniform Latent Noise", weight='bold', fontsize=9.6, ha='left', va='center', color="#9D174D", zorder=4)
-    ax.text(c3_x + 1.4, 59.2, "$\\mathbf{z}' = \\mathbf{e} + \\epsilon \\cdot \\mathrm{sgn}(\\mathbf{e}) \\odot \\Delta', \\quad \\Delta' \\sim \\mathcal{U}(0, 1)$", fontsize=9.2, weight='bold', ha='left', va='center', color="#0F172A", zorder=4)
+    ax.text(c3_x + 1.4, 62.5, "View A (SimGCL): Uniform Latent Noise", weight='bold', fontsize=10.0, ha='left', va='center', color="#9D174D", zorder=4)
+    ax.text(c3_x + 1.4, 59.2, "$\\mathbf{z}' = \\mathbf{e} + \\epsilon \\cdot \\mathrm{sgn}(\\mathbf{e}) \\odot \\Delta', \\quad \\Delta' \\sim \\mathcal{U}(0, 1)$", fontsize=9.6, weight='bold', ha='left', va='center', color="#0F172A", zorder=4)
     
     # Branch B: SGL
     draw_rounded_card(ax, c3_x + 0.8, 48.5, c3_w - 1.6, 7.5, "#FDF2F8", "#F472B6", lw=1.0, radius=0.4, zorder=3)
-    ax.text(c3_x + 1.4, 54.0, "View B (SGL): Edge Dropout Masking", weight='bold', fontsize=9.6, ha='left', va='center', color="#9D174D", zorder=4)
-    ax.text(c3_x + 1.4, 50.7, "$\\hat{A}'' = (M'' \\odot A) D''^{-1}, \\quad M'' \\sim \\mathrm{Bernoulli}(1 - p)$", fontsize=9.2, weight='bold', ha='left', va='center', color="#0F172A", zorder=4)
+    ax.text(c3_x + 1.4, 54.0, "View B (SGL): Edge Dropout Masking", weight='bold', fontsize=10.0, ha='left', va='center', color="#9D174D", zorder=4)
+    ax.text(c3_x + 1.4, 50.7, "$\\hat{A}'' = (M'' \\odot A) D''^{-1}, \\quad M'' \\sim \\mathrm{Bernoulli}(1 - p)$", fontsize=9.6, weight='bold', ha='left', va='center', color="#0F172A", zorder=4)
 
     # 3.3 Reliability-Weighted InfoNCE Loss Engine
     draw_rounded_card(ax, c3_x, 19.2, c3_w, 26.8, "#FFFFFF", "#EC4899", lw=2.0, radius=0.6, zorder=2)
-    ax.text(c3_x + c3_w/2, 43.8, "Sample-Weighted InfoNCE Loss", weight='bold', fontsize=11.2, ha='center', va='center', color="#9D174D", zorder=3)
+    ax.text(c3_x + c3_w/2, 43.8, "Sample-Weighted InfoNCE Loss", weight='bold', fontsize=11.8, ha='center', va='center', color="#9D174D", zorder=3)
     
     draw_rounded_card(ax, c3_x + 0.6, 30.5, c3_w - 1.2, 11.5, "#FDF2F8", "#DB2777", lw=1.2, radius=0.4, zorder=3)
     ax.text(c3_x + c3_w/2, 38.5, "$\\mathcal{L}_{\\mathrm{cl}}(u) = -\\sum_{i \\in \\mathcal{N}_u} \\mathbf{w_{ui}} \\log \\frac{\\exp(\\mathrm{sim}(\\mathbf{z}'_i, \\mathbf{z}''_i)/\\tau)}{\\sum_{j \\in \\mathcal{B}} \\exp(\\mathrm{sim}(\\mathbf{z}'_i, \\mathbf{z}''_j)/\\tau)}$",
-            fontsize=9.2, weight='bold', ha='center', va='center', color="#831843", zorder=4)
-    ax.text(c3_x + c3_w/2, 33.2, "Modulated by MIRF Sample Trust Weight $w_{ui}$", fontsize=9.2, weight='bold', ha='center', va='center', color="#475569", zorder=4)
+            fontsize=9.6, weight='bold', ha='center', va='center', color="#831843", zorder=4)
+    ax.text(c3_x + c3_w/2, 33.2, "Modulated by MIRF Sample Trust Weight $w_{ui}$", fontsize=9.6, weight='bold', ha='center', va='center', color="#475569", zorder=4)
     
-    ax.text(c3_x + c3_w/2, 27.2, "• Poisoned Edges ($w_{ui} \\to 0$): Gradient cancelled\n• Authentic Edges ($w_{ui} \\to 1$): Representation pulled\n• Temperature parameter: $\\tau = 0.15$", fontsize=9.0, ha='center', va='center', color="#334155", zorder=3)
-    ax.text(c3_x + c3_w/2, 21.0, "Aligns embeddings without attack corruption", fontsize=9.2, style='italic', weight='bold', ha='center', va='center', color="#DB2777", zorder=3)
+    ax.text(c3_x + c3_w/2, 27.2, "• Poisoned Edges ($w_{ui} \\to 0$): Gradient cancelled\n• Authentic Edges ($w_{ui} \\to 1$): Representation pulled\n• Temperature parameter: $\\tau = 0.15$", fontsize=9.4, ha='center', va='center', color="#334155", zorder=3)
+    ax.text(c3_x + c3_w/2, 21.0, "Aligns embeddings without attack corruption", fontsize=9.6, style='italic', weight='bold', ha='center', va='center', color="#DB2777", zorder=3)
 
     # =========================================================================
     # STAGE 4: DUAL PARTITION RISK OPTIMIZATION (x: 60.7, w: 18.5)
@@ -307,35 +307,35 @@ def generate_improved_master_architecture():
     
     # 4.1 Decoupled Dual-Partition Neural Models
     draw_rounded_card(ax, c4_x, 68.0, c4_w, 18.5, "#FFFFFF", "#7C3AED", lw=1.6, radius=0.6, zorder=2)
-    ax.text(c4_x + c4_w/2, 84.8, "Decoupled Dual-Partition Models", weight='bold', fontsize=11.2, ha='center', va='center', color="#5B21B6", zorder=3)
+    ax.text(c4_x + c4_w/2, 84.8, "Decoupled Dual-Partition Models", weight='bold', fontsize=11.8, ha='center', va='center', color="#5B21B6", zorder=3)
     
     draw_rounded_card(ax, c4_x + 0.8, 76.5, c4_w - 1.6, 6.8, "#FAF5FF", "#A78BFA", lw=1.0, radius=0.4, zorder=3)
-    ax.text(c4_x + 1.4, 81.2, "Head Expert: $M_{\\mathrm{pop}}(\\Theta_{\\mathrm{head}})$", weight='bold', fontsize=9.6, ha='left', va='center', color="#5B21B6", zorder=4)
-    ax.text(c4_x + 1.4, 78.2, "Specialized on $\\mathcal{I}_{\\mathrm{head}}$ (Top 20%) $\\to$ Score $\\mathbf{s}_{\\mathrm{head}}$", fontsize=8.8, ha='left', va='center', color="#4C1D95", zorder=4)
+    ax.text(c4_x + 1.4, 81.2, "Head Expert: $M_{\\mathrm{pop}}(\\Theta_{\\mathrm{head}})$", weight='bold', fontsize=10.4, ha='left', va='center', color="#5B21B6", zorder=4)
+    ax.text(c4_x + 1.4, 78.2, "Specialized on $\\mathcal{I}_{\\mathrm{head}}$ (Top 20%) $\\to$ Score $\\mathbf{s}_{\\mathrm{head}}$", fontsize=9.5, ha='left', va='center', color="#4C1D95", zorder=4)
     
     draw_rounded_card(ax, c4_x + 0.8, 69.0, c4_w - 1.6, 6.8, "#FAF5FF", "#A78BFA", lw=1.0, radius=0.4, zorder=3)
-    ax.text(c4_x + 1.4, 73.7, "Tail Expert: $M_{\\mathrm{tail}}(\\Theta_{\\mathrm{tail}})$", weight='bold', fontsize=9.6, ha='left', va='center', color="#5B21B6", zorder=4)
-    ax.text(c4_x + 1.4, 70.7, "Specialized on $\\mathcal{I}_{\\mathrm{tail}}$ (Niche 80%) $\\to$ Score $\\mathbf{s}_{\\mathrm{tail}}$", fontsize=8.8, ha='left', va='center', color="#4C1D95", zorder=4)
+    ax.text(c4_x + 1.4, 73.7, "Tail Expert: $M_{\\mathrm{tail}}(\\Theta_{\\mathrm{tail}})$", weight='bold', fontsize=10.4, ha='left', va='center', color="#5B21B6", zorder=4)
+    ax.text(c4_x + 1.4, 70.7, "Specialized on $\\mathcal{I}_{\\mathrm{tail}}$ (Niche 80%) $\\to$ Score $\\mathbf{s}_{\\mathrm{tail}}$", fontsize=9.5, ha='left', va='center', color="#4C1D95", zorder=4)
 
     # 4.2 Forward-Corrected Risk-Consistent Loss
     draw_rounded_card(ax, c4_x, 38.5, c4_w, 28.0, "#FFFFFF", "#7C3AED", lw=1.8, radius=0.6, zorder=2)
-    ax.text(c4_x + c4_w/2, 64.5, "Tikhonov Risk-Consistent Objective", weight='bold', fontsize=11.2, ha='center', va='center', color="#5B21B6", zorder=3)
+    ax.text(c4_x + c4_w/2, 64.5, "Tikhonov Risk-Consistent Objective", weight='bold', fontsize=11.8, ha='center', va='center', color="#5B21B6", zorder=3)
     
     draw_rounded_card(ax, c4_x + 0.6, 50.0, c4_w - 1.2, 12.5, "#FAF5FF", "#7C3AED", lw=1.2, radius=0.4, zorder=3)
     ax.text(c4_x + c4_w/2, 58.5, "$\\mathcal{L}_{\\mathrm{risk}} = -\\sum_{(u,i)} w_{ui} \\log [T^{\\dagger}_{\\lambda} \\cdot \\hat{P}_{\\theta}(y \\mid u,i)]_{\\tilde{y}_{ui}}$",
-            fontsize=9.2, weight='bold', ha='center', va='center', color="#4C1D95", zorder=4)
+            fontsize=9.8, weight='bold', ha='center', va='center', color="#4C1D95", zorder=4)
     ax.text(c4_x + c4_w/2, 53.5, "$+ \\mu \\|\\Delta T\\|_F^2 + \\lambda_{\\mathrm{reg}} \\|\\Theta\\|_2^2$",
-            fontsize=9.2, weight='bold', ha='center', va='center', color="#4C1D95", zorder=4)
+            fontsize=9.8, weight='bold', ha='center', va='center', color="#4C1D95", zorder=4)
     
-    ax.text(c4_x + c4_w/2, 46.5, "Theoretical Guarantees (Theorems 1 & 2):", fontsize=9.4, weight='bold', ha='center', va='center', color="#0F172A", zorder=3)
-    ax.text(c4_x + c4_w/2, 42.0, "• Spectral Bound: $\\|T^{\\dagger}_{\\lambda}\\|_2 \\leq 1 / (2\\sqrt{\\lambda})$ (Smoothness)\n• Asymptotic Risk: $\\mathcal{R}_{\\mathrm{clean}}(\\hat{f}_N) \\to \\mathcal{R}^*$ as $N \\to \\infty$", fontsize=9.0, ha='center', va='center', color="#334155", zorder=3)
+    ax.text(c4_x + c4_w/2, 46.5, "Theoretical Guarantees (Theorems 1 & 2):", fontsize=10.2, weight='bold', ha='center', va='center', color="#0F172A", zorder=3)
+    ax.text(c4_x + c4_w/2, 42.0, "• Spectral Bound: $\\|T^{\\dagger}_{\\lambda}\\|_2 \\leq 1 / (2\\sqrt{\\lambda})$ (Smoothness)\n• Asymptotic Risk: $\\mathcal{R}_{\\mathrm{clean}}(\\hat{f}_N) \\to \\mathcal{R}^*$ as $N \\to \\infty$", fontsize=9.6, ha='center', va='center', color="#334155", zorder=3)
 
     # 4.3 Joint Multi-Task Optimization Box
     draw_rounded_card(ax, c4_x, 19.2, c4_w, 17.8, "#FAF5FF", "#7C3AED", lw=1.6, radius=0.6, zorder=2)
-    ax.text(c4_x + c4_w/2, 34.5, "Joint Multi-Task Optimization", weight='bold', fontsize=11.0, ha='center', va='center', color="#5B21B6", zorder=3)
-    ax.text(c4_x + c4_w/2, 30.5, "$\\mathcal{L}_{\\mathrm{total}} = \\mathcal{L}_{\\mathrm{risk}} + \\lambda_{\\mathrm{cl}} \\mathcal{L}_{\\mathrm{cl}}$", weight='bold', fontsize=11.2, ha='center', va='center', color="#0F172A", zorder=3)
-    ax.text(c4_x + c4_w/2, 25.5, "Dual-branch AdamW Backprop:\n$\\Theta_{\\mathrm{head}} \\leftarrow \\nabla \\mathcal{L}_{\\mathrm{head}}, \\quad \\Theta_{\\mathrm{tail}} \\leftarrow \\nabla \\mathcal{L}_{\\mathrm{tail}}$", fontsize=9.2, ha='center', va='center', color="#334155", zorder=3)
-    ax.text(c4_x + c4_w/2, 20.8, "Outputs calibrated candidate rankings", fontsize=9.0, style='italic', weight='bold', ha='center', va='center', color="#6D28D9", zorder=3)
+    ax.text(c4_x + c4_w/2, 34.5, "Joint Multi-Task Optimization", weight='bold', fontsize=11.8, ha='center', va='center', color="#5B21B6", zorder=3)
+    ax.text(c4_x + c4_w/2, 30.5, "$\\mathcal{L}_{\\mathrm{total}} = \\mathcal{L}_{\\mathrm{risk}} + \\lambda_{\\mathrm{cl}} \\mathcal{L}_{\\mathrm{cl}}$", weight='bold', fontsize=12.0, ha='center', va='center', color="#0F172A", zorder=3)
+    ax.text(c4_x + c4_w/2, 25.5, "Dual-branch AdamW Backprop:\n$\\Theta_{\\mathrm{head}} \\leftarrow \\nabla \\mathcal{L}_{\\mathrm{head}}, \\quad \\Theta_{\\mathrm{tail}} \\leftarrow \\nabla \\mathcal{L}_{\\mathrm{tail}}$", fontsize=9.8, ha='center', va='center', color="#334155", zorder=3)
+    ax.text(c4_x + c4_w/2, 20.8, "Outputs calibrated candidate rankings", fontsize=9.6, style='italic', weight='bold', ha='center', va='center', color="#6D28D9", zorder=3)
 
     # =========================================================================
     # STAGE 5: SUPER CALIBRATED MERGING & RECOMMENDATIONS (x: 80.0, w: 18.8)
@@ -344,25 +344,25 @@ def generate_improved_master_architecture():
     
     # 5.1 Denoised Interaction Blueprint Card
     draw_rounded_card(ax, c5_x, 69.5, c5_w, 17.0, "#FFFFFF", "#16A34A", lw=1.6, radius=0.6, zorder=2)
-    ax.text(c5_x + c5_w/2, 84.8, "Denoised Blueprint Filtering $\\mathcal{B}_u$", weight='bold', fontsize=11.2, ha='center', va='center', color="#15803D", zorder=3)
-    ax.text(c5_x + c5_w/2, 80.5, "$\\mathcal{B}_u = \\{ i \\in \\mathcal{N}_u \\mid w_{ui} \\geq \\theta_{\\mathrm{trust}} \\}$", fontsize=10.5, weight='bold', ha='center', va='center', color="#0F172A", zorder=3)
-    ax.text(c5_x + c5_w/2, 75.5, "• Prunes fake shilling edges injected by bots\n• Authentic retention rate: $99.89\\%$\n• Dynamic zero-$k$ fallback for cold-start users", fontsize=9.0, ha='center', va='center', color="#334155", zorder=3)
-    ax.text(c5_x + c5_w/2, 71.0, "Guarantees uncorrupted user taste profile", fontsize=9.0, weight='bold', style='italic', ha='center', va='center', color="#16A34A", zorder=3)
+    ax.text(c5_x + c5_w/2, 84.8, "Denoised Blueprint Filtering $\\mathcal{B}_u$", weight='bold', fontsize=11.8, ha='center', va='center', color="#15803D", zorder=3)
+    ax.text(c5_x + c5_w/2, 80.5, "$\\mathcal{B}_u = \\{ i \\in \\mathcal{N}_u \\mid w_{ui} \\geq \\theta_{\\mathrm{trust}} \\}$", fontsize=11.2, weight='bold', ha='center', va='center', color="#0F172A", zorder=3)
+    ax.text(c5_x + c5_w/2, 75.5, "• Prunes fake shilling edges injected by bots\n• Authentic retention rate: $99.89\\%$\n• Dynamic zero-$k$ fallback for cold-start users", fontsize=9.6, ha='center', va='center', color="#334155", zorder=3)
+    ax.text(c5_x + c5_w/2, 71.0, "Guarantees uncorrupted user taste profile", fontsize=9.6, weight='bold', style='italic', ha='center', va='center', color="#16A34A", zorder=3)
 
     # 5.2 Personalized Tail Inclination Quota
     draw_rounded_card(ax, c5_x, 50.0, c5_w, 18.0, "#FFFFFF", "#16A34A", lw=1.6, radius=0.6, zorder=2)
-    ax.text(c5_x + c5_w/2, 65.8, "Personalized Tail Inclination $\\alpha_u$", weight='bold', fontsize=11.2, ha='center', va='center', color="#15803D", zorder=3)
+    ax.text(c5_x + c5_w/2, 65.8, "Personalized Tail Inclination $\\alpha_u$", weight='bold', fontsize=11.8, ha='center', va='center', color="#15803D", zorder=3)
     
     draw_rounded_card(ax, c5_x + 0.8, 56.5, c5_w - 1.6, 7.5, "#F0FDF4", "#4ADE80", lw=1.0, radius=0.4, zorder=3)
     ax.text(c5_x + c5_w/2, 61.5, "$\\alpha_u = \\frac{\\sum_{i \\in \\mathcal{B}_u \\cap \\mathcal{I}_{\\mathrm{tail}}} w_{ui}}{|\\mathcal{B}_u| + \\epsilon} \\in [0, 1]$",
-            fontsize=9.8, weight='bold', ha='center', va='center', color="#166534", zorder=4)
-    ax.text(c5_x + c5_w/2, 58.0, "Weighted Tail History Ratio", fontsize=8.8, ha='center', va='center', color="#15803D", zorder=4)
+            fontsize=10.5, weight='bold', ha='center', va='center', color="#166534", zorder=4)
+    ax.text(c5_x + c5_w/2, 58.0, "Weighted Tail History Ratio", fontsize=9.5, ha='center', va='center', color="#15803D", zorder=4)
     
-    ax.text(c5_x + c5_w/2, 53.0, "Dynamic Top-$K$ Budget Allocation:\n$K_{\\mathrm{tail}} = \\lfloor \\alpha_u K \\rfloor, \\quad K_{\\mathrm{head}} = K - K_{\\mathrm{tail}}$", fontsize=9.2, weight='bold', ha='center', va='center', color="#0F172A", zorder=3)
+    ax.text(c5_x + c5_w/2, 53.0, "Dynamic Top-$K$ Budget Allocation:\n$K_{\\mathrm{tail}} = \\lfloor \\alpha_u K \\rfloor, \\quad K_{\\mathrm{head}} = K - K_{\\mathrm{tail}}$", fontsize=9.8, weight='bold', ha='center', va='center', color="#0F172A", zorder=3)
 
     # 5.3 Calibrated Recommendation Slate Assembly
     draw_rounded_card(ax, c5_x, 19.2, c5_w, 29.3, "#F0FDF4", "#16A34A", lw=2.2, radius=0.6, zorder=2)
-    ax.text(c5_x + c5_w/2, 46.2, "Calibrated Recommendation Slate", weight='bold', fontsize=11.2, ha='center', va='center', color="#15803D", zorder=3)
+    ax.text(c5_x + c5_w/2, 46.2, "Calibrated Recommendation Slate", weight='bold', fontsize=11.8, ha='center', va='center', color="#15803D", zorder=3)
     
     # Recommendation items
     rec_items = [
@@ -374,13 +374,13 @@ def generate_improved_master_architecture():
     for r_idx, (r_txt, r_col, r_tag) in enumerate(rec_items):
         ry = 42.0 - r_idx * 2.7
         draw_rounded_card(ax, c5_x + 1.0, ry - 1.0, c5_w - 2.0, 2.4, "#F8FAFC", r_col, lw=0.9, radius=0.3, zorder=4)
-        ax.text(c5_x + 1.8, ry + 0.2, r_txt, fontsize=8.8, weight='bold', ha='left', va='center', color="#0F172A", zorder=5)
-        draw_rounded_card(ax, c5_x + c5_w - 3.8, ry - 0.7, 2.5, 1.8, r_col, r_col, radius=0.2, zorder=5)
-        ax.text(c5_x + c5_w - 2.55, ry + 0.2, r_tag, fontsize=8.2, weight='bold', ha='center', va='center', color="#FFFFFF", zorder=6)
+        ax.text(c5_x + 1.8, ry + 0.2, r_txt, fontsize=9.5, weight='bold', ha='left', va='center', color="#0F172A", zorder=5)
+        draw_rounded_card(ax, c5_x + c5_w - 4.0, ry - 0.7, 2.7, 1.8, r_col, r_col, radius=0.2, zorder=5)
+        ax.text(c5_x + c5_w - 2.65, ry + 0.2, r_tag, fontsize=8.8, weight='bold', ha='center', va='center', color="#FFFFFF", zorder=6)
 
-    ax.text(c5_x + c5_w/2, 29.5, "$g$-LTC & STER Pareto Calibration", fontsize=9.6, weight='bold', ha='center', va='center', color="#166534", zorder=3)
-    ax.text(c5_x + c5_w/2, 25.5, "• Deduplication & Score Re-normalization\n• SPAM Exposure Drop (STER@10): $88\\% \\to 72\\%$\n• Genuine Long-Tail Discovery Restored", fontsize=8.8, ha='center', va='center', color="#334155", zorder=3)
-    ax.text(c5_x + c5_w/2, 20.6, "Final Clean Slate: $\\mathcal{R}_u^* = [i_1^*, \\dots, i_K^*]$", fontsize=10.2, weight='bold', ha='center', va='center', color="#0F172A", zorder=3)
+    ax.text(c5_x + c5_w/2, 29.5, "$g$-LTC & STER Pareto Calibration", fontsize=10.2, weight='bold', ha='center', va='center', color="#166534", zorder=3)
+    ax.text(c5_x + c5_w/2, 25.5, "• Deduplication & Score Re-normalization\n• SPAM Exposure Drop (STER@10): $88\\% \\to 72\\%$\n• Genuine Long-Tail Discovery Restored", fontsize=9.5, ha='center', va='center', color="#334155", zorder=3)
+    ax.text(c5_x + c5_w/2, 20.6, "Final Clean Slate: $\\mathcal{R}_u^* = [i_1^*, \\dots, i_K^*]$", fontsize=10.8, weight='bold', ha='center', va='center', color="#0F172A", zorder=3)
 
     # =========================================================================
     # CLEAN INTER-STAGE GUTTER CONNECTORS (NO CLIPPING)
@@ -405,38 +405,38 @@ def generate_improved_master_architecture():
     # =========================================================================
     draw_rounded_card(ax, 20.5, 13.0, 78.3, 3.6, "#0F172A", "#F59E0B", lw=2.0, radius=0.5, zorder=3)
     ax.text(59.65, 14.8, "RELIABILITY SIGNAL HIGHWAY: Sample Trust Weights $\\mathbf{w_{ui} \\in [0, 1]}$ & Inverted Noise Operator $T^{\\dagger}_{\\lambda}$",
-            weight='bold', fontsize=10.8, ha='center', va='center', color="#FDE047", zorder=4)
+            weight='bold', fontsize=11.8, ha='center', va='center', color="#FDE047", zorder=4)
 
     # Downward drop from Stage 2 Fusion Hub to Highway
     ax.annotate("", xy=(30.4, 16.6), xytext=(30.4, 19.2),
                 arrowprops=dict(arrowstyle="->,head_width=0.45,head_length=0.6", lw=2.6, color="#D97706"), zorder=5)
-    draw_rounded_card(ax, 24.2, 16.9, 12.4, 1.9, "#D97706", "#B45309", radius=0.25, zorder=6)
-    ax.text(30.4, 17.85, "BUS OUT: $w_{ui} \\in [0, 1]$", fontsize=8.6, weight='bold', ha='center', va='center', color="#FFFFFF", zorder=7)
+    draw_rounded_card(ax, 23.6, 16.9, 13.6, 1.9, "#D97706", "#B45309", radius=0.25, zorder=6)
+    ax.text(30.4, 17.85, "BUS OUT: $w_{ui} \\in [0, 1]$", fontsize=9.4, weight='bold', ha='center', va='center', color="#FFFFFF", zorder=7)
 
     # Upward tap into Stage 3 (InfoNCE)
     ax.annotate("", xy=(50.5, 19.2), xytext=(50.5, 16.6),
                 arrowprops=dict(arrowstyle="->,head_width=0.45,head_length=0.6", lw=2.6, color="#DB2777"), zorder=5)
-    draw_rounded_card(ax, 44.2, 16.9, 12.6, 1.9, "#DB2777", "#9D174D", radius=0.25, zorder=6)
-    ax.text(50.5, 17.85, "TAP: $w_{ui} \\to \\mathcal{L}_{\\mathrm{cl}}$", fontsize=8.6, weight='bold', ha='center', va='center', color="#FFFFFF", zorder=7)
+    draw_rounded_card(ax, 43.7, 16.9, 13.6, 1.9, "#DB2777", "#9D174D", radius=0.25, zorder=6)
+    ax.text(50.5, 17.85, "TAP: $w_{ui} \\to \\mathcal{L}_{\\mathrm{cl}}$", fontsize=9.4, weight='bold', ha='center', va='center', color="#FFFFFF", zorder=7)
 
     # Upward tap into Stage 4 (Risk Loss)
     ax.annotate("", xy=(69.9, 19.2), xytext=(69.9, 16.6),
                 arrowprops=dict(arrowstyle="->,head_width=0.45,head_length=0.6", lw=2.6, color="#7C3AED"), zorder=5)
-    draw_rounded_card(ax, 63.2, 16.9, 13.4, 1.9, "#7C3AED", "#5B21B6", radius=0.25, zorder=6)
-    ax.text(69.9, 17.85, "TAP: $w_{ui}, T^{\\dagger}_{\\lambda} \\to \\mathcal{L}_{\\mathrm{risk}}$", fontsize=8.6, weight='bold', ha='center', va='center', color="#FFFFFF", zorder=7)
+    draw_rounded_card(ax, 62.7, 16.9, 14.4, 1.9, "#7C3AED", "#5B21B6", radius=0.25, zorder=6)
+    ax.text(69.9, 17.85, "TAP: $w_{ui}, T^{\\dagger}_{\\lambda} \\to \\mathcal{L}_{\\mathrm{risk}}$", fontsize=9.4, weight='bold', ha='center', va='center', color="#FFFFFF", zorder=7)
 
     # Upward tap into Stage 5 (Blueprint Pruning)
     ax.annotate("", xy=(89.4, 19.2), xytext=(89.4, 16.6),
                 arrowprops=dict(arrowstyle="->,head_width=0.45,head_length=0.6", lw=2.6, color="#16A34A"), zorder=5)
-    draw_rounded_card(ax, 83.0, 16.9, 12.8, 1.9, "#16A34A", "#15803D", radius=0.25, zorder=6)
-    ax.text(89.4, 17.85, "TAP: $w_{ui} \\geq \\theta \\to \\mathcal{B}_u$", fontsize=8.6, weight='bold', ha='center', va='center', color="#FFFFFF", zorder=7)
+    draw_rounded_card(ax, 82.5, 16.9, 13.8, 1.9, "#16A34A", "#15803D", radius=0.25, zorder=6)
+    ax.text(89.4, 17.85, "TAP: $w_{ui} \\geq \\theta \\to \\mathcal{B}_u$", fontsize=9.4, weight='bold', ha='center', va='center', color="#FFFFFF", zorder=7)
 
     # =========================================================================
     # BOTTOM BENCHMARK VALIDATION & TELEMETRY CONSOLE (y: 1.2 to 12.2)
     # =========================================================================
     draw_rounded_card(ax, 1.2, 1.2, 97.6, 11.0, "#042F2E", "#0D9488", lw=2.0, radius=0.8, zorder=2)
     ax.text(50.0, 10.9, "ENTERPRISE TELEMETRY, MULTI-DOMAIN EMPIRICAL BENCHMARKS & OFFLINE A/B ECONOMIC IMPACT",
-            weight='bold', fontsize=12.2, ha='center', va='center', color="#2DD4BF", zorder=3)
+            weight='bold', fontsize=13.0, ha='center', va='center', color="#2DD4BF", zorder=3)
 
     metrics = [
         ("Adversarial Robustness", "ROC-AUC: 0.7931 ± 0.0038\nAttack AP: 0.8879 vs 0.2104\nAuthentic AP: 0.9989 (MovieLens)", "#14B8A6"),
@@ -449,8 +449,8 @@ def generate_improved_master_architecture():
     for idx, (m_title, m_desc, m_col) in enumerate(metrics):
         mx = 2.4 + idx * 19.3
         draw_rounded_card(ax, mx, 1.9, 18.5, 7.8, "#134E4A", m_col, lw=1.2, radius=0.4, zorder=3)
-        ax.text(mx + 9.25, 8.4, m_title, weight='bold', fontsize=10.2, ha='center', color=m_col, zorder=4)
-        ax.text(mx + 9.25, 4.8, m_desc, fontsize=8.8, weight='bold', ha='center', va='center', color="#E6FFFA", zorder=4)
+        ax.text(mx + 9.25, 8.4, m_title, weight='bold', fontsize=11.0, ha='center', color=m_col, zorder=4)
+        ax.text(mx + 9.25, 4.8, m_desc, fontsize=9.5, weight='bold', ha='center', va='center', color="#E6FFFA", zorder=4)
 
     plt.tight_layout()
     plt.savefig(os.path.join(OUTPUT_DIR, "fig1_system_architecture.pdf"), bbox_inches='tight')
