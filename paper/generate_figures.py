@@ -217,19 +217,23 @@ def generate_improved_master_architecture():
 
     # 2.2 View 2: Asynchronous LLM Review Auditor
     draw_rounded_card(ax, c2_x, 52.0, c2_w, 16.2, "#FFFFFF", "#F59E0B", lw=1.6, radius=0.6, zorder=2)
-    ax.text(c2_x + c2_w/2, 66.2, "View 2: Asynchronous LLM Review Auditor", weight='bold', fontsize=10.0, ha='center', color="#B45309", zorder=3)
+    ax.text(c2_x + c2_w/2, 66.2, "View 2: Asynchronous LLM Review Auditor", weight='bold', fontsize=10.0, ha='center', va='center', color="#B45309", zorder=3)
     
-    draw_rounded_card(ax, c2_x + 0.8, 56.5, 7.5, 7.8, "#F8FAFC", "#CBD5E1", lw=1.0, radius=0.4, zorder=3)
-    ax.text(c2_x + 4.55, 62.0, "Review Prompt\n• Sentiment Skew\n• Shill Bot Pattern", fontsize=8.0, ha='center', color="#334155", zorder=4)
+    # Left box: Review Prompt
+    draw_rounded_card(ax, c2_x + 0.8, 55.8, 7.6, 7.8, "#F8FAFC", "#CBD5E1", lw=1.1, radius=0.4, zorder=3)
+    ax.text(c2_x + 4.6, 61.8, "Review Prompt", weight='bold', fontsize=8.6, ha='center', va='center', color="#0F172A", zorder=4)
+    ax.text(c2_x + 4.6, 58.5, "• Sentiment Skew\n• Shill Bot Pattern\n• Semantic Discrepancy", fontsize=7.8, ha='center', va='center', color="#334155", zorder=4)
     
-    ax.annotate("", xy=(c2_x + 9.5, 60.4), xytext=(c2_x + 8.5, 60.4),
-                arrowprops=dict(arrowstyle="->", lw=1.6, color="#D97706"), zorder=4)
+    # Arrow
+    ax.annotate("", xy=(c2_x + 9.4, 59.7), xytext=(c2_x + 8.6, 59.7),
+                arrowprops=dict(arrowstyle="->", lw=1.8, color="#D97706"), zorder=4)
     
-    draw_rounded_card(ax, c2_x + 9.7, 56.5, 8.3, 7.8, "#FFFBEB", "#F59E0B", lw=1.0, radius=0.4, zorder=3)
-    ax.text(c2_x + 13.85, 62.2, "LLM Engine", weight='bold', fontsize=8.8, ha='center', color="#B45309", zorder=4)
-    ax.text(c2_x + 13.85, 59.0, "SQLite WAL Cache\n(>85% Hits, $\\mathcal{O}(1)$)", fontsize=8.0, ha='center', color="#78350F", zorder=4)
+    # Right box: LLM Engine
+    draw_rounded_card(ax, c2_x + 9.6, 55.8, 8.4, 7.8, "#FFFBEB", "#F59E0B", lw=1.1, radius=0.4, zorder=3)
+    ax.text(c2_x + 13.8, 61.8, "LLM Engine", weight='bold', fontsize=8.8, ha='center', va='center', color="#B45309", zorder=4)
+    ax.text(c2_x + 13.8, 58.5, "SQLite WAL Cache\n(>85% Hits, $\\mathcal{O}(1)$)\nAsynchronous Thread", fontsize=7.8, ha='center', va='center', color="#78350F", zorder=4)
     
-    ax.text(c2_x + c2_w/2, 53.8, "$R_{\\mathrm{LLM}}(u,i) = \\mathrm{LLMAudit}(\\mathrm{Review}_{ui}, r_{ui}) \\in [0, 1]$", fontsize=8.8, weight='bold', ha='center', color="#0F172A", zorder=3)
+    ax.text(c2_x + c2_w/2, 53.6, "$R_{\\mathrm{LLM}}(u,i) = \\mathrm{LLMAudit}(\\mathrm{Review}_{ui}, r_{ui}) \\in [0, 1]$", fontsize=8.8, weight='bold', ha='center', va='center', color="#0F172A", zorder=3)
 
     # 2.3 View 3: 2D Level-3 BLAS Burst Detector
     draw_rounded_card(ax, c2_x, 34.8, c2_w, 15.8, "#FFFFFF", "#F59E0B", lw=1.6, radius=0.6, zorder=2)
