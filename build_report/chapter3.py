@@ -25,18 +25,18 @@ def build_chapter_3(doc, student_config=None):
         "adversarially poisoned, and popularity-skewed bipartite recommendation graphs. Rather than applying post-hoc heuristics or disconnected filters, "
         "the architecture establishes a unified mathematical and computational pipeline spanning five interconnected stages:"
     )
-    add_numbered(doc, "Stage 1:", "Anchor Selection & Tikhonov Noise Inversion — Identifies high-confidence rating anchors and constructs a bounded, regularized stochastic rating transition matrix T.", bold_prefix="Noise Modeling: ")
-    add_numbered(doc, "Stage 2:", "Multi-View Interaction Reliability Filter (MIRF) — Synthesizes model prediction consistency, asynchronous LLM semantic review audits, and 2D BLAS review-bombing burst detection into sample-level reliability weights w_ui in [0, 1].", bold_prefix="Reliability Auditing: ")
-    add_numbered(doc, "Stage 3:", "Risk-Aware Graph Contrastive Learning & Dual Partitioning — Modulates InfoNCE self-supervised contrastive losses with sample reliability weights and trains specialized Head (M_pop) and Tail (M_tail) neural backbones.", bold_prefix="Representation Learning: ")
-    add_numbered(doc, "Stage 4:", "Denoised SUPER Blueprint & Trajectory Interleaving — Purifies historical user interaction blueprints using reliability thresholds to assemble rank-calibrated top-K recommendations that restore genuine tail exposure.", bold_prefix="Calibrated Recommendation: ")
-    add_numbered(doc, "Stage 5:", "Multi-Domain Telemetry & Statistical Evaluation — Continuously tracks recommendation accuracy, genuine catalog coverage, calibration errors, and offline economic sensitivity.", bold_prefix="Evaluation Engine: ")
+    add_numbered(doc, "Stage 1:", "Heterogeneous Graph Ingestion, Shilling Attack Modeling & Pareto Catalog Stratification — Ingests multi-domain recommendation graphs (MovieLens-1M sub-graph, Amazon Electronics, Yelp Academic), simulates coordinated bandwagon and review-bombing noise, and decouples catalog volume via Pareto 80/20 partitioning into Head (top 20%) and Tail (80% niche) subsets.", bold_prefix="Stage 1: ")
+    add_numbered(doc, "Stage 2:", "Multi-View Interaction Reliability Filter (MIRF) — Tri-view auditing layer synthesizing statistical noise-transition estimation (Tikhonov-regularized inverse T_dag), asynchronous LLM review verification with thread-safe SQLite WAL caching, and 2D Level-3 BLAS vectorized burst scoring (4.95 ms for 42,000 edges) into continuous sample trust weights w_ui in [0, 1].", bold_prefix="Stage 2: ")
+    add_numbered(doc, "Stage 3:", "Risk-Aware Graph Contrastive Learning (GCL) — GNN neighborhood smoothing (LightGCN, NeuMF) and dual stochastic augmentations (SimGCL uniform noise z' and SGL edge dropout A'') guided by a sample-reliability weighted InfoNCE contrastive objective that zeroes out gradients from poisoned interactions.", bold_prefix="Stage 3: ")
+    add_numbered(doc, "Stage 4:", "Decoupled Dual-Partition Training & Tikhonov Risk-Consistent Optimization — Specialized Head expert (M_pop) and Tail expert (M_tail) networks trained via forward-corrected risk losses satisfying Theorems 1 and 2 (spectral boundedness and asymptotic excess risk consistency).", bold_prefix="Stage 4: ")
+    add_numbered(doc, "Stage 5:", "Denoised SUPER Blueprint & Calibrated Quota Merging — Purifies historical user interaction blueprints (B_u) by pruning edges below theta_trust, calculates personalized tail inclination quotas (alpha_u), and dynamically blends Head and Tail slates with g-LTC/STER calibration to suppress spam items while elevating genuine long-tail discoveries.", bold_prefix="Stage 5: ")
 
     add_figure(
         doc,
         r"paper/figures/fig1_system_architecture.png",
-        caption_text="End-to-End System Architecture of the RRFN-LLM-SUPER Framework, illustrating multi-domain graph ingestion, Tikhonov-regularized noise transition modeling, MIRF multi-view reliability auditing, risk-aware graph contrastive learning, dual partition training, and purified SUPER blueprint calibrated quota merging.",
+        caption_text="End-to-End System Architecture of the RRFN-LLM-SUPER Framework, illustrating multi-domain graph ingestion, adversarial perturbation modeling, Tikhonov-regularized noise transition estimation, MIRF multi-view reliability auditing, risk-aware graph contrastive learning, decoupled dual-partition optimization, and purified SUPER blueprint calibrated quota merging.",
         fig_num_str="3.1",
-        width_cm=14.4
+        width_cm=14.65
     )
 
     # Table 3.1: 14-dimension comparison
