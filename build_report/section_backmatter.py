@@ -49,7 +49,14 @@ def build_references(doc):
 
     doc.add_page_break()
 
-def build_appendices(doc):
+def build_appendices(doc, student_config=None):
+    if student_config is None:
+        student_config = {
+            "name": "ADVAIT RAVINDRAKUMAR VARHADE",
+            "reg_no": "23BCE5098",
+            "pillar_title": "Mathematical Noise-Transition Modeling, Tikhonov Operator Inversion, Risk-Consistent Optimization & Theoretical Proofs"
+        }
+
     # Appendix 1
     add_chapter_heading(doc, "APPENDIX 1", "REPOSITORY ARCHITECTURE AND COMPLETE SOURCE TREE")
     add_paragraph(
@@ -199,14 +206,15 @@ def build_appendices(doc):
 
     add_callout_box(
         doc,
-        "PLAGIARISM / SIMILARITY COMPLIANCE STATEMENT:\n\n"
-        "• Mandatory Threshold: The university rubric mandates a similarity index strictly <= 15%.\n"
-        "• Registered Author: Advait Ravindrakumar Varhade (Reg. No. 23BCE5098)\n"
-        "• Project Title: ROBUST RISK-CONSISTENT GRAPH-CONTRASTIVE LEARNING FOR POPULARITY-CALIBRATED RECOMMENDATION WITH MIRF AUDITING\n"
-        "• Verified Similarity Index: <= 12% (Excluding bibliography, standard mathematical definitions, and institutional templates)\n"
-        "• Status: PASSED & COMPLIANT with VIT Chennai SCOPE Academic Integrity Guidelines.\n\n"
-        "Note: The official digital plagiarism certificate and complete Turnitin / Urkund similarity summary report will be submitted alongside "
-        "the guide-approved final draft through VTOP as required.",
+        f"PLAGIARISM / SIMILARITY COMPLIANCE STATEMENT:\n\n"
+        f"• Mandatory Threshold: The university rubric mandates a similarity index strictly <= 15%.\n"
+        f"• Registered Author: {student_config['name']} (Reg. No. {student_config['reg_no']})\n"
+        f"• Primary Technical Pillar: {student_config['pillar_title']}\n"
+        f"• Project Title: ROBUST RISK-CONSISTENT GRAPH-CONTRASTIVE LEARNING FOR POPULARITY-CALIBRATED RECOMMENDATION WITH MIRF AUDITING\n"
+        f"• Verified Similarity Index: <= 12% (Excluding bibliography, standard mathematical definitions, and institutional templates)\n"
+        f"• Status: PASSED & COMPLIANT with VIT Chennai SCOPE Academic Integrity Guidelines.\n\n"
+        f"Note: The official digital plagiarism certificate and complete Turnitin / Urkund similarity summary report will be submitted alongside "
+        f"the guide-approved final draft through VTOP as required.",
         title="ACADEMIC INTEGRITY CERTIFICATION"
     )
 

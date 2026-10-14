@@ -2,6 +2,7 @@
 Front Matter Generator for BCSE497J Project Report
 Contains Cover Page, Title Page, Declaration, Certificate, Abstract,
 Acknowledgement, Table of Contents, List of Figures, List of Tables, and List of Acronyms.
+Supports candidate-specific personalization adhering to VIT Chennai guidelines.
 """
 
 import os
@@ -16,30 +17,41 @@ from report_builder import (
     set_section_margins, set_section_page_numbering, add_footer_page_number,
     add_paragraph, add_callout_box
 )
+from student_configs import STUDENT_PROFILES
 
-def add_cover_page(doc, is_title_page=False):
-    # Top spacing
+def get_default_student():
+    return STUDENT_PROFILES[0]
+
+def add_cover_page(doc, student_config=None):
+    """
+    Cover Page (Page 1): Formatted for the outer book cover.
+    Includes 'A project report on' at the top, Title, Degree, all team members, VIT logo, School, and Date.
+    Lists all team members, placing the candidate first as per VIT guidelines.
+    """
+    if student_config is None:
+        student_config = get_default_student()
+
     p_top = doc.add_paragraph()
     p_top.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    p_top.paragraph_format.space_before = Pt(12)
-    p_top.paragraph_format.space_after = Pt(4)
+    p_top.paragraph_format.space_before = Pt(14)
+    p_top.paragraph_format.space_after = Pt(6)
     r_top = p_top.add_run("A project report on")
     r_top.font.name = 'Times New Roman'
     r_top.font.size = Pt(12)
     r_top.italic = True
 
-    # Title of Project
+    # Title of Project (TNR Font 20, Bold, CAPS)
     p_title = doc.add_paragraph()
     p_title.alignment = WD_ALIGN_PARAGRAPH.CENTER
     p_title.paragraph_format.space_before = Pt(8)
-    p_title.paragraph_format.space_after = Pt(14)
+    p_title.paragraph_format.space_after = Pt(16)
     p_title.paragraph_format.line_spacing = 1.15
     r_title = p_title.add_run("ROBUST RISK-CONSISTENT GRAPH-CONTRASTIVE LEARNING FOR POPULARITY-CALIBRATED RECOMMENDATION WITH MIRF AUDITING")
     r_title.font.name = 'Times New Roman'
-    r_title.font.size = Pt(18)
+    r_title.font.size = Pt(19)
     r_title.bold = True
 
-    # Submitted in partial fulfillment...
+    # Submitted in partial fulfillment... (TNR Font 14, Italic)
     p_sub = doc.add_paragraph()
     p_sub.alignment = WD_ALIGN_PARAGRAPH.CENTER
     p_sub.paragraph_format.space_before = Pt(6)
@@ -49,17 +61,17 @@ def add_cover_page(doc, is_title_page=False):
     r_sub.font.size = Pt(13)
     r_sub.italic = True
 
-    # Degree
+    # Degree (TNR Font 22, Bold)
     p_deg = doc.add_paragraph()
     p_deg.alignment = WD_ALIGN_PARAGRAPH.CENTER
     p_deg.paragraph_format.space_before = Pt(4)
-    p_deg.paragraph_format.space_after = Pt(12)
+    p_deg.paragraph_format.space_after = Pt(14)
     r_deg = p_deg.add_run("Bachelor of Technology in Computer Science and Engineering")
     r_deg.font.name = 'Times New Roman'
     r_deg.font.size = Pt(16)
     r_deg.bold = True
 
-    # by
+    # by (TNR Font 14, Italic)
     p_by = doc.add_paragraph()
     p_by.alignment = WD_ALIGN_PARAGRAPH.CENTER
     p_by.paragraph_format.space_before = Pt(4)
@@ -69,18 +81,18 @@ def add_cover_page(doc, is_title_page=False):
     r_by.font.size = Pt(13)
     r_by.italic = True
 
-    # Candidate Names & Reg Nos (Group project: 1st & 2nd page list all team members)
+    # Candidate Names & Reg Nos (TNR Font 16, Bold, CAPS)
+    # Mandated rule: Pages 1 & 2 list all team members
     p_cand = doc.add_paragraph()
     p_cand.alignment = WD_ALIGN_PARAGRAPH.CENTER
     p_cand.paragraph_format.space_before = Pt(4)
     p_cand.paragraph_format.space_after = Pt(16)
     p_cand.paragraph_format.line_spacing = 1.25
 
-    names = [
-        ("ADVAIT RAVINDRAKUMAR VARHADE", "23BCE5098"),
-        ("P. MANAS", "23BCE5076"),
-        ("VIVAASH KOUNDAL", "23BCE5095")
-    ]
+    names = [(student_config["name"], student_config["reg_no"])]
+    for tm in student_config["teammates"]:
+        names.append((tm["name"], tm["reg_no"]))
+
     for idx, (name, reg) in enumerate(names):
         r_n = p_cand.add_run(f"{name} ({reg})")
         r_n.font.name = 'Times New Roman'
@@ -118,7 +130,109 @@ def add_cover_page(doc, is_title_page=False):
 
     doc.add_page_break()
 
-def add_declaration_page(doc):
+def add_title_page(doc, student_config=None):
+    """
+    Title Page (Page 2): Formatted for the inner title sheet of the bound report.
+    As per template: starts directly with TITLE OF THE PROJECT REPORT (omits 'A project report on').
+    """
+    if student_config is None:
+        student_config = get_default_student()
+
+    p_title = doc.add_paragraph()
+    p_title.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    p_title.paragraph_format.space_before = Pt(32)
+    p_title.paragraph_format.space_after = Pt(18)
+    p_title.paragraph_format.line_spacing = 1.15
+    r_title = p_title.add_run("ROBUST RISK-CONSISTENT GRAPH-CONTRASTIVE LEARNING FOR POPULARITY-CALIBRATED RECOMMENDATION WITH MIRF AUDITING")
+    r_title.font.name = 'Times New Roman'
+    r_title.font.size = Pt(19)
+    r_title.bold = True
+
+    # Submitted in partial fulfillment... (TNR Font 14, Italic)
+    p_sub = doc.add_paragraph()
+    p_sub.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    p_sub.paragraph_format.space_before = Pt(8)
+    p_sub.paragraph_format.space_after = Pt(4)
+    r_sub = p_sub.add_run("Submitted in partial fulfillment for the award of the degree of")
+    r_sub.font.name = 'Times New Roman'
+    r_sub.font.size = Pt(13)
+    r_sub.italic = True
+
+    # Degree (TNR Font 22, Bold)
+    p_deg = doc.add_paragraph()
+    p_deg.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    p_deg.paragraph_format.space_before = Pt(4)
+    p_deg.paragraph_format.space_after = Pt(16)
+    r_deg = p_deg.add_run("Bachelor of Technology in Computer Science and Engineering")
+    r_deg.font.name = 'Times New Roman'
+    r_deg.font.size = Pt(16)
+    r_deg.bold = True
+
+    # by (TNR Font 14, Italic)
+    p_by = doc.add_paragraph()
+    p_by.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    p_by.paragraph_format.space_before = Pt(4)
+    p_by.paragraph_format.space_after = Pt(6)
+    r_by = p_by.add_run("by")
+    r_by.font.name = 'Times New Roman'
+    r_by.font.size = Pt(13)
+    r_by.italic = True
+
+    # Candidate Names & Reg Nos (TNR Font 16, Bold, CAPS)
+    p_cand = doc.add_paragraph()
+    p_cand.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    p_cand.paragraph_format.space_before = Pt(4)
+    p_cand.paragraph_format.space_after = Pt(18)
+    p_cand.paragraph_format.line_spacing = 1.25
+
+    names = [(student_config["name"], student_config["reg_no"])]
+    for tm in student_config["teammates"]:
+        names.append((tm["name"], tm["reg_no"]))
+
+    for idx, (name, reg) in enumerate(names):
+        r_n = p_cand.add_run(f"{name} ({reg})")
+        r_n.font.name = 'Times New Roman'
+        r_n.font.size = Pt(13.5)
+        r_n.bold = True
+        if idx < len(names) - 1:
+            p_cand.add_run("\n")
+
+    # Logo
+    p_logo = doc.add_paragraph()
+    p_logo.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    p_logo.paragraph_format.space_before = Pt(8)
+    p_logo.paragraph_format.space_after = Pt(14)
+    logo_path = r"template_images/vit_logo.png"
+    if os.path.exists(logo_path):
+        p_logo.add_run().add_picture(logo_path, width=Cm(9.2))
+
+    # School & Date
+    p_sch = doc.add_paragraph()
+    p_sch.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    p_sch.paragraph_format.space_before = Pt(6)
+    p_sch.paragraph_format.space_after = Pt(3)
+    r_sch = p_sch.add_run("SCHOOL OF COMPUTER SCIENCE AND ENGINEERING")
+    r_sch.font.name = 'Times New Roman'
+    r_sch.font.size = Pt(14)
+    r_sch.bold = True
+
+    p_dt = doc.add_paragraph()
+    p_dt.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    p_dt.paragraph_format.space_before = Pt(2)
+    p_dt.paragraph_format.space_after = Pt(6)
+    r_dt = p_dt.add_run("October, 2026")
+    r_dt.font.name = 'Times New Roman'
+    r_dt.font.size = Pt(12)
+
+    doc.add_page_break()
+
+def add_declaration_page(doc, student_config=None):
+    """
+    Declaration Page: Mandated rule: On the Declaration page, mention ONLY individual name.
+    """
+    if student_config is None:
+        student_config = get_default_student()
+
     p_h = doc.add_paragraph()
     p_h.alignment = WD_ALIGN_PARAGRAPH.CENTER
     p_h.paragraph_format.space_before = Pt(18)
@@ -131,10 +245,10 @@ def add_declaration_page(doc):
 
     add_paragraph(
         doc,
-        "I hereby declare that the thesis entitled “ROBUST RISK-CONSISTENT GRAPH-CONTRASTIVE LEARNING FOR POPULARITY-CALIBRATED RECOMMENDATION WITH MIRF AUDITING” "
-        "submitted by ADVAIT RAVINDRAKUMAR VARHADE (23BCE5098), for the award of the degree of Bachelor of Technology in Computer Science and Engineering, "
-        "Vellore Institute of Technology, Chennai is a record of bonafide work carried out by me under the supervision of [Dr. XYZ, Associate Professor], "
-        "School of Computer Science and Engineering, Vellore Institute of Technology, Chennai."
+        f"I hereby declare that the thesis entitled “ROBUST RISK-CONSISTENT GRAPH-CONTRASTIVE LEARNING FOR POPULARITY-CALIBRATED RECOMMENDATION WITH MIRF AUDITING” "
+        f"submitted by {student_config['name']} ({student_config['reg_no']}), for the award of the degree of Bachelor of Technology in Computer Science and Engineering, "
+        f"Vellore Institute of Technology, Chennai is a record of bonafide work carried out by me under the supervision of [Dr. XYZ, Associate Professor], "
+        f"School of Computer Science and Engineering, Vellore Institute of Technology, Chennai."
     )
 
     add_paragraph(
@@ -159,7 +273,7 @@ def add_declaration_page(doc):
     p_cand.alignment = WD_ALIGN_PARAGRAPH.RIGHT
     p_cand.paragraph_format.space_before = Pt(10)
     p_cand.paragraph_format.space_after = Pt(20)
-    r_cand = p_cand.add_run("Signature of the Candidate\nADVAIT RAVINDRAKUMAR VARHADE\n(Reg. No. 23BCE5098)")
+    r_cand = p_cand.add_run(f"Signature of the Candidate\n{student_config['name']}\n(Reg. No. {student_config['reg_no']})")
     r_cand.font.name = 'Times New Roman'
     r_cand.font.size = Pt(12)
     r_cand.bold = True
@@ -174,7 +288,13 @@ def add_declaration_page(doc):
 
     doc.add_page_break()
 
-def add_certificate_page(doc):
+def add_certificate_page(doc, student_config=None):
+    """
+    Certificate Page: Mandated rule: On the Certificate page, mention ONLY individual name.
+    """
+    if student_config is None:
+        student_config = get_default_student()
+
     p_sch = doc.add_paragraph()
     p_sch.alignment = WD_ALIGN_PARAGRAPH.CENTER
     p_sch.paragraph_format.space_before = Pt(12)
@@ -196,12 +316,12 @@ def add_certificate_page(doc):
 
     add_paragraph(
         doc,
-        "This is to certify that the report entitled “ROBUST RISK-CONSISTENT GRAPH-CONTRASTIVE LEARNING FOR POPULARITY-CALIBRATED RECOMMENDATION WITH MIRF AUDITING” "
-        "is prepared and submitted by ADVAIT RAVINDRAKUMAR VARHADE (23BCE5098) to Vellore Institute of Technology, Chennai, "
-        "in partial fulfillment of the requirement for the award of the degree of Bachelor of Technology in Computer Science and Engineering "
-        "is a bonafide record of work carried out under my guidance. The project fulfills the requirements as per the regulations of this University "
-        "and in my opinion meets the necessary academic and technical standards for submission. The contents of this report have not been submitted "
-        "and will not be submitted either in part or in full, for the award of any other degree or diploma and the same is certified."
+        f"This is to certify that the report entitled “ROBUST RISK-CONSISTENT GRAPH-CONTRASTIVE LEARNING FOR POPULARITY-CALIBRATED RECOMMENDATION WITH MIRF AUDITING” "
+        f"is prepared and submitted by {student_config['name']} ({student_config['reg_no']}) to Vellore Institute of Technology, Chennai, "
+        f"in partial fulfillment of the requirement for the award of the degree of Bachelor of Technology in Computer Science and Engineering "
+        f"is a bonafide record of work carried out under my guidance. The project fulfills the requirements as per the regulations of this University "
+        f"and in my opinion meets the necessary academic and technical standards for submission. The contents of this report have not been submitted "
+        f"and will not be submitted either in part or in full, for the award of any other degree or diploma and the same is certified."
     )
 
     # Signatures Table
@@ -316,7 +436,10 @@ def add_external_certificate_page(doc):
 
     doc.add_page_break()
 
-def add_abstract_page(doc):
+def add_abstract_page(doc, student_config=None):
+    if student_config is None:
+        student_config = get_default_student()
+
     p_h = doc.add_paragraph()
     p_h.alignment = WD_ALIGN_PARAGRAPH.CENTER
     p_h.paragraph_format.space_before = Pt(18)
@@ -336,22 +459,19 @@ def add_abstract_page(doc):
         "popularity debiasing in isolation, collapsing catastrophically when both phenomena co-occur simultaneously in real-world platforms."
     )
 
+    # Candidate tailored focus paragraph
     add_paragraph(
         doc,
-        "In this project report, we design, implement, mathematically validate, and empirically evaluate RRFN-LLM-SUPER, a novel end-to-end "
-        "framework uniting stochastic noise-transition estimation, the Multi-view Interaction Reliability Filter (MIRF), risk-aware Graph "
-        "Contrastive Learning (GCL), and calibrated Pareto debiasing. We establish formal mathematical foundations, proving that Tikhonov-regularized "
-        "noise inversion strictly upper-bounds operator norms by ||T_lambda^dagger||_2 <= 1 / (2 * sqrt(lambda)), guaranteeing non-singular gradient "
-        "stability without numerical divergence, and establish asymptotic surrogate risk consistency O(delta + 1/sqrt(N)) alongside confidence "
-        "inversion resolvent bounds O(delta/sqrt(lambda) + sqrt(lambda))."
+        student_config["abstract_focus"]
     )
 
     add_paragraph(
         doc,
-        "The proposed MIRF ensemble computes continuous sample reliability weights w_ui in [0, 1] by synthesizing statistical model prediction consistency, "
-        "asynchronous Large Language Model (LLM) semantic review verification with thread-safe SQLite WAL caching, and 2D BLAS vectorized burst scoring "
-        "(achieving a measured 4.95 ms latency for 42,000 interactions, representing a >500x speedup over standard nested iteration). These sample weights "
-        "modulate InfoNCE contrastive alignment losses and purify historical blueprints for personalized tail inclination (alpha_u) allocation."
+        "The proposed framework unites stochastic noise-transition estimation, the Multi-view Interaction Reliability Filter (MIRF), risk-aware Graph "
+        "Contrastive Learning (GCL), and calibrated Pareto debiasing. MIRF computes continuous sample reliability weights w_ui in [0, 1] by synthesizing "
+        "statistical model prediction consistency, asynchronous Large Language Model (LLM) semantic review verification with thread-safe SQLite WAL caching, "
+        "and 2D BLAS vectorized burst scoring (achieving a measured 4.95 ms latency for 42,000 interactions, representing a >500x speedup over standard nested iteration). "
+        "These sample weights modulate InfoNCE contrastive alignment losses and purify historical blueprints for personalized tail inclination (alpha_u) allocation."
     )
 
     add_paragraph(
@@ -380,7 +500,13 @@ def add_abstract_page(doc):
 
     doc.add_page_break()
 
-def add_acknowledgement_page(doc):
+def add_acknowledgement_page(doc, student_config=None):
+    """
+    Acknowledgement Page: Mandated rule: On the Acknowledgement page, mention ONLY your individual name.
+    """
+    if student_config is None:
+        student_config = get_default_student()
+
     p_h = doc.add_paragraph()
     p_h.alignment = WD_ALIGN_PARAGRAPH.CENTER
     p_h.paragraph_format.space_before = Pt(18)
@@ -420,11 +546,17 @@ def add_acknowledgement_page(doc):
         "as well as the BCSE497J Project Coordinators and faculty committee for their structured academic framework, periodic reviews, and constant encouragement."
     )
 
+    # Teammate acknowledgement
+    tm_mentions = []
+    for tm in student_config["teammates"]:
+        tm_mentions.append(f"{tm['name']} ({tm['reg_no']}) for his collaborative partnership on {tm['pillar']}")
+    tm_text = "; and ".join(tm_mentions)
+
     add_paragraph(
         doc,
-        "I also thank my project teammates, P. Manas (23BCE5076) and Vivaash Koundal (23BCE5095), for their collaborative discussions and camaraderie. "
-        "My deepest and most affectionate gratitude goes to my parents and family members for their unconditional sacrifices, moral backing, and prayers. "
-        "Finally, I thank all my friends and peers at VIT Chennai who supported me throughout this journey."
+        f"I also extend my sincere appreciation to my project teammates: {tm_text}, for their camaraderie, constructive technical brainstorming, "
+        f"and collaborative synergy throughout the execution of this thesis. My deepest and most affectionate gratitude goes to my parents and family "
+        f"members for their unconditional sacrifices, moral backing, and prayers. Finally, I thank all my friends and peers at VIT Chennai who supported me throughout this journey."
     )
 
     p_sign = doc.add_paragraph()
@@ -441,14 +573,14 @@ def add_acknowledgement_page(doc):
     p_cand.alignment = WD_ALIGN_PARAGRAPH.RIGHT
     p_cand.paragraph_format.space_before = Pt(8)
     p_cand.paragraph_format.space_after = Pt(12)
-    r_cand = p_cand.add_run("ADVAIT RAVINDRAKUMAR VARHADE\n(Reg. No. 23BCE5098)")
+    r_cand = p_cand.add_run(f"{student_config['name']}\n(Reg. No. {student_config['reg_no']})")
     r_cand.font.name = 'Times New Roman'
     r_cand.font.size = Pt(12)
     r_cand.bold = True
 
     doc.add_page_break()
 
-def add_table_of_contents_page(doc):
+def add_table_of_contents_page(doc, student_config=None):
     p_h = doc.add_paragraph()
     p_h.alignment = WD_ALIGN_PARAGRAPH.CENTER
     p_h.paragraph_format.space_before = Pt(18)
@@ -473,69 +605,70 @@ def add_table_of_contents_page(doc):
         ("   1.3  Problem Statement and Formal Challenges", "5"),
         ("   1.4  Objectives of the Project", "6"),
         ("   1.5  Grounding Key Concepts: SUP, RRFN, and MIRF", "7"),
-        ("   1.6  Scope and Boundaries of the Work", "9"),
-        ("   1.7  Organization of the Project Report", "10"),
-        ("CHAPTER 2   LITERATURE REVIEW AND THEORETICAL BACKGROUND", "12"),
-        ("   2.1  Overview of Collaborative Filtering Paradigms", "12"),
-        ("   2.2  Adversarial Shilling Attacks in Recommender Systems", "14"),
-        ("   2.3  Noise-Transition Modeling and Loss Correction", "16"),
-        ("   2.4  Catalog Popularity Skew and Long-Tail Calibration", "18"),
-        ("   2.5  Soft Blueprint Merging (SUPER/SUP) and Vulnerabilities", "20"),
-        ("   2.6  Graph Contrastive Learning (GCL: SGL, SimGCL)", "22"),
-        ("   2.7  Trustworthy Graph Learning & Positioning vs. Trust-GRS", "24"),
-        ("   2.8  Large Language Models (LLMs) in Recommendation Auditing", "26"),
-        ("   2.9  Critical Research Gaps in Prior Literature", "27"),
-        ("   2.10 Comprehensive Literature Positioning Matrix (Table 2.1)", "28"),
-        ("CHAPTER 3   SYSTEM DESIGN AND MATHEMATICAL METHODOLOGY", "30"),
-        ("   3.1  End-to-End System Architecture (Figure 3.1)", "30"),
-        ("   3.2  Mathematical Formulations and Noise Transition Model", "32"),
-        ("   3.3  Stage 1: Anchor Selection & Tikhonov Noise Inversion", "34"),
-        ("   3.4  Stage 2: Multi-View Interaction Reliability Filter (MIRF)", "36"),
-        ("       3.4.1 Statistical Prediction Consistency (R_RRFN)", "36"),
-        ("       3.4.2 LLM Review Auditing with SQLite WAL Cache (R_LLM)", "37"),
-        ("       3.4.3 2D BLAS Vectorized Review-Bombing Burst Detection", "38"),
-        ("       3.4.4 Continuous Signal Synthesis and Trust Weights (w_ui)", "40"),
-        ("   3.5  Stage 3: Risk-Aware Graph Contrastive Learning", "41"),
-        ("       3.5.1 SimGCL Latent Perturbations & SGL Structural Dropout", "41"),
-        ("       3.5.2 Sample-Weighted InfoNCE Contrastive Objective", "42"),
-        ("       3.5.3 Dual Partition Training (Head and Tail Models)", "43"),
-        ("   3.6  Stage 4: Denoised SUPER Blueprint & Trajectory Interleaving", "44"),
-        ("   3.7  Theoretical Proofs and Formal Mathematical Guarantees", "46"),
-        ("       3.7.1 Theorem 1: Spectral Operator Norm Bound Proof", "46"),
-        ("       3.7.2 Theorem 2: Surrogate Excess Risk Consistency Proof", "48"),
-        ("       3.7.3 Confidence Inversion Resolvent Error Bounds", "50"),
-        ("   3.8  Formal Definitions of Recommendation and Detection Metrics", "51"),
-        ("CHAPTER 4   SYSTEM IMPLEMENTATION AND ARCHITECTURE DETAILS", "53"),
-        ("   4.1  Software Architecture and Design Principles", "53"),
-        ("   4.2  Comprehensive Module Mapping and File Index (Table 4.1)", "54"),
-        ("   4.3  Multi-Domain Data Ingestion and Robust Loading Pipelines", "56"),
-        ("   4.4  Graph Neural Network Backbones and Contrastive Engine", "58"),
-        ("   4.5  MIRF Filter Modules and High-Performance BLAS Acceleration", "60"),
-        ("   4.6  Denoised SUPER Calibrated Recommender Engine", "62"),
-        ("   4.7  Algorithmic Workflows and End-to-End Pseudocode", "64"),
-        ("   4.8  Interactive Telemetry and Streamlit Web Dashboard", "66"),
-        ("   4.9  Software Hardening, Numerical Protection, and Concurrency", "68"),
-        ("CHAPTER 5   EXPERIMENTAL EVALUATION, RESULTS, AND DISCUSSION", "70"),
-        ("   5.1  Experimental Setup and Dataset Characteristics (Table 5.1)", "70"),
-        ("   5.2  Adversarial Attack Simulation Protocols", "72"),
-        ("   5.3  Multi-Seed Statistical Validation Protocol (Seeds 42-46)", "74"),
-        ("   5.4  Empirical Benchmark Results on MovieLens-1M (Table 5.2)", "75"),
-        ("   5.5  Multi-Domain Benchmarking on Amazon and Yelp (Table 5.3)", "77"),
-        ("   5.6  MIRF Attack Detection vs. Authentic Retention Analysis", "79"),
-        ("   5.7  Component Ablation Study and Hyperparameter Sweep (Table 5.4)", "81"),
-        ("   5.8  Dual Partition Model Convergence and Training Loss Curves", "83"),
-        ("   5.9  Scenario-Based Offline Economic Sensitivity Simulation", "84"),
-        ("   5.10 Discussion of Engineering Trade-Offs and System Limitations", "86"),
-        ("CHAPTER 6   CONCLUSION AND FUTURE WORK", "88"),
-        ("   6.1  Summary of Completed Work and Contributions", "88"),
-        ("   6.2  Key Academic and Practical Findings", "89"),
-        ("   6.3  Realistic System Limitations", "90"),
-        ("   6.4  Future Research Avenues and Extensions", "91"),
-        ("REFERENCES (APA FORMAT)", "93"),
-        ("APPENDIX A   REPOSITORY ARCHITECTURE AND COMPLETE SOURCE TREE", "96"),
-        ("APPENDIX B   DETAILED HYPERPARAMETER CONFIGURATIONS (Table B.1)", "98"),
-        ("APPENDIX C   SELECTED CORE ALGORITHMIC IMPLEMENTATION LISTINGS", "99"),
-        ("APPENDIX D   PLAGIARISM CHECK COMPLIANCE AND SIMILARITY REPORT", "101")
+        ("   1.6  Project Work Division and Technical Contributions Matrix", "9"),
+        ("   1.7  Scope and Boundaries of the Work", "10"),
+        ("   1.8  Organization of the Project Report", "11"),
+        ("CHAPTER 2   LITERATURE REVIEW AND THEORETICAL BACKGROUND", "13"),
+        ("   2.1  Overview of Collaborative Filtering Paradigms", "13"),
+        ("   2.2  Adversarial Shilling Attacks in Recommender Systems", "15"),
+        ("   2.3  Noise-Transition Modeling and Loss Correction", "17"),
+        ("   2.4  Catalog Popularity Skew and Long-Tail Calibration", "19"),
+        ("   2.5  Soft Blueprint Merging (SUPER/SUP) and Vulnerabilities", "21"),
+        ("   2.6  Graph Contrastive Learning (GCL: SGL, SimGCL)", "23"),
+        ("   2.7  Trustworthy Graph Learning & Positioning vs. Trust-GRS", "25"),
+        ("   2.8  Large Language Models (LLMs) in Recommendation Auditing", "27"),
+        ("   2.9  Critical Research Gaps in Prior Literature", "28"),
+        ("   2.10 Comprehensive Literature Positioning Matrix (Table 2.1)", "29"),
+        ("CHAPTER 3   SYSTEM DESIGN AND MATHEMATICAL METHODOLOGY", "31"),
+        ("   3.1  End-to-End System Architecture (Figure 3.1)", "31"),
+        ("   3.2  Mathematical Formulations and Noise Transition Model", "33"),
+        ("   3.3  Stage 1: Anchor Selection & Tikhonov Noise Inversion", "35"),
+        ("   3.4  Stage 2: Multi-View Interaction Reliability Filter (MIRF)", "37"),
+        ("       3.4.1 Statistical Prediction Consistency (R_RRFN)", "37"),
+        ("       3.4.2 LLM Review Auditing with SQLite WAL Cache (R_LLM)", "38"),
+        ("       3.4.3 2D BLAS Vectorized Review-Bombing Burst Detection", "39"),
+        ("       3.4.4 Continuous Signal Synthesis and Trust Weights (w_ui)", "41"),
+        ("   3.5  Stage 3: Risk-Aware Graph Contrastive Learning", "42"),
+        ("       3.5.1 SimGCL Latent Perturbations & SGL Structural Dropout", "42"),
+        ("       3.5.2 Sample-Weighted InfoNCE Contrastive Objective", "43"),
+        ("       3.5.3 Dual Partition Training (Head and Tail Models)", "44"),
+        ("   3.6  Stage 4: Denoised SUPER Blueprint & Trajectory Interleaving", "45"),
+        ("   3.7  Theoretical Proofs and Formal Mathematical Guarantees", "47"),
+        ("       3.7.1 Theorem 1: Spectral Operator Norm Bound Proof", "47"),
+        ("       3.7.2 Theorem 2: Surrogate Excess Risk Consistency Proof", "49"),
+        ("       3.7.3 Confidence Inversion Resolvent Error Bounds", "51"),
+        ("   3.8  Formal Definitions of Recommendation and Detection Metrics", "52"),
+        ("CHAPTER 4   SYSTEM IMPLEMENTATION AND ARCHITECTURE DETAILS", "54"),
+        ("   4.1  Software Architecture and Design Principles", "54"),
+        ("   4.2  Comprehensive Module Mapping and File Index (Table 4.1)", "55"),
+        ("   4.3  Multi-Domain Data Ingestion and Robust Loading Pipelines", "57"),
+        ("   4.4  Graph Neural Network Backbones and Contrastive Engine", "59"),
+        ("   4.5  MIRF Filter Modules and High-Performance BLAS Acceleration", "61"),
+        ("   4.6  Denoised SUPER Calibrated Recommender Engine", "63"),
+        ("   4.7  Algorithmic Workflows and End-to-End Pseudocode", "65"),
+        ("   4.8  Interactive Telemetry and Streamlit Web Dashboard", "67"),
+        ("   4.9  Software Hardening, Numerical Protection, and Concurrency", "69"),
+        ("CHAPTER 5   EXPERIMENTAL EVALUATION, RESULTS, AND DISCUSSION", "71"),
+        ("   5.1  Experimental Setup and Dataset Characteristics (Table 5.1)", "71"),
+        ("   5.2  Adversarial Attack Simulation Protocols", "73"),
+        ("   5.3  Multi-Seed Statistical Validation Protocol (Seeds 42-46)", "75"),
+        ("   5.4  Empirical Benchmark Results on MovieLens-1M (Table 5.2)", "76"),
+        ("   5.5  Multi-Domain Benchmarking on Amazon and Yelp (Table 5.3)", "78"),
+        ("   5.6  MIRF Attack Detection vs. Authentic Retention Analysis", "80"),
+        ("   5.7  Component Ablation Study and Hyperparameter Sweep (Table 5.4)", "82"),
+        ("   5.8  Dual Partition Model Convergence and Training Loss Curves", "84"),
+        ("   5.9  Scenario-Based Offline Economic Sensitivity Simulation", "85"),
+        ("   5.10 Discussion of Engineering Trade-Offs and System Limitations", "87"),
+        ("CHAPTER 6   CONCLUSION AND FUTURE WORK", "89"),
+        ("   6.1  Summary of Completed Work and Contributions", "89"),
+        ("   6.2  Key Academic and Practical Findings", "90"),
+        ("   6.3  Realistic System Limitations", "91"),
+        ("   6.4  Future Research Avenues and Extensions", "92"),
+        ("REFERENCES (APA FORMAT)", "94"),
+        ("APPENDIX A   REPOSITORY ARCHITECTURE AND COMPLETE SOURCE TREE", "97"),
+        ("APPENDIX B   DETAILED HYPERPARAMETER CONFIGURATIONS (Table B.1)", "99"),
+        ("APPENDIX C   SELECTED CORE ALGORITHMIC IMPLEMENTATION LISTINGS", "100"),
+        ("APPENDIX D   PLAGIARISM CHECK COMPLIANCE AND SIMILARITY REPORT", "102")
     ]
 
     tbl = doc.add_table(rows=len(toc_items) + 1, cols=2)
@@ -620,14 +753,14 @@ def add_list_of_figures_page(doc):
     r_h.bold = True
 
     fig_items = [
-        ("Figure 3.1", "End-to-End System Architecture of the RRFN-LLM-SUPER Framework", "31"),
-        ("Figure 3.2", "Detailed Multi-View Interaction Reliability Filter (MIRF) Tri-Signal Pipeline", "37"),
-        ("Figure 3.3", "Denoised SUPER Blueprint Assembly and Calibrated Trajectory Interleaving Flow", "45"),
-        ("Figure 4.1", "Interactive Streamlit Web Dashboard: 4-Panel Live Telemetry & Inspector", "67"),
-        ("Figure 5.1", "Empirical ROC Curve and Precision-Recall Curves for Attack & Authentic Detection", "79"),
-        ("Figure 5.2", "Sensitivity Sweep of MIRF Anomaly Weights Along the Simplices omega_1 + omega_2 = 1.0", "82"),
-        ("Figure 5.3", "Dual Partition Head/Tail Training Convergence and InfoNCE Contrastive Loss Curves", "83"),
-        ("Figure 5.4", "Multi-Domain Radar Comparison Across MovieLens-1M, Amazon Reviews, and Yelp Academic", "78")
+        ("Figure 3.1", "End-to-End System Architecture of the RRFN-LLM-SUPER Framework", "32"),
+        ("Figure 3.2", "Detailed Multi-View Interaction Reliability Filter (MIRF) Tri-Signal Pipeline", "38"),
+        ("Figure 3.3", "Denoised SUPER Blueprint Assembly and Calibrated Trajectory Interleaving Flow", "46"),
+        ("Figure 4.1", "Interactive Streamlit Web Dashboard: 4-Panel Live Telemetry & Inspector", "68"),
+        ("Figure 5.1", "Empirical ROC Curve and Precision-Recall Curves for Attack & Authentic Detection", "80"),
+        ("Figure 5.2", "Sensitivity Sweep of MIRF Anomaly Weights Along the Simplices omega_1 + omega_2 = 1.0", "83"),
+        ("Figure 5.3", "Dual Partition Head/Tail Training Convergence and InfoNCE Contrastive Loss Curves", "84"),
+        ("Figure 5.4", "Multi-Domain Radar Comparison Across MovieLens-1M, Amazon Reviews, and Yelp Academic", "79")
     ]
 
     tbl = doc.add_table(rows=len(fig_items) + 1, cols=3)
@@ -708,14 +841,15 @@ def add_list_of_tables_page(doc):
     r_h.bold = True
 
     tbl_items = [
+        ("Table 1.1", "Comprehensive Project Work Division and Technical Contribution Matrix", "10"),
         ("Table 2.1", "Comprehensive Literature Positioning Matrix: Adversarial Robustness vs. Debiasing", "29"),
-        ("Table 3.1", "Detailed 14-Dimension Architectural Comparison (Standalone SUP vs. RRFN-LLM-SUPER)", "33"),
-        ("Table 4.1", "Complete Software Architecture, Module Responsibility, and File System Index", "55"),
-        ("Table 5.1", "Dataset Characteristics, Graph Topology, and Bandwagon Attack Injection Statistics", "71"),
-        ("Table 5.2", "Empirical 5-Seed Benchmark Results on MovieLens-1M Sub-Graph under 15% Attack", "76"),
-        ("Table 5.3", "Multi-Domain 5-Seed Benchmark on Amazon Reviews (SimGCL) and Yelp Academic (SGL)", "77"),
-        ("Table 5.4", "Comprehensive Component Ablation Study on Amazon Reviews (SimGCL) under Attack", "81"),
-        ("Table B.1", "Detailed System Hyperparameters, Neural Dimensions, and Training Configurations", "98")
+        ("Table 3.1", "Detailed 14-Dimension Architectural Comparison (Standalone SUP vs. RRFN-LLM-SUPER)", "34"),
+        ("Table 4.1", "Complete Software Architecture, Module Responsibility, and File System Index", "56"),
+        ("Table 5.1", "Dataset Characteristics, Graph Topology, and Bandwagon Attack Injection Statistics", "72"),
+        ("Table 5.2", "Empirical 5-Seed Benchmark Results on MovieLens-1M Sub-Graph under 15% Attack", "77"),
+        ("Table 5.3", "Multi-Domain 5-Seed Benchmark on Amazon Reviews (SimGCL) and Yelp Academic (SGL)", "79"),
+        ("Table 5.4", "Comprehensive Component Ablation Study on Amazon Reviews (SimGCL) under Attack", "82"),
+        ("Table B.1", "Detailed System Hyperparameters, Neural Dimensions, and Training Configurations", "99")
     ]
 
     tbl = doc.add_table(rows=len(tbl_items) + 1, cols=3)

@@ -1,14 +1,20 @@
 """
 Chapter 5: Experimental Evaluation, Results, and Discussion
 Comprehensive, publication-grade text for BCSE497J Project Report.
+Includes candidate-specific empirical evaluation emphasis callout blocks.
 """
 
 from report_builder import (
     add_chapter_heading, add_section_heading, add_subsection_heading,
-    add_paragraph, add_bullet, add_numbered, add_figure, add_table_custom
+    add_paragraph, add_bullet, add_numbered, add_figure, add_table_custom,
+    add_callout_box
 )
+from student_configs import STUDENT_PROFILES
 
-def build_chapter_5(doc):
+def build_chapter_5(doc, student_config=None):
+    if student_config is None:
+        student_config = STUDENT_PROFILES[0]
+
     add_chapter_heading(doc, "CHAPTER 5", "EXPERIMENTAL EVALUATION, RESULTS, AND DISCUSSION")
 
     # 5.1 Experimental Setup
@@ -61,6 +67,19 @@ def build_chapter_5(doc):
 
     # 5.3 Multi-Seed Validation
     add_section_heading(doc, "5.3 Multi-Seed Statistical Validation Protocol")
+
+    # Candidate callout if Advait
+    if student_config.get("id") == "advait":
+        add_callout_box(
+            doc,
+            f"STATISTICAL VALIDATION EMPHASIS — PRIMARY CONTRIBUTION OF {student_config['name']} ({student_config['reg_no']}):\n"
+            f"The candidate designed and executed the rigorous 5-seed paired Student's t-test statistical validation protocol across Seeds 42–46 "
+            f"(Table 5.2), confirming statistically significant improvements in calibration (RMSE-PC p = 0.0166; MRMC p = 0.0088) and denoising "
+            f"discrimination (ROC-AUC = 0.7931, p = 0.0038), as well as tracking dual partition loss convergence curves (Figure 5.3) empirically "
+            f"demonstrating the non-divergent Lipschitz gradient stability established in Theorem 3.1.",
+            title="EVALUATION EMPHASIS: MULTI-SEED STATISTICAL RIGOR & THEORETICAL VERIFICATION"
+        )
+
     add_paragraph(
         doc,
         "To establish rigorous scientific reliability and ensure findings are not artifacts of lucky random initializations, all experiments across all three "
@@ -72,6 +91,19 @@ def build_chapter_5(doc):
 
     # 5.4 MovieLens-1M Benchmark
     add_section_heading(doc, "5.4 Empirical Benchmark Results on MovieLens-1M")
+
+    # Candidate callout if Vivaash
+    if student_config.get("id") == "vivaash":
+        add_callout_box(
+            doc,
+            f"CALIBRATED DEBIASING EMPHASIS — PRIMARY CONTRIBUTION OF {student_config['name']} ({student_config['reg_no']}):\n"
+            f"The candidate conducted the comparative benchmark evaluations on MovieLens-1M (Table 5.2) and multi-domain datasets (Table 5.3), "
+            f"uncovered and formalized the deceptive tail inflation phenomenon (where attacked baselines naively appear to increase raw LTC by 10.3% "
+            f"while actually pushing spam targets at STER=88%), and verified that blueprint purification restores honest calibration (RMSE-PC=0.1067, "
+            f"p=0.0166) and suppresses STER@10 to 72%.",
+            title="EVALUATION EMPHASIS: POPULARITY CALIBRATION & SPAM SUPPRESSION"
+        )
+
     add_paragraph(
         doc,
         "Table 5.2 reports the empirical 5-seed benchmark results comparing RRFN-LLM-SUPER against Uncalibrated NeuMF, Clean Vanilla SUPER, "
@@ -154,6 +186,19 @@ def build_chapter_5(doc):
 
     # 5.6 Attack vs Authentic Detection
     add_section_heading(doc, "5.6 MIRF Attack Detection vs. Authentic Retention Analysis")
+
+    # Candidate callout if Manas
+    if student_config.get("id") == "manas":
+        add_callout_box(
+            doc,
+            f"DETECTION AUDITING EMPHASIS — PRIMARY CONTRIBUTION OF {student_config['name']} ({student_config['reg_no']}):\n"
+            f"The candidate designed and executed the precision-recall evaluation distinguishing Attack Detection from Authentic Retention (Figure 5.1), "
+            f"proving that MIRF achieves Attack Detection AP of 0.6884 on Amazon (3.9x gain over random edge baselines) and 0.6816 on Yelp (4.3x gain), "
+            f"while maintaining Authentic Retention AP of 0.9989 on MovieLens-1M (Authentic F1 = 0.9513). In addition, the candidate conducted the "
+            f"2D BLAS runtime latency profiling confirming sub-5ms execution for 42,000 interactions and the omega_1, omega_2 burst weight sweep (Figure 5.2).",
+            title="EVALUATION EMPHASIS: ATTACK DETECTION, PRECISION-RECALL & 2D BLAS SPEEDUP"
+        )
+
     add_paragraph(
         doc,
         "A critical scientific requirement is distinguishing between Attack Detection and Authentic Retention. Because recommendation graphs exhibit "

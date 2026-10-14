@@ -1,15 +1,20 @@
 """
 Chapter 1: Introduction and Motivation
 Comprehensive, publication-grade text for BCSE497J Project Report.
+Includes formal Work Division and Technical Contribution Matrix across team members.
 """
 
 from report_builder import (
     add_chapter_heading, add_section_heading, add_subsection_heading,
     add_subsubsection_heading, add_paragraph, add_bullet, add_numbered,
-    add_equation, add_callout_box
+    add_equation, add_callout_box, add_table_custom
 )
+from student_configs import STUDENT_PROFILES
 
-def build_chapter_1(doc):
+def build_chapter_1(doc, student_config=None):
+    if student_config is None:
+        student_config = STUDENT_PROFILES[0]
+
     add_chapter_heading(doc, "CHAPTER 1", "INTRODUCTION AND MOTIVATION")
 
     # 1.1 Background and Motivation
@@ -196,8 +201,57 @@ def build_chapter_1(doc):
         "and purifies SUPER blueprints so that calibrated top-K recommendations reflect authentic long-tail discovery while repelling adversarial shilling."
     )
 
-    # 1.6 Scope and Boundaries
-    add_section_heading(doc, "1.6 Scope and Boundaries of the Work")
+    # 1.6 Project Work Division and Technical Contributions Matrix
+    add_section_heading(doc, "1.6 Project Work Division and Technical Contributions Matrix")
+    add_paragraph(
+        doc,
+        "The RRFN-LLM-SUPER project is executed as a collaborative engineering and scientific initiative by a team of three undergraduate researchers. "
+        "To ensure deep academic rigor across all dimensions—from mathematical proofs to real-time systems engineering and calibrated recommendation—the "
+        "project was partitioned into three distinct, specialized technical pillars. Table 1.1 documents the formal division of responsibilities, "
+        "module ownership, and key deliverables across the team."
+    )
+
+    headers_11 = ["Technical Pillar", "Primary Contributor", "Core Software Modules", "Key Deliverables & Research Outcomes"]
+    data_11 = [
+        [
+            "Pillar 1: Mathematical Noise Inversion, Risk Consistency & Operator Proofs",
+            "Advait Ravindrakumar Varhade\n(23BCE5098)",
+            "rrfn/transition_matrix.py\nrrfn/anchor_selector.py\nrrfn/risk_loss.py\nmodels/softmax_classifier.py",
+            "Proven Theorem 3.1 (Tikhonov operator norm bound ||T_lambda^dagger||_2 <= 1/(2*sqrt(lambda))), Theorem 3.2 (excess clean risk consistency O(delta + 1/sqrt(N))), Riesz-Thorin gradient bounds, and consensus anchor prior identification."
+        ],
+        [
+            "Pillar 2: Multi-View Interaction Reliability Filter (MIRF) & 2D BLAS Burst Acceleration",
+            "P. Manas\n(23BCE5076)",
+            "fusion/reliability_fusion.py\nllm_auditor/auditor.py\nllm_auditor/cache.py\nbombing_detector/bomb_scorer.py",
+            "Tri-view reliability synthesis (R_RRFN, R_LLM, R_bomb), 2D BLAS Level-3 GEMM burst scoring (<5ms for 42K interactions; >500x speedup), SQLite WAL thread-safe caching, and attack vs. authentic AP evaluation."
+        ],
+        [
+            "Pillar 3: Risk-Aware Graph Contrastive Learning, Denoised SUPER Blueprint & Calibrated Debiasing",
+            "Vivaash Koundal\n(23BCE5095)",
+            "models/simgcl.py\nmodels/sgl.py\ntrainer/contrastive_loss.py\nsuper_engine/blueprint.py\nsuper_engine/merger.py\nevaluation/ab_simulator.py",
+            "Sample-reliability weighted InfoNCE contrastive alignment across SimGCL and SGL, dual Head/Tail partition training, purified blueprint trajectory interleaving, attack-aware metrics (g-LTC, STER), and 1,000-sample Monte Carlo economic simulation."
+        ]
+    ]
+    add_table_custom(
+        doc, headers_11, data_11,
+        caption_text="Comprehensive Project Work Division and Technical Contribution Matrix Across the 3 Team Members.",
+        table_num_str="1.1",
+        col_widths=[3.8, 2.6, 3.6, 4.5]
+    )
+
+    # Candidate specific highlight callout
+    add_callout_box(
+        doc,
+        f"CANDIDATE PRIMARY CONTRIBUTION FOCUS:\n"
+        f"This individual project report is submitted by {student_config['name']} ({student_config['reg_no']}) in fulfillment of the BCSE497J Project I requirements. "
+        f"While this report provides an end-to-end exposition of the complete RRFN-LLM-SUPER framework to preserve architectural coherence, "
+        f"the candidate's primary specialized contribution and engineering leadership lies in {student_config['pillar_title']}.\n\n"
+        f"Specific Responsibilities of {student_config['name']}:\n{student_config['key_responsibilities']}",
+        title="INDIVIDUAL TECHNICAL CONTRIBUTION DECLARATION"
+    )
+
+    # 1.7 Scope and Boundaries
+    add_section_heading(doc, "1.7 Scope and Boundaries of the Work")
     add_paragraph(
         doc,
         "The scope of this project encompasses the complete lifecycle of designing, mathematically proving, implementing, and benchmarking "
@@ -209,8 +263,8 @@ def build_chapter_1(doc):
     add_bullet(doc, "Statistical Rigor: All empirical benchmarks are conducted across S = 5 independent random seeds (42 through 46), reporting sample mean, sample standard deviation, and paired Student's t-test statistical significance (p < 0.05).", bold_prefix="Multi-Seed Evaluation: ")
     add_bullet(doc, "Out-of-Scope Constraints: Real-time distributed online streaming updates (e.g., Apache Kafka / Flink streaming graph ingestion) and live production A/B traffic testing are excluded due to computing infrastructure constraints. Offline Monte Carlo bootstrap simulation is utilized for economic modeling.", bold_prefix="System Boundaries: ")
 
-    # 1.7 Organization of Report
-    add_section_heading(doc, "1.7 Organization of the Project Report")
+    # 1.8 Organization of Report
+    add_section_heading(doc, "1.8 Organization of the Project Report")
     add_paragraph(
         doc,
         "The remainder of this project report is systematically organized into the following chapters:"

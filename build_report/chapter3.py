@@ -1,15 +1,20 @@
 """
 Chapter 3: System Design and Mathematical Methodology
 Comprehensive, publication-grade text for BCSE497J Project Report.
+Includes candidate-specific methodology emphasis callout blocks.
 """
 
 from report_builder import (
     add_chapter_heading, add_section_heading, add_subsection_heading,
     add_subsubsection_heading, add_paragraph, add_bullet, add_numbered,
-    add_equation, add_figure, add_table_custom
+    add_equation, add_figure, add_table_custom, add_callout_box
 )
+from student_configs import STUDENT_PROFILES
 
-def build_chapter_3(doc):
+def build_chapter_3(doc, student_config=None):
+    if student_config is None:
+        student_config = STUDENT_PROFILES[0]
+
     add_chapter_heading(doc, "CHAPTER 3", "SYSTEM DESIGN AND MATHEMATICAL METHODOLOGY")
 
     # 3.1 End-to-End System Architecture
@@ -129,6 +134,19 @@ def build_chapter_3(doc):
 
     # 3.4 Stage 2: MIRF Pipeline
     add_section_heading(doc, "3.4 Stage 2: Multi-View Interaction Reliability Filter (MIRF)")
+
+    # Candidate callout if Manas
+    if student_config.get("id") == "manas":
+        add_callout_box(
+            doc,
+            f"FILTER ENGINEERING EMPHASIS — PRIMARY CONTRIBUTION OF {student_config['name']} ({student_config['reg_no']}):\n"
+            f"The design, mathematical formulation, and hardware-accelerated implementation of the Multi-View Interaction Reliability Filter (MIRF)—including "
+            f"View 1 (statistical prediction consistency R_RRFN), View 2 (LLM review text auditing R_LLM with thread-safe SQLite WAL caching), and "
+            f"View 3 (2D BLAS Level-3 GEMM review-bombing burst detection R_bomb executing in 4.95 ms for 42,000 interactions)—constitute the primary technical "
+            f"contributions developed by the candidate.",
+            title="INDIVIDUAL CONTRIBUTION: MIRF MULTI-MODAL AUDITING & BLAS BURST ACCELERATION"
+        )
+
     add_paragraph(
         doc,
         "A single statistical or topological signal is insufficient to reliably detect sophisticated, camouflaged attacks. The Multi-view Interaction "
@@ -211,6 +229,18 @@ def build_chapter_3(doc):
 
     # 3.5 Stage 3: Risk-Aware GCL
     add_section_heading(doc, "3.5 Stage 3: Risk-Aware Graph Contrastive Learning and Dual Models")
+
+    # Candidate callout if Vivaash
+    if student_config.get("id") == "vivaash":
+        add_callout_box(
+            doc,
+            f"RECOMMENDER ENGINE EMPHASIS — PRIMARY CONTRIBUTION OF {student_config['name']} ({student_config['reg_no']}):\n"
+            f"The design of Risk-Aware Graph Contrastive Learning (sample-reliability weighted InfoNCE across SimGCL and SGL), dual partition Head/Tail training, "
+            f"historical blueprint purification (w_ui >= theta_trust), personalized tail inclination alpha_u, rank-calibrated trajectory interleaving, and the formalization "
+            f"of Genuine Long-Tail Coverage (g-LTC) and STER@K constitute the primary technical contributions developed by the candidate.",
+            title="INDIVIDUAL CONTRIBUTION: RISK-AWARE GCL & CALIBRATED SUPER DEBIASING"
+        )
+
     add_paragraph(
         doc,
         "To prevent malicious interaction edges from corrupting high-order graph representations, we integrate Graph Contrastive Learning (GCL) backbones "
@@ -268,6 +298,20 @@ def build_chapter_3(doc):
 
     # 3.7 Theoretical Proofs
     add_section_heading(doc, "3.7 Theoretical Proofs and Formal Mathematical Guarantees")
+
+    # Candidate callout if Advait
+    if student_config.get("id") == "advait":
+        add_callout_box(
+            doc,
+            f"THEORETICAL DERIVATION EMPHASIS — PRIMARY CONTRIBUTION OF {student_config['name']} ({student_config['reg_no']}):\n"
+            f"The mathematical formulations, spectral operator bounds, and formal proofs of Theorem 3.1 (Tikhonov Operator Norm Bound) and "
+            f"Theorem 3.2 (Forward Surrogate Risk Consistency and Excess Clean Risk Bounds) in Sections 3.2, 3.3, and 3.7 constitute the primary "
+            f"theoretical contributions derived and proved by the candidate. This includes establishing the unique stationary global maximum of "
+            f"f(sigma) = sigma/(sigma^2 + lambda) at sigma* = sqrt(lambda) yielding ||T_lambda^dagger||_2 <= 1 / (2*sqrt(lambda)), proving minimizer "
+            f"invariance under label transition entropy gaps, and bounding regularized confidence inversion resolvent errors.",
+            title="INDIVIDUAL CONTRIBUTION: THEORETICAL PROOFS & OPERATOR INVERSION"
+        )
+
     add_paragraph(
         doc,
         "We now present the complete mathematical proofs establishing the spectral boundedness and excess risk consistency of RRFN-LLM-SUPER."

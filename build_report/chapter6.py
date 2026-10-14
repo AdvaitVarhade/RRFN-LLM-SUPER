@@ -2,14 +2,19 @@
 Chapter 6: Conclusion and Future Work
 Comprehensive, publication-grade text for BCSE497J Project Report.
 Configured adhering to template instructions on academic reflections and future work.
+Includes candidate-tailored future directions and insights.
 """
 
 from report_builder import (
     add_chapter_heading, add_section_heading, add_subsection_heading,
-    add_paragraph, add_bullet, add_numbered
+    add_paragraph, add_bullet, add_numbered, add_callout_box
 )
+from student_configs import STUDENT_PROFILES
 
-def build_chapter_6(doc):
+def build_chapter_6(doc, student_config=None):
+    if student_config is None:
+        student_config = STUDENT_PROFILES[0]
+
     add_chapter_heading(doc, "CHAPTER 6", "CONCLUSION AND FUTURE WORK")
 
     # 6.1 Summary of Contributions
@@ -23,7 +28,9 @@ def build_chapter_6(doc):
     )
     add_paragraph(
         doc,
-        "In direct fulfillment of the project statement and the academic objectives established in Chapter 1, the core contributions delivered in this work include:"
+        f"In direct fulfillment of the project statement and the academic objectives established in Chapter 1, this report documents the specific "
+        f"theoretical, architectural, and empirical outcomes accomplished by the team, with special emphasis on the candidate's core domain: "
+        f"{student_config['pillar_title']}. The core deliverables include:"
     )
     add_numbered(doc, "1. Mathematical Noise Bounds & Risk Consistency:", "We established that Tikhonov-regularized noise inversion strictly upper-bounds operator norms by ||T_lambda^dagger||_2 <= 1 / (2*sqrt(lambda)), guaranteeing Lipschitz gradient stability and preventing numerical explosion. Furthermore, we proved Theorem 3.2, establishing formal forward surrogate risk consistency O(delta + 1/sqrt(N)) alongside regularized confidence inversion error bounds O(delta/sqrt(lambda) + sqrt(lambda)).", bold_prefix="Theoretical Proofs: ")
     add_numbered(doc, "2. High-Performance MIRF Ensemble:", "We engineered the Multi-view Interaction Reliability Filter, synthesizing statistical model prediction consistency (R_RRFN), prompt-audited LLM semantic review verification (R_LLM) supported by a thread-safe SQLite WAL cache, and 2D BLAS vectorized burst detection (R_bomb) achieving a measured 4.95 ms execution latency for 42,000 interactions (>500x acceleration).", bold_prefix="MIRF Filter: ")
@@ -58,12 +65,22 @@ def build_chapter_6(doc):
     add_section_heading(doc, "6.4 Directions for Future Research and System Extensions")
     add_paragraph(
         doc,
-        "To extend the capabilities of RRFN-LLM-SUPER beyond the scope of BCSE497J Project I, we outline five promising directions for future research:"
+        f"To extend the capabilities of RRFN-LLM-SUPER beyond the scope of BCSE497J Project I, and directly addressing the research frontier "
+        f"in {student_config['short_pillar']}, we outline five promising directions for future research:"
     )
     add_bullet(doc, "Scaling to Billion-Edge Production Graphs: Implement distributed graph partitioning (e.g., via PyTorch-Geometric / DGL with CUDA IPC) to evaluate RRFN-LLM-SUPER on full web-scale catalogs exceeding 100 million interactions.", bold_prefix="1. Distributed Scaling: ")
     add_bullet(doc, "Local Quantized Open-Source LLM Integration: Replace proprietary cloud LLM APIs with self-hosted, 4-bit quantized open-source models (such as LLaMA-3-8B or Mistral-7B) embedded directly in edge inference pipelines using vLLM, completely eliminating API token costs and external network dependencies.", bold_prefix="2. Embedded Quantized LLMs: ")
     add_bullet(doc, "Online Streaming Graph Ingestion: Extend the MIRF burst detector to continuous event-streaming architectures (using Apache Kafka and Flink), enabling real-time edge reliability weighting and online trajectory interleaving without requiring periodic batch retraining.", bold_prefix="3. Streaming Architectures: ")
     add_bullet(doc, "Formal Differential Privacy (DP) Guarantees: Integrate local differential privacy mechanisms (DP-SGD and epsilon-differentially private text sanitization) to guarantee that user review blueprints and interaction histories cannot be reconstructed by adversarial reconstruction attacks.", bold_prefix="4. Differential Privacy: ")
     add_bullet(doc, "Federated Graph Recommender System (Fed-RRFN): Adapt the framework to cross-silo and cross-device federated learning settings, where decentralized clients compute local MIRF reliability weights and communicate encrypted gradient updates to a central popularity-calibrated server.", bold_prefix="5. Federated Recommendation: ")
+
+    # Candidate specific future direction callout
+    add_callout_box(
+        doc,
+        f"CANDIDATE INDIVIDUAL RESEARCH ROADMAP ({student_config['name']}):\n"
+        f"In subsequent research iterations (Project II / B.Tech. Capstone Phase), the candidate specifically plans to investigate: "
+        f"{student_config['future_work_focus']}.",
+        title="SPECIALIZED FUTURE WORK PERSPECTIVE"
+    )
 
     doc.add_page_break()
