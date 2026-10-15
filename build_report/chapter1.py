@@ -32,11 +32,11 @@ def build_chapter_1(doc, student_config=None):
     
     add_paragraph(
         doc,
-        "Formally, let G = (U, I, E) represent a bipartite user-item interaction graph, where U = {u_1, u_2, ..., u_|U|} denotes the set of unique users, "
-        "I = {i_1, i_2, ..., i_|I|} denotes the set of unique catalog items, and E subset of U x I denotes the observed set of behavioral edges or interactions. "
-        "In implicit feedback environments, an observed edge (u, i) in E signifies a click, view, purchase, or bookmark. In explicit feedback settings, "
-        "each interaction edge is accompanied by a discrete ordinal rating r_ui in {1, 2, ..., K} (typically representing a 1-to-5 star rating) and, "
-        "in rich multi-modal platforms, a corresponding natural language review text S_ui and an interaction timestamp t_ui."
+        "Formally, let $\\mathcal{G} = (\\mathcal{U}, \\mathcal{I}, \\mathcal{E})$ represent a bipartite user-item interaction graph, where $\\mathcal{U} = \\{u_1, u_2, \\dots, u_{|\\mathcal{U}|}\\}$ denotes the set of unique users, "
+        "$\\mathcal{I} = \\{i_1, i_2, \\dots, i_{|\\mathcal{I}|}\\}$ denotes the set of unique catalog items, and $\\mathcal{E} \\subset \\mathcal{U} \\times \\mathcal{I}$ denotes the observed set of behavioral edges or interactions. "
+        "In implicit feedback environments, an observed edge $(u, i) \\in \\mathcal{E}$ signifies a click, view, purchase, or bookmark. In explicit feedback settings, "
+        "each interaction edge is accompanied by a discrete ordinal rating $r_{ui} \\in \\{1, 2, \\dots, K\\}$ (typically representing a 1-to-5 star rating) and, "
+        "in rich multi-modal platforms, a corresponding natural language review text $S_{ui}$ and an interaction timestamp $t_{ui}$."
     )
     
     add_paragraph(
@@ -115,8 +115,8 @@ def build_chapter_1(doc, student_config=None):
     add_section_heading(doc, "1.3 Problem Statement and Formal Research Questions")
     add_paragraph(
         doc,
-        "Given a partially observed, potentially poisoned bipartite user-item graph G_tilde = (U, I, E_tilde), where E_tilde contains an unobserved mixture "
-        "of authentic clean interactions E* and malicious adversarial injection edges E_attack, and where item interaction frequencies exhibit severe "
+        "Given a partially observed, potentially poisoned bipartite user-item graph $\\tilde{\\mathcal{G}} = (\\mathcal{U}, \\mathcal{I}, \\tilde{\\mathcal{E}})$, where $\\tilde{\\mathcal{E}}$ contains an unobserved mixture "
+        "of authentic clean interactions $\\mathcal{E}^*$ and malicious adversarial injection edges $\\mathcal{E}_{\\mathrm{attack}}$, and where item interaction frequencies exhibit severe "
         "Pareto skew, how can an end-to-end recommender system simultaneously:"
     )
     add_bullet(doc, "1. Identify and downweight corrupted interaction edges without discarding authentic user feedback;", bold_prefix="Denoising: ")
@@ -140,10 +140,10 @@ def build_chapter_1(doc, student_config=None):
         "In direct alignment with the course outcomes (CO4) and the academic criteria prescribed for BCSE497J Project I, this project accomplishes "
         "the following five specific, measurable, and technically rigorous objectives:"
     )
-    add_numbered(doc, "Objective 1:", "Derive formal mathematical foundations for noise transition modeling, establishing a proven spectral operator norm upper bound for Tikhonov-regularized noise inversion (||T_lambda^dagger||_2 <= 1 / (2*sqrt(lambda))) to guarantee Lipschitz gradient stability, and establish asymptotic excess risk consistency bounds O(delta + 1/sqrt(N)).", bold_prefix="Theoretical Formulations: ")
+    add_numbered(doc, "Objective 1:", "Derive formal mathematical foundations for noise transition modeling, establishing a proven spectral operator norm upper bound for Tikhonov-regularized noise inversion ($\\|T_\\lambda^\\dagger\\|_2 \\le \\frac{1}{2\\sqrt{\\lambda}}$) to guarantee Lipschitz gradient stability, and establish asymptotic excess risk consistency bounds $\\mathcal{O}(\\delta + 1/\\sqrt{N})$.", bold_prefix="Theoretical Formulations: ")
     add_numbered(doc, "Objective 2:", "Architect and implement the Multi-view Interaction Reliability Filter (MIRF), integrating statistical transition divergence, asynchronous Large Language Model (LLM) review text verification with a thread-safe SQLite WAL caching layer, and 2D BLAS vectorized review-bombing burst detection achieving >500x execution speedup.", bold_prefix="MIRF Filter Engineering: ")
-    add_numbered(doc, "Objective 3:", "Integrate risk-aware Graph Contrastive Learning (GCL) across modern neural backbones (SimGCL with latent uniform perturbations and SGL with structural edge dropout), modulating contrastive alignment through sample reliability weights w_ui.", bold_prefix="Robust Representation Learning: ")
-    add_numbered(doc, "Objective 4:", "Design the Denoised SUPER Recommender Engine with purified user interaction blueprints and rank-calibrated trajectory interleaving, formulating attack-aware evaluation metrics: Genuine Long-Tail Coverage (g-LTC@K) and Spam Target Exposure Rate (STER@K).", bold_prefix="Debiased Engine & Metrics: ")
+    add_numbered(doc, "Objective 3:", "Integrate risk-aware Graph Contrastive Learning (GCL) across modern neural backbones (SimGCL with latent uniform perturbations and SGL with structural edge dropout), modulating contrastive alignment through sample reliability weights $w_{ui}$.", bold_prefix="Robust Representation Learning: ")
+    add_numbered(doc, "Objective 4:", "Design the Denoised SUPER Recommender Engine with purified user interaction blueprints and rank-calibrated trajectory interleaving, formulating attack-aware evaluation metrics: Genuine Long-Tail Coverage ($g\\text{-}\\mathrm{LTC}@K$) and Spam Target Exposure Rate ($\\mathrm{STER}@K$).", bold_prefix="Debiased Engine & Metrics: ")
     add_numbered(doc, "Objective 5:", "Execute comprehensive 5-seed empirical benchmark evaluations across three diverse domains (MovieLens-1M sub-graph, Amazon Electronics, Yelp Academic), conducting paired Student's t-tests, full component ablations, and a 1,000-sample Monte Carlo economic simulation.", bold_prefix="Empirical & Economic Validation: ")
 
     # 1.5 Grounding Key Concepts: SUP, RRFN, and MIRF
@@ -158,15 +158,15 @@ def build_chapter_1(doc, student_config=None):
     add_paragraph(
         doc,
         "In recommender systems literature, SUP (also referred to as SUPER) stands for Soft Blueprint Merging for Calibrated Long-Tail Recommendation (Yang et al., 2022). "
-        "SUPER addresses catalog popularity skew by partitioning the item catalog into popular 'Head' items (M_pop) and niche 'Tail' items (M_tail). "
-        "During recommendation inference, SUPER calculates each individual user's historical tail preference inclination alpha_u in [0, 1] based on their past interaction 'blueprint'. "
-        "It then assembles a top-K recommendation list by soft-merging candidates from M_pop and M_tail to ensure the recommended list's popularity distribution "
+        "SUPER addresses catalog popularity skew by partitioning the item catalog into popular 'Head' items ($\mathcal{M}_{\\mathrm{pop}}$) and niche 'Tail' items ($\mathcal{M}_{\\mathrm{tail}}$). "
+        "During recommendation inference, SUPER calculates each individual user's historical tail preference inclination $\\alpha_u \\in [0, 1]$ based on their past interaction 'blueprint'. "
+        "It then assembles a top-$K$ recommendation list by soft-merging candidates from $\mathcal{M}_{\\mathrm{pop}}$ and $\mathcal{M}_{\\mathrm{tail}}$ to ensure the recommended list's popularity distribution "
         "closely matches the user's historical profile."
     )
     add_paragraph(
         doc,
         "Crucial Vulnerability of Standalone SUP: Standalone SUPER inherently presupposes that the user's historical interaction blueprint is clean and honest. "
-        "When an adversarial bot injects fake interactions, SUPER faithfully ingests the poisoned edges into the blueprint, skewing alpha_u and elevating attacked "
+        "When an adversarial bot injects fake interactions, SUPER faithfully ingests the poisoned edges into the blueprint, skewing $\\alpha_u$ and elevating attacked "
         "spam items into the user's calibrated quota."
     )
 
@@ -174,23 +174,23 @@ def build_chapter_1(doc, student_config=None):
     add_paragraph(
         doc,
         "RRFN stands for the Robust Risk-consistent Fusion Network. RRFN is a noise-transition modeling framework that acknowledges that observed ratings "
-        "Y_tilde are noisy realizations of unobserved ground-truth clean ratings Y*. RRFN identifies high-confidence anchor items in the catalog to estimate "
-        "a K x K stochastic rating transition matrix T_ij = P(Y_tilde = j | Y* = i). By inverting this matrix using Tikhonov regularization and optimizing a forward-corrected "
-        "surrogate cross-entropy loss L_risk, RRFN guarantees that model optimization asymptotically converges toward the clean Bayes-optimal risk."
+        "$\\tilde{Y}$ are noisy realizations of unobserved ground-truth clean ratings $Y^*$. RRFN identifies high-confidence anchor items in the catalog to estimate "
+        "a $K \\times K$ stochastic rating transition matrix $T_{ij} = P(\\tilde{Y} = j \\mid Y^* = i)$. By inverting this matrix using Tikhonov regularization and optimizing a forward-corrected "
+        "surrogate cross-entropy loss $\\mathcal{L}_{\\mathrm{risk}}$, RRFN guarantees that model optimization asymptotically converges toward the clean Bayes-optimal risk."
     )
 
     add_subsection_heading(doc, "1.5.3 What is MIRF?")
     add_paragraph(
         doc,
-        "MIRF stands for the Multi-view Interaction Reliability Filter. MIRF is our novel tri-view ensemble layer that audits the authenticity of every graph edge (u, i) "
+        "MIRF stands for the Multi-view Interaction Reliability Filter. MIRF is our novel tri-view ensemble layer that audits the authenticity of every graph edge $(u, i)$ "
         "by fusing three complementary signal views:"
     )
-    add_bullet(doc, "Statistical Model Prediction Consistency (R_RRFN): Measures whether the observed rating aligns with the model's expected rating under the estimated transition matrix T.", bold_prefix="View 1: ")
-    add_bullet(doc, "Semantic Review Text Auditing (R_LLM): Analyzes natural language review text S_ui using LLM prompts to detect sentiment polarity conflicts and bot syntax, cached in a thread-safe SQLite WAL database.", bold_prefix="View 2: ")
-    add_bullet(doc, "Vectorized Review-Bombing Burst Detection (R_bomb): Simultaneously scores sudden temporal acceleration (Z_temp) and polarity skew (S_pol) via 2D BLAS matrix operations in sub-5ms runtime.", bold_prefix="View 3: ")
+    add_bullet(doc, "Statistical Model Prediction Consistency ($R_{\\mathrm{RRFN}}$): Measures whether the observed rating aligns with the model's expected rating under the estimated transition matrix $T$.", bold_prefix="View 1: ")
+    add_bullet(doc, "Semantic Review Text Auditing ($R_{\\mathrm{LLM}}$): Analyzes natural language review text $S_{ui}$ using LLM prompts to detect sentiment polarity conflicts and bot syntax, cached in a thread-safe SQLite WAL database.", bold_prefix="View 2: ")
+    add_bullet(doc, "Vectorized Review-Bombing Burst Detection ($R_{\\mathrm{bomb}}$): Simultaneously scores sudden temporal acceleration ($Z_{\\mathrm{temp}}$) and polarity skew ($S_{\\mathrm{pol}}$) via 2D BLAS matrix operations in sub-5ms runtime.", bold_prefix="View 3: ")
     add_paragraph(
         doc,
-        "MIRF synthesizes these three views into a unified continuous sample reliability weight w_ui in [0, 1] for every interaction edge."
+        "MIRF synthesizes these three views into a unified continuous sample reliability weight $w_{ui} \\in [0, 1]$ for every interaction edge."
     )
 
     add_subsection_heading(doc, "1.5.4 Our Unified Framework: RRFN-LLM-SUPER")
@@ -217,13 +217,13 @@ def build_chapter_1(doc, student_config=None):
             "Pillar 1: Mathematical Noise Inversion, Risk Consistency & Operator Proofs",
             "Advait Ravindrakumar Varhade\n(23BCE5098)",
             "rrfn/transition_matrix.py\nrrfn/anchor_selector.py\nrrfn/risk_loss.py\nmodels/softmax_classifier.py",
-            "Proven Theorem 3.1 (Tikhonov operator norm bound ||T_lambda^dagger||_2 <= 1/(2*sqrt(lambda))), Theorem 3.2 (excess clean risk consistency O(delta + 1/sqrt(N))), Riesz-Thorin gradient bounds, and consensus anchor prior identification."
+            "Proven Theorem 3.1 (Tikhonov operator norm bound $\\|T_\\lambda^\\dagger\\|_2 \\le \\frac{1}{2\\sqrt{\\lambda}}$), Theorem 3.2 (excess clean risk consistency $\\mathcal{E}^*(\\hat{f}) \\le \\frac{L_{\\mathrm{CE}}}{\\sigma_0} \\delta + \\mathcal{O}(1/\\sqrt{N})$), Riesz-Thorin gradient bounds, and consensus anchor prior identification."
         ],
         [
             "Pillar 2: Multi-View Interaction Reliability Filter (MIRF) & 2D BLAS Burst Acceleration",
             "P. Manas\n(23BCE5076)",
             "fusion/reliability_fusion.py\nllm_auditor/auditor.py\nllm_auditor/cache.py\nbombing_detector/bomb_scorer.py",
-            "Tri-view reliability synthesis (R_RRFN, R_LLM, R_bomb), 2D BLAS Level-3 GEMM burst scoring (<5ms for 42K interactions; >500x speedup), SQLite WAL thread-safe caching, and attack vs. authentic AP evaluation."
+            "Tri-view reliability synthesis ($R_{\\mathrm{RRFN}}$, $R_{\\mathrm{LLM}}$, $R_{\\mathrm{bomb}}$), 2D BLAS Level-3 GEMM burst scoring (<5ms for 42K interactions; >500x speedup), SQLite WAL thread-safe caching, and attack vs. authentic AP evaluation."
         ],
         [
             "Pillar 3: Risk-Aware Graph Contrastive Learning, Denoised SUPER Blueprint & Calibrated Debiasing",

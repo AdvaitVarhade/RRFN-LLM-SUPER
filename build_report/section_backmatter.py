@@ -137,15 +137,15 @@ def build_appendices(doc, student_config=None):
         ["Learning Rate (eta)", "0.001", "0.001", "0.001"],
         ["Training Epochs (E)", "15 (CUDA)", "8 (CUDA)", "8 (CUDA)"],
         ["Pareto Partition Ratio (rho)", "0.20", "0.20", "0.20"],
-        ["Tikhonov Regularization (lambda)", "1e-4", "1e-4", "1e-4"],
-        ["Anchor Regularization (beta_reg)", "0.01", "0.01", "0.01"],
-        ["GCL Contrastive Weight (lambda_cl)", "0.10", "0.15", "0.15"],
-        ["InfoNCE Temperature (tau)", "0.20", "0.15", "0.15"],
-        ["MIRF Signal Weights (alpha, beta, gamma)", "(0.55, 0.00, 0.45)", "(0.40, 0.30, 0.30)", "(0.40, 0.30, 0.30)"],
-        ["Burst Detection Weights (omega_1, omega_2)", "(0.50, 0.50)", "(0.50, 0.50)", "(0.50, 0.50)"],
-        ["Trust Threshold (theta_trust)", "0.50", "0.50", "0.50"],
+        ["Tikhonov Regularization ($\\lambda$)", "1e-4", "1e-4", "1e-4"],
+        ["Anchor Regularization ($\\beta_{\\mathrm{reg}}$)", "0.01", "0.01", "0.01"],
+        ["GCL Contrastive Weight ($\\lambda_{\\mathrm{cl}}$)", "0.10", "0.15", "0.15"],
+        ["InfoNCE Temperature ($\\tau$)", "0.20", "0.15", "0.15"],
+        ["MIRF Signal Weights ($\\alpha, \\beta, \\gamma$)", "(0.55, 0.00, 0.45)", "(0.40, 0.30, 0.30)", "(0.40, 0.30, 0.30)"],
+        ["Burst Detection Weights ($\\omega_1, \\omega_2$)", "(0.50, 0.50)", "(0.50, 0.50)", "(0.50, 0.50)"],
+        ["Trust Threshold ($\\theta_{\\mathrm{trust}}$)", "0.50", "0.50", "0.50"],
         ["Hardware Environment", "NVIDIA CUDA GPU (8GB+)", "NVIDIA CUDA GPU (8GB+)", "NVIDIA CUDA GPU (8GB+)"],
-        ["Random Evaluation Seeds (S)", "42, 43, 44, 45, 46", "42, 43, 44, 45, 46", "42, 43, 44, 45, 46"]
+        ["Random Evaluation Seeds ($S$)", "42, 43, 44, 45, 46", "42, 43, 44, 45, 46", "42, 43, 44, 45, 46"]
     ]
     tb1_widths = [4.5, 3.4, 3.3, 3.3]
     add_table_custom(

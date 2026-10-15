@@ -4,6 +4,7 @@ Configured according to VIT Chennai BCE497J Report Template Guidelines.
 """
 
 import os
+import re
 import docx
 from docx.shared import Pt, Cm, Inches, RGBColor
 from docx.enum.text import WD_ALIGN_PARAGRAPH
@@ -148,6 +149,35 @@ def add_subsubsection_heading(doc, heading_text):
     run.font.size = Pt(12)
     run.bold = True
 
+def _append_text_with_math(p, text, font_size=Pt(12)):
+    if not text:
+        return
+    # Preserve escaped literal dollars
+    text_clean = text.replace(r'\$', '\uE000')
+    if '$' in text_clean:
+        parts = re.split(r'(\$[^\$]+\$)', text_clean)
+        for part in parts:
+            if part.startswith('$') and part.endswith('$') and len(part) > 2:
+                latex = part[1:-1].replace('\uE000', '$')
+                omml = latex_to_omml_element(latex)
+                if omml is not None:
+                    p._p.append(omml)
+                else:
+                    r = p.add_run(latex)
+                    r.font.name = 'Cambria Math'
+                    r.font.size = font_size
+                    r.italic = True
+            elif part:
+                clean_part = part.replace('\uE000', '$')
+                r = p.add_run(clean_part)
+                r.font.name = 'Times New Roman'
+                r.font.size = font_size
+    else:
+        clean_text = text_clean.replace('\uE000', '$')
+        r = p.add_run(clean_text)
+        r.font.name = 'Times New Roman'
+        r.font.size = font_size
+
 def add_paragraph(doc, text, bold_prefix=None, italic_prefix=None):
     p = doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
@@ -167,9 +197,7 @@ def add_paragraph(doc, text, bold_prefix=None, italic_prefix=None):
         r_pre.font.size = Pt(12)
         r_pre.italic = True
         
-    run = p.add_run(text)
-    run.font.name = 'Times New Roman'
-    run.font.size = Pt(12)
+    _append_text_with_math(p, text, Pt(12))
     return p
 
 def add_bullet(doc, text, bold_prefix=None):
@@ -185,9 +213,7 @@ def add_bullet(doc, text, bold_prefix=None):
         r_pre.font.size = Pt(12)
         r_pre.bold = True
         
-    run = p.add_run(text)
-    run.font.name = 'Times New Roman'
-    run.font.size = Pt(12)
+    _append_text_with_math(p, text, Pt(12))
     return p
 
 def add_numbered(doc, num_str, text, bold_prefix=None):
@@ -209,9 +235,7 @@ def add_numbered(doc, num_str, text, bold_prefix=None):
         r_pre.font.size = Pt(12)
         r_pre.bold = True
         
-    run = p.add_run(text)
-    run.font.name = 'Times New Roman'
-    run.font.size = Pt(12)
+    _append_text_with_math(p, text, Pt(12))
     return p
 
 _OMML_TRANSFORM = None
@@ -366,10 +390,7 @@ def add_figure(doc, img_path, caption_text, fig_num_str, width_cm=14.2):
     r_lbl.font.size = Pt(10.5)
     r_lbl.bold = True
     
-    r_cap = p_cap.add_run(caption_text)
-    r_cap.font.name = 'Times New Roman'
-    r_cap.font.size = Pt(10.5)
-    r_cap.italic = True
+    _append_text_with_math(p_cap, caption_text, Pt(10.5))
 
 def add_table_custom(doc, headers, data, caption_text, table_num_str, col_widths=None):
     # Caption above table
@@ -385,10 +406,7 @@ def add_table_custom(doc, headers, data, caption_text, table_num_str, col_widths
     r_lbl.font.size = Pt(10.5)
     r_lbl.bold = True
     
-    r_cap = p_cap.add_run(caption_text)
-    r_cap.font.name = 'Times New Roman'
-    r_cap.font.size = Pt(10.5)
-    r_cap.bold = True
+    _append_text_with_math(p_cap, caption_text, Pt(10.5))
     
     num_rows = len(data) + 1
     num_cols = len(headers)
@@ -442,11 +460,10 @@ def add_table_custom(doc, headers, data, caption_text, table_num_str, col_widths
             p.paragraph_format.line_spacing = 1.05
             p.paragraph_format.space_before = Pt(2.5)
             p.paragraph_format.space_after = Pt(2.5)
-            run = p.add_run(str(val))
-            run.font.name = 'Times New Roman'
-            run.font.size = Pt(9.5)
+            _append_text_with_math(p, str(val), Pt(9.5))
             if "Ours" in str(val) or "RRFN" in str(val) or (c_idx == 0 and "RRFN" in str(row_values[0])):
-                run.bold = True
+                for r in p.runs:
+                    r.bold = True
                 
     if col_widths and len(col_widths) == num_cols:
         for r in tbl.rows:
@@ -494,9 +511,7 @@ def add_callout_box(doc, text, title="IMPORTANT NOTICE"):
         r_t.font.size = Pt(11)
         r_t.bold = True
         
-    run = p.add_run(text)
-    run.font.name = 'Times New Roman'
-    run.font.size = Pt(10.5)
+    _append_text_with_math(p, text, Pt(10.5))
     
     p_sp = doc.add_paragraph()
     p_sp.paragraph_format.space_before = Pt(2)

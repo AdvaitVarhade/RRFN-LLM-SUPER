@@ -15,7 +15,7 @@ from docx.oxml.ns import nsdecls
 
 from report_builder import (
     set_section_margins, set_section_page_numbering, add_footer_page_number,
-    add_paragraph, add_callout_box
+    add_paragraph, add_callout_box, _append_text_with_math
 )
 from student_configs import STUDENT_PROFILES
 
@@ -426,9 +426,7 @@ def add_abstract_page(doc, student_config=None):
         p.paragraph_format.line_spacing = 1.15
         p.paragraph_format.space_before = Pt(0)
         p.paragraph_format.space_after = Pt(4)
-        r = p.add_run(text)
-        r.font.name = 'Times New Roman'
-        r.font.size = Pt(11)
+        _append_text_with_math(p, text, Pt(11))
         return p
 
     _add_abs_p(
@@ -443,10 +441,10 @@ def add_abstract_page(doc, student_config=None):
     _add_abs_p(
         "To resolve this fatal concurrence, this project introduces RRFN-LLM-SUPER, an end-to-end framework integrating stochastic noise-transition modeling, multi-modal "
         "interaction reliability filtering, risk-aware graph contrastive learning, and popularity-calibrated blueprint debiasing. We theoretically prove a spectral operator norm "
-        "upper bound for Tikhonov-regularized noise inversion (||T_lambda^dagger||_2 <= 1 / (2*sqrt(lambda))), establishing Lipschitz gradient stability and forward surrogate excess risk consistency. "
+        "upper bound for Tikhonov-regularized noise inversion ($\\|T_\\lambda^\\dagger\\|_2 \\le \\frac{1}{2\\sqrt{\\lambda}}$), establishing Lipschitz gradient stability and forward surrogate excess risk consistency. "
         "To audit edge authenticity, we architect the Multi-view Interaction Reliability Filter (MIRF), synthesizing model prediction consistency, asynchronous Large Language Model (LLM) "
         "review text verification supported by a thread-safe SQLite WAL caching layer, and hardware-accelerated 2D BLAS review-bombing burst detection executing in sub-5 ms (>500x speedup). "
-        "The resulting sample reliability weights (w_ui in [0, 1]) modulate InfoNCE contrastive alignment across SimGCL and SGL backbones, and purify historical user blueprints for calibrated long-tail exposure."
+        "The resulting sample reliability weights ($w_{ui} \\in [0, 1]$) modulate InfoNCE contrastive alignment across SimGCL and SGL backbones, and purify historical user blueprints for calibrated long-tail exposure."
     )
 
     _add_abs_p(
@@ -602,10 +600,10 @@ def add_table_of_contents_page(doc, student_config=None):
         ("   3.2  Mathematical Formulations and Noise Transition Model", "33"),
         ("   3.3  Stage 1: Anchor Selection & Tikhonov Noise Inversion", "35"),
         ("   3.4  Stage 2: Multi-View Interaction Reliability Filter (MIRF)", "37"),
-        ("       3.4.1 Statistical Prediction Consistency (R_RRFN)", "37"),
-        ("       3.4.2 LLM Review Auditing with SQLite WAL Cache (R_LLM)", "38"),
+        ("       3.4.1 Statistical Prediction Consistency ($R_{\\mathrm{RRFN}}$)", "37"),
+        ("       3.4.2 LLM Review Auditing with SQLite WAL Cache ($R_{\\mathrm{LLM}}$)", "38"),
         ("       3.4.3 2D BLAS Vectorized Review-Bombing Burst Detection", "39"),
-        ("       3.4.4 Continuous Signal Synthesis and Trust Weights (w_ui)", "41"),
+        ("       3.4.4 Continuous Signal Synthesis and Trust Weights ($w_{ui}$)", "41"),
         ("   3.5  Stage 3: Risk-Aware Graph Contrastive Learning", "42"),
         ("       3.5.1 SimGCL Latent Perturbations & SGL Structural Dropout", "42"),
         ("       3.5.2 Sample-Weighted InfoNCE Contrastive Objective", "43"),

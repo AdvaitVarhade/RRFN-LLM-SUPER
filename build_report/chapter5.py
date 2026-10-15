@@ -53,16 +53,16 @@ def build_chapter_5(doc, student_config=None):
     add_paragraph(
         doc,
         "We simulate coordinated adversarial shilling campaigns adhering to standard security benchmark protocols (Si et al., 2022; Wu et al., 2021). "
-        "For bot injection ratio rho = 0.15, N_shill = ceil(rho * |U|) synthetic bot user profiles are generated. Each bot profile executes a Bandwagon Attack:"
+        "For bot injection ratio $\\rho = 0.15$, $N_{\\mathrm{shill}} = \\lceil \\rho \\cdot |\\mathcal{U}| \\rceil$ synthetic bot user profiles are generated. Each bot profile executes a Bandwagon Attack:"
     )
-    add_bullet(doc, "Target Items (I_target subset of I_tail): The attacker designates a fixed set of obscure tail items (e.g., |I_target| = 5) and injects maximal 5-star ratings to artificially elevate their popularity.", bold_prefix="1. Pushed Targets: ")
-    add_bullet(doc, "Anchor Items (I_push subset of I_head): The bot injects high 4-star and 5-star ratings on the most popular items in the catalog, establishing strong co-visitation ties with mainstream users.", bold_prefix="2. Camouflage Anchors: ")
-    add_bullet(doc, "Filler Items (I_filler subset of I): To evade variance-based anomaly detectors, bots sample filler ratings from Gaussian distribution N(mu_r, sigma_r^2) matching the global rating distribution.", bold_prefix="3. Filler Ratings: ")
+    add_bullet(doc, "Target Items ($\\mathcal{I}_{\\mathrm{target}} \\subset \\mathcal{I}_{\\mathrm{tail}}$): The attacker designates a fixed set of obscure tail items (e.g., $|\\mathcal{I}_{\\mathrm{target}}| = 5$) and injects maximal 5-star ratings to artificially elevate their popularity.", bold_prefix="1. Pushed Targets: ")
+    add_bullet(doc, "Anchor Items ($\\mathcal{I}_{\\mathrm{push}} \\subset \\mathcal{I}_{\\mathrm{head}}$): The bot injects high 4-star and 5-star ratings on the most popular items in the catalog, establishing strong co-visitation ties with mainstream users.", bold_prefix="2. Camouflage Anchors: ")
+    add_bullet(doc, "Filler Items ($\\mathcal{I}_{\\mathrm{filler}} \\subset \\mathcal{I}$): To evade variance-based anomaly detectors, bots sample filler ratings from Gaussian distribution $\\mathcal{N}(\\mu_r, \\sigma_r^2)$ matching the global rating distribution.", bold_prefix="3. Filler Ratings: ")
     add_paragraph(
         doc,
         "Strict Zero-Leakage Split Protocol: In all experiments, data partitioning is executed chronologically strictly prior to attack injection. "
-        "The test set I_u^test and validation set I_u^val remain completely clean and unpolluted. Adversarial edges are injected exclusively into the "
-        "training graph G_train, guaranteeing that evaluation metrics measure genuine generalization rather than synthetic label memorization."
+        "The test set $\\mathcal{I}_u^{\\mathrm{test}}$ and validation set $\\mathcal{I}_u^{\\mathrm{val}}$ remain completely clean and unpolluted. Adversarial edges are injected exclusively into the "
+        "training graph $\\mathcal{G}_{\\mathrm{train}}$, guaranteeing that evaluation metrics measure genuine generalization rather than synthetic label memorization."
     )
 
     # 5.3 Multi-Seed Validation
@@ -171,17 +171,17 @@ def build_chapter_5(doc, student_config=None):
     )
     add_paragraph(
         doc,
-        "1. Attack Detection Task: The positive class corresponds to injected attack ratings (y_attack = 1), scored by anomaly confidence s_ui = 1 - w_ui. "
-        "On Amazon (attack prevalence pi_edge = 17.40%), MIRF achieves AP_attack = 0.6884 +/- 0.0185 (a 3.9x gain over random baseline 0.1748). "
-        "On Yelp (pi_edge = 14.86%), MIRF achieves AP_attack = 0.6816 +/- 0.0239 (a 4.3x gain over random baseline 0.1572). "
-        "On MovieLens-1M (899 attack edges in 238,320 total interactions, pi_edge = 0.38%), AP_attack = 0.0122 +/- 0.0021 (3.2x above random baseline 0.0038).",
+        "1. Attack Detection Task: The positive class corresponds to injected attack ratings ($y_{\\mathrm{attack}} = 1$), scored by anomaly confidence $s_{ui} = 1 - w_{ui}$. "
+        "On Amazon (attack prevalence $\\pi_{\\mathrm{edge}} = 17.40\\%$), MIRF achieves $\\mathrm{AP}_{\\mathrm{attack}} = 0.6884 \\pm 0.0185$ (a 3.9x gain over random baseline 0.1748). "
+        "On Yelp ($\\pi_{\\mathrm{edge}} = 14.86\\%$), MIRF achieves $\\mathrm{AP}_{\\mathrm{attack}} = 0.6816 \\pm 0.0239$ (a 4.3x gain over random baseline 0.1572). "
+        "On MovieLens-1M (899 attack edges in 238,320 total interactions, $\\pi_{\\mathrm{edge}} = 0.38\\%$), $\\mathrm{AP}_{\\mathrm{attack}} = 0.0122 \\pm 0.0021$ (3.2x above random baseline 0.0038).",
         bold_prefix="Attack Detection AP: "
     )
     add_paragraph(
         doc,
-        "2. Authentic Retention Task: The positive class corresponds to authentic user interactions (y_auth = 1), scored by trust weight w_ui. "
-        "On MovieLens-1M, MIRF achieves AP_auth = 0.9989 +/- 0.0000 (Authentic F1 = 0.9513, Precision = 0.9225, Recall = 0.9820). "
-        "On Amazon, AP_auth = 0.9295 +/- 0.0065. On Yelp, AP_auth = 0.9491 +/- 0.0019.",
+        "2. Authentic Retention Task: The positive class corresponds to authentic user interactions ($y_{\\mathrm{auth}} = 1$), scored by trust weight $w_{ui}$. "
+        "On MovieLens-1M, MIRF achieves $\\mathrm{AP}_{\\mathrm{auth}} = 0.9989 \\pm 0.0000$ (Authentic F1 = 0.9513, Precision = 0.9225, Recall = 0.9820). "
+        "On Amazon, $\\mathrm{AP}_{\\mathrm{auth}} = 0.9295 \\pm 0.0065$. On Yelp, $\\mathrm{AP}_{\\mathrm{auth}} = 0.9491 \\pm 0.0019$.",
         bold_prefix="Authentic Retention AP: "
     )
 
@@ -240,15 +240,15 @@ def build_chapter_5(doc, student_config=None):
     add_section_heading(doc, "5.8 Dual Partition Model Convergence and Training Loss Curves")
     add_paragraph(
         doc,
-        "Figure 5.3 illustrates the empirical training convergence of the dual partition models (Head Model M_pop and Tail Model M_tail) over 15 CUDA training epochs "
-        "on the MovieLens-1M sub-graph. The forward surrogate loss L_risk converges smoothly without numerical instability or oscillatory behavior, "
+        "Figure 5.3 illustrates the empirical training convergence of the dual partition models (Head Model $\mathcal{M}_{\\mathrm{pop}}$ and Tail Model $\mathcal{M}_{\\mathrm{tail}}$) over 15 CUDA training epochs "
+        "on the MovieLens-1M sub-graph. The forward surrogate loss $\\mathcal{L}_{\\mathrm{risk}}$ converges smoothly without numerical instability or oscillatory behavior, "
         "empirically validating the Lipschitz gradient bound established in Theorem 3.1."
     )
 
     add_figure(
         doc,
         r"paper/figures/fig6_loss_curves.png",
-        caption_text="Dual Partition Training Loss Convergence Curves across 15 CUDA Epochs on MovieLens-1M, illustrating stable, monotonic minimization of forward-corrected surrogate loss L_risk and InfoNCE contrastive loss L_cl for Head and Tail models.",
+        caption_text="Dual Partition Training Loss Convergence Curves across 15 CUDA Epochs on MovieLens-1M, illustrating stable, monotonic minimization of forward-corrected surrogate loss $\\mathcal{L}_{\\mathrm{risk}}$ and InfoNCE contrastive loss $\\mathcal{L}_{\\mathrm{cl}}$ for Head and Tail models.",
         fig_num_str="5.3",
         width_cm=14.0
     )
@@ -259,13 +259,13 @@ def build_chapter_5(doc, student_config=None):
         doc,
         "To assess the downstream business impact of shilling defense and popularity debiasing, we conducted an offline 1,000-sample Monte Carlo bootstrap "
         "simulation (evaluation/ab_simulator.py). Simulated transactions were modeled over an e-commerce platform with 10,000 active users, assuming empirical "
-        "CTR baseline of 3.5%, conversion rate CVR of 2.0%, and average order value AOV of $35.00."
+        "CTR baseline of 3.5%, conversion rate CVR of 2.0%, and average order value AOV of USD 35.00."
     )
     add_paragraph(
         doc,
         "Under the attacked Vanilla SUPER baseline, 88% of recommended tail items are malicious spam targets with negligible authentic purchase conversion, "
         "causing severe revenue drag and catalog churn. In contrast, RRFN-LLM-SUPER purges spam exposure and restores authentic long-tail discovery, "
-        "yielding a simulated annual GMV lift of $534,491 (+14.2% relative gain) with 95% bootstrap confidence interval [$482,100, $589,300] (p < 0.001)."
+        "yielding a simulated annual GMV lift of USD 534,491 (+14.2% relative gain) with 95% bootstrap confidence interval [USD 482,100, USD 589,300] ($p < 0.001$)."
     )
 
     # 5.10 Discussion & Limitations

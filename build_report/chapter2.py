@@ -5,7 +5,7 @@ Comprehensive, publication-grade text for BCSE497J Project Report.
 
 from report_builder import (
     add_chapter_heading, add_section_heading, add_subsection_heading,
-    add_paragraph, add_bullet, add_numbered, add_table_custom
+    add_paragraph, add_bullet, add_numbered, add_equation, add_table_custom
 )
 
 def build_chapter_2(doc):
@@ -24,8 +24,12 @@ def build_chapter_2(doc):
         doc,
         "During the Netflix Prize competition (2006–2009), latent factor models based on Matrix Factorization (MF) demonstrated decisive superiority "
         "over neighborhood methods (Koren et al., 2009). Matrix factorization projects users and items into a shared low-dimensional latent embedding space "
-        "R^d, approximating the observed rating r_ui through the inner product of user latent vector p_u and item latent vector q_i: "
-        "r_hat_ui = mu + b_u + b_i + p_u^T q_i, where mu represents global bias, and b_u, b_i represent user and item biases respectively. "
+        "$\\mathbb{R}^d$, approximating the observed rating $r_{ui}$ through the inner product of user latent vector $\\mathbf{p}_u$ and item latent vector $\\mathbf{q}_i$:"
+    )
+    add_equation(doc, "\\hat{r}_{ui} = \\mu + b_u + b_i + \\mathbf{p}_u^T \\mathbf{q}_i", "(2.1)")
+    add_paragraph(
+        doc,
+        "where $\\mu$ represents the global bias, and $b_u, b_i$ denote the user-specific and item-specific bias parameters respectively. "
         "For implicit feedback datasets, Rendle et al. (2009) formulated Bayesian Personalized Ranking (BPR), a pairwise ranking optimization criterion "
         "that maximizes the posterior margin between observed positive items and unobserved negative items."
     )
@@ -34,11 +38,14 @@ def build_chapter_2(doc):
         "With the deep learning revolution, Neural Collaborative Filtering (NCF / NeuMF) proposed by He et al. (2017) integrated linear Generalized "
         "Matrix Factorization (GMF) with non-linear Multi-Layer Perceptrons (MLP) to capture complex, non-linear user-item interaction dynamics. "
         "More recently, Graph Neural Networks (GNNs) transformed collaborative filtering by explicitly representing the user-item interaction matrix as "
-        "a bipartite graph G = (U, I, E). Neural Graph Collaborative Filtering (NGCF; Wang et al., 2019) introduced high-order feature propagation across graph "
+        "a bipartite graph $\\mathcal{G} = (\\mathcal{U}, \\mathcal{I}, \\mathcal{E})$. Neural Graph Collaborative Filtering (NGCF; Wang et al., 2019) introduced high-order feature propagation across graph "
         "neighborhoods. LightGCN (He et al., 2020) subsequently demonstrated that non-linear feature transformations and self-connections in standard GCNs "
-        "are redundant for collaborative filtering, proposing a streamlined architecture based solely on normalized neighborhood smoothing: "
-        "e_u^(l+1) = sum_{i in N_u} (1 / sqrt(|N_u| * |N_i|)) * e_i^(l). While LightGCN achieves exceptional recommendation accuracy, its high-order "
-        "message passing inherently acts as a noise amplifier: any malicious or poisoned edge injected into the graph is recursively diffused across "
+        "are redundant for collaborative filtering, proposing a streamlined architecture based solely on normalized neighborhood smoothing:"
+    )
+    add_equation(doc, "\\mathbf{e}_u^{(l+1)} = \\sum_{i \\in \\mathcal{N}_u} \\frac{1}{\\sqrt{|\\mathcal{N}_u| \\cdot |\\mathcal{N}_i|}} \\mathbf{e}_i^{(l)}", "(2.2)")
+    add_paragraph(
+        doc,
+        "While LightGCN achieves exceptional recommendation accuracy, its high-order message passing inherently acts as a noise amplifier: any malicious or poisoned edge injected into the graph is recursively diffused across "
         "multiple hops, contaminating embeddings throughout the entire bipartite structure."
     )
 
@@ -70,18 +77,27 @@ def build_chapter_2(doc):
     add_paragraph(
         doc,
         "In statistical machine learning, learning with noisy labels has been extensively studied within supervised computer vision (Patrini et al., 2017; "
-        "Natarajan et al., 2013). The central premise models observed labels Y_tilde as probabilistic corruptions of true clean labels Y* governed by "
-        "a class-conditional transition matrix T in R^(K x K), where T_ij = P(Y_tilde = j | Y* = i). Loss correction techniques generally follow two paradigms: "
-        "Backward Correction, which multiplies the empirical loss vector by the inverse transition matrix T^(-1) (l_backward = T^(-1) * l(p, Y_tilde)), "
-        "and Forward Correction, which projects model prediction probabilities through the transition matrix (l_forward = l_CE(T^T * p, Y_tilde))."
+        "Natarajan et al., 2013). The central premise models observed labels $\\tilde{Y}$ as probabilistic corruptions of true clean labels $Y^*$ governed by "
+        "a class-conditional transition matrix $T \\in \\mathbb{R}^{K \\times K}$:"
     )
+    add_equation(doc, "T_{ij} = P(\\tilde{Y} = j \\mid Y^* = i), \\quad \\text{subject to } \\sum_{j=1}^K T_{ij} = 1, \\quad \\forall i \\in \\{1, \\dots, K\\}", "(2.3)")
+    add_paragraph(
+        doc,
+        "Loss correction techniques generally follow two paradigms: Backward Correction, which multiplies the empirical loss vector by the inverse transition matrix:"
+    )
+    add_equation(doc, "\\ell_{\\mathrm{backward}} = T^{-1} \\ell(\\mathbf{p}, \\tilde{Y})", "(2.4)")
+    add_paragraph(
+        doc,
+        "and Forward Correction, which projects model prediction probabilities through the transition matrix:"
+    )
+    add_equation(doc, "\\ell_{\\mathrm{forward}} = \\ell_{\\mathrm{CE}}(T^T \\mathbf{p}, \\tilde{Y})", "(2.5)")
     add_paragraph(
         doc,
         "In recommender systems, Gao et al. (2022) proposed T-CE for denoising implicit feedback, estimating transition probabilities based on user "
         "interaction frequencies. Wang et al. (2021) explored sample reweighting for explicit ratings. However, existing noise transition frameworks "
         "suffer from severe theoretical and practical deficiencies when applied to web graphs:"
     )
-    add_bullet(doc, "Spectral Instability: When the estimated transition matrix T is ill-conditioned or nearly singular (which occurs frequently in sparse recommendation data), naive matrix inversion T^(-1) in backward correction causes unbounded gradient explosion, destabilizing neural network optimization.", bold_prefix="Issue 1: ")
+    add_bullet(doc, "Spectral Instability: When the estimated transition matrix $T$ is ill-conditioned or nearly singular (which occurs frequently in sparse recommendation data), naive matrix inversion $T^{-1}$ in backward correction causes unbounded gradient explosion, destabilizing neural network optimization.", bold_prefix="Issue 1: ")
     add_bullet(doc, "Stationarity Assumption: Standard transition models assume label noise is independently and identically distributed (i.i.d.) and spatially uniform across all users. They collapse under coordinated, non-stationary review-bombing bursts where noise is concentrated within specific temporal intervals.", bold_prefix="Issue 2: ")
     add_bullet(doc, "Neglect of Popularity Bias: Loss-correction models operate purely on classification risk without considering catalog exposure distributions, failing to prevent popularity bias from exacerbating data starvation.", bold_prefix="Issue 3: ")
 
@@ -98,7 +114,7 @@ def build_chapter_2(doc):
         doc,
         "To mitigate popularity bias, several debiasing paradigms have been developed:"
     )
-    add_bullet(doc, "Inverse Propensity Scoring (IPS): Weights training instances by the inverse probability of item exposure, P(O_ui = 1)^(-1). While statistically unbiased, IPS suffers from extreme variance when exposure propensities for tail items are near zero (Schnabel et al., 2016).", bold_prefix="1. Propensity Weighting: ")
+    add_bullet(doc, "Inverse Propensity Scoring (IPS): Weights training instances by the inverse probability of item exposure, $P(O_{ui} = 1)^{-1}$. While statistically unbiased, IPS suffers from extreme variance when exposure propensities for tail items are near zero (Schnabel et al., 2016).", bold_prefix="1. Propensity Weighting: ")
     add_bullet(doc, "Causal Graph Interventions: Uses do-calculus and counterfactual reasoning to disentangle user interest from item popularity shortcuts (Zheng et al., 2021; Zhang et al., 2021).", bold_prefix="2. Causal Disentanglement: ")
     add_bullet(doc, "Calibrated Recommendation: Pioneered by Steck (2018), calibration aims to ensure that the distribution of item categories or popularity tiers in a user's top-K recommendation list faithfully reflects the proportion of those tiers in their historical interactions. Abdollahpouri et al. (2021) formalized popularity calibration using KL divergence and ranking penalties.", bold_prefix="3. Popularity Calibration: ")
 
@@ -109,15 +125,16 @@ def build_chapter_2(doc):
         "A prominent breakthrough in popularity calibration is Soft Blueprint Merging for Calibrated Long-Tail Recommendation (SUPER / SUP), proposed by "
         "Yang et al. (2022). Standalone SUPER directly tackles catalog imbalance through an elegant divide-and-conquer strategy:"
     )
-    add_numbered(doc, "Step 1:", "The catalog I is partitioned at a Pareto cut-off (e.g., rho = 0.20) into popular Head items I_head and long-tail Tail items I_tail.", bold_prefix="Catalog Partitioning: ")
-    add_numbered(doc, "Step 2:", "Two specialized sub-models are trained independently: a Head Model M_pop trained exclusively on head interactions, and a Tail Model M_tail trained on tail interactions.", bold_prefix="Dual Model Training: ")
-    add_numbered(doc, "Step 3:", "For each user u, a personalized tail preference inclination alpha_u in [0, 1] is computed from their historical interaction 'blueprint' B_u: alpha_u = |B_u intersect I_tail| / |B_u|.", bold_prefix="Blueprint Inclination: ")
-    add_numbered(doc, "Step 4:", "During inference, candidate recommendation lists from M_pop and M_tail are soft-merged by dynamically interleaving items to satisfy each user's personalized tail quota alpha_u * K.", bold_prefix="Calibrated Merging: ")
+    add_numbered(doc, "Step 1:", "The catalog $\\mathcal{I}$ is partitioned at a Pareto cut-off (e.g., $\\rho = 0.20$) into popular Head items $\\mathcal{I}_{\\mathrm{head}}$ and long-tail Tail items $\\mathcal{I}_{\\mathrm{tail}}$.", bold_prefix="Catalog Partitioning: ")
+    add_numbered(doc, "Step 2:", "Two specialized sub-models are trained independently: a Head Model $M_{\\mathrm{pop}}$ trained exclusively on head interactions, and a Tail Model $M_{\\mathrm{tail}}$ trained on tail interactions.", bold_prefix="Dual Model Training: ")
+    add_numbered(doc, "Step 3:", "For each user $u$, a personalized tail preference inclination $\\alpha_u \\in [0, 1]$ is computed from their historical interaction blueprint $\\mathcal{B}_u$:", bold_prefix="Blueprint Inclination: ")
+    add_equation(doc, "\\alpha_u = \\frac{|\\mathcal{B}_u \\cap \\mathcal{I}_{\\mathrm{tail}}|}{|\\mathcal{B}_u|}", "(2.6)")
+    add_numbered(doc, "Step 4:", "During inference, candidate recommendation lists from $M_{\\mathrm{pop}}$ and $M_{\\mathrm{tail}}$ are soft-merged by dynamically interleaving items to satisfy each user's personalized tail quota $\\alpha_u \\cdot K$.", bold_prefix="Calibrated Merging: ")
     add_paragraph(
         doc,
         "The Critical Vulnerability of Standalone SUP: Despite its mathematical elegance, standalone SUPER is completely defenceless against adversarial data injection. "
-        "SUPER treats the historical user blueprint B_u as an immaculate ground-truth oracle. When adversarial bot accounts inject fake ratings on bandwagon tail targets, "
-        "SUPER incorporates these fake interactions into the blueprints B_u. This corrupts alpha_u, inflates the perceived tail inclination, and forces the merger engine "
+        "SUPER treats the historical user blueprint $\\mathcal{B}_u$ as an immaculate ground-truth oracle. When adversarial bot accounts inject fake ratings on bandwagon tail targets, "
+        "SUPER incorporates these fake interactions into the blueprints $\\mathcal{B}_u$. This corrupts $\\alpha_u$, inflates the perceived tail inclination, and forces the merger engine "
         "to fill the user's top-K recommendations with the attacker's spam targets! Thus, standalone SUPER actively worsens the damage of shilling attacks."
     )
 
@@ -132,14 +149,18 @@ def build_chapter_2(doc):
     add_paragraph(
         doc,
         "Wu et al. (2021) introduced Self-supervised Graph Learning (SGL), generating contrastive views via structural graph augmentations: Node Dropout "
-        "(randomly removing vertices), Edge Dropout (randomly masking edges with probability p_drop), and Random Walk (sub-graph sampling). While effective, "
+        "(randomly removing vertices), Edge Dropout (randomly masking edges with probability $p_{\\mathrm{drop}}$), and Random Walk (sub-graph sampling). While effective, "
         "SGL incurs substantial computational overhead due to repeated adjacency matrix reconstruction."
     )
     add_paragraph(
         doc,
         "To overcome this overhead, Yu et al. (2022) proposed Simple Graph Contrastive Learning (SimGCL). SimGCL discards expensive structural augmentations "
         "entirely, showing that contrastive learning's primary benefit stems from representation uniformity across the hypersphere. SimGCL generates perturbed views "
-        "by adding uniform random noise directly into latent embedding spaces: z_i' = e_i + epsilon * sgn(e_i) odot Delta', where Delta' ~ U(0, 1). "
+        "by adding uniform random noise directly into latent embedding spaces:"
+    )
+    add_equation(doc, "\\mathbf{z}_i' = \\mathbf{e}_i + \\epsilon \\cdot \\mathrm{sgn}(\\mathbf{e}_i) \\odot \\mathbf{\\Delta}', \\quad \\mathbf{\\Delta}' \\sim \\mathcal{U}(0, 1)", "(2.7)")
+    add_paragraph(
+        doc,
         "However, existing GCL methods optimize an unweighted InfoNCE loss over all mini-batch interactions. When the graph contains adversarial edges, "
         "poisoned interactions are treated as authentic positive pairs, pulling corrupted representations closer together and distorting embedding geometry."
     )
@@ -156,8 +177,8 @@ def build_chapter_2(doc):
         "Our proposed RRFN-LLM-SUPER framework fundamentally distinguishes itself from and advances beyond Trust-GRS in three decisive aspects:"
     )
     add_numbered(doc, "1. Joint Denoising and Pareto Debiasing:", "Trust-GRS focuses exclusively on graph embedding robustness, completely ignoring catalog popularity bias. In contrast, RRFN-LLM-SUPER uniquely couples robust noise-filtered representation learning with purified Pareto partition calibration.", bold_prefix="Advancement 1: ")
-    add_numbered(doc, "2. Tri-View Multi-Modal Auditing (MIRF):", "While Trust-GRS relies solely on graph topological views, our MIRF ensemble synthesizes statistical rating transition matrices (R_RRFN), semantic natural language review audits via LLMs (R_LLM), and high-performance 2D BLAS temporal-polarity burst detection (R_bomb).", bold_prefix="Advancement 2: ")
-    add_numbered(doc, "3. Mathematical Stability and Risk Consistency Proofs:", "Trust-GRS lacks theoretical operator norm bounds. We provide rigorous mathematical proofs establishing non-singular Tikhonov operator bounds (||T_lambda^dagger||_2 <= 1 / (2*sqrt(lambda))) and asymptotic surrogate excess risk consistency.", bold_prefix="Advancement 3: ")
+    add_numbered(doc, "2. Tri-View Multi-Modal Auditing (MIRF):", "While Trust-GRS relies solely on graph topological views, our MIRF ensemble synthesizes statistical rating transition matrices ($R_{\\mathrm{RRFN}}$), semantic natural language review audits via LLMs ($R_{\\mathrm{LLM}}$), and high-performance 2D BLAS temporal-polarity burst detection ($R_{\\mathrm{bomb}}$).", bold_prefix="Advancement 2: ")
+    add_numbered(doc, "3. Mathematical Stability and Risk Consistency Proofs:", "Trust-GRS lacks theoretical operator norm bounds. We provide rigorous mathematical proofs establishing non-singular Tikhonov operator bounds ($\\|T_\\lambda^\\dagger\\|_2 \\le \\frac{1}{2\\sqrt{\\lambda}}$) and asymptotic surrogate excess risk consistency.", bold_prefix="Advancement 3: ")
 
     # 2.8 Large Language Models in Recommendation
     add_section_heading(doc, "2.8 Large Language Models (LLMs) in Recommendation Auditing")

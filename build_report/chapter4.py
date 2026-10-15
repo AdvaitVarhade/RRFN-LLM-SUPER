@@ -31,7 +31,7 @@ def build_chapter_4(doc, student_config=None):
     add_bullet(doc, "llm_auditor: Prompt engineering, LLM API interaction, structured JSON parsing, and SQLite WAL caching.", bold_prefix="4. LLM Semantic Auditing: ")
     add_bullet(doc, "bombing_detector: Temporal velocity acceleration, rating polarity skew, and 2D BLAS matrix burst detection.", bold_prefix="5. Burst Detector: ")
     add_bullet(doc, "fusion: Tri-view signal synthesis combining statistical, semantic, and burst views into sample reliability weights.", bold_prefix="6. Multi-View Fusion: ")
-    add_bullet(doc, "catalog: Pareto volume partitioning dividing items into Head (M_pop) and Tail (M_tail) subsets.", bold_prefix="7. Catalog Partitioning: ")
+    add_bullet(doc, "catalog: Pareto volume partitioning dividing items into Head ($\mathcal{M}_{\\mathrm{pop}}$) and Tail ($\mathcal{M}_{\\mathrm{tail}}$) subsets.", bold_prefix="7. Catalog Partitioning: ")
     add_bullet(doc, "super_engine: Purified historical blueprints, personalized tail inclinations, and trajectory interleaving.", bold_prefix="8. Calibrated SUPER Engine: ")
     add_bullet(doc, "trainer: Dual partition training orchestrators, sample-reliability weighted InfoNCE losses, and optimizers.", bold_prefix="9. Training Engine: ")
     add_bullet(doc, "evaluation: Information retrieval metrics, popularity calibration metrics, attack detection metrics, and Monte Carlo economic simulation.", bold_prefix="10. Evaluation Engine: ")
@@ -46,7 +46,7 @@ def build_chapter_4(doc, student_config=None):
 
     t41_headers = ["Module Path", "Primary Classes / Components", "Core Algorithmic Responsibility"]
     t41_data = [
-        ["data/loader.py", "MovieLensLoader, InteractionSplit", "MovieLens-1M sub-graph ingestion, k-core pruning, and zero-leakage temporal splitting."],
+        ["data/loader.py", "MovieLensLoader, InteractionSplit", "MovieLens-1M sub-graph ingestion, $k$-core pruning, and zero-leakage temporal splitting."],
         ["data/amazon_loader.py", "AmazonReviewLoader", "5-core Amazon Electronics loader extracting ratings, timestamps, and natural language reviews."],
         ["data/yelp_loader.py", "YelpLoader", "5-core Yelp Academic dataset ingestion with multi-modal metadata and review text."],
         ["data/attack_simulator.py", "AttackSimulator, AttackType", "Parameterized injection of Bandwagon Shilling attacks, Random noise, and Review-Bombing."],
@@ -56,20 +56,20 @@ def build_chapter_4(doc, student_config=None):
         ["models/lightgcn.py", "LightGCN, GraphConv", "Linearized graph convolutional message-passing backbone without non-linearities."],
         ["models/vaecf.py", "VaeCF, MultVAE", "Variational Autoencoder for collaborative filtering with float32 logvar clamping."],
         ["rrfn/anchor_selector.py", "AnchorSelector", "Identifies consensus rating anchors across users satisfying separability Assumption 3.1."],
-        ["rrfn/transition_matrix.py", "TransitionMatrixEstimator", "Estimates KxK stochastic rating transition matrix T and computes Tikhonov pseudo-inverse."],
+        ["rrfn/transition_matrix.py", "TransitionMatrixEstimator", "Estimates $K \\times K$ stochastic rating transition matrix $T$ and computes Tikhonov pseudo-inverse."],
         ["rrfn/risk_loss.py", "RiskConsistentLoss", "Computes forward-corrected surrogate cross-entropy loss regularized against anchor prior."],
         ["llm_auditor/auditor.py", "LLMReviewAuditor", "Asynchronous LLM prompt evaluation scoring review-rating alignment and bot phrasing."],
-        ["llm_auditor/cache.py", "SQLiteLLMCache", "ACID-compliant SQLite database with Write-Ahead Logging (WAL) for O(1) audit retrieval."],
-        ["bombing_detector/bomb_scorer.py", "ReviewBombingDetector", "Hardware-accelerated 2D BLAS matrix burst detection combining Z_temp and S_pol (<5ms)."],
-        ["fusion/reliability_fusion.py", "MultiViewReliabilityFilter", "MIRF tri-view ensemble layer synthesizing R_RRFN, R_LLM, and R_bomb into weights w_ui."],
-        ["catalog/pareto_partition.py", "ParetoCatalogPartitioner", "Partitions catalog at rho=0.20 into Head (I_head) and Tail (I_tail) item subsets."],
-        ["super_engine/blueprint.py", "PurifiedBlueprintBuilder", "Purifies historical user blueprints by filtering edges below trust threshold theta_trust."],
-        ["super_engine/inclination.py", "TailInclinationCalculator", "Computes personalized tail inclination alpha_u using normalized reliability weights."],
-        ["super_engine/merger.py", "RankCalibratedMerger", "Assembles top-K recommendations via rank-calibrated trajectory interleaving."],
+        ["llm_auditor/cache.py", "SQLiteLLMCache", "ACID-compliant SQLite database with Write-Ahead Logging (WAL) for $\\mathcal{O}(1)$ audit retrieval."],
+        ["bombing_detector/bomb_scorer.py", "ReviewBombingDetector", "Hardware-accelerated 2D BLAS matrix burst detection combining $Z_{\\mathrm{temp}}$ and $S_{\\mathrm{pol}}$ (<5ms)."],
+        ["fusion/reliability_fusion.py", "MultiViewReliabilityFilter", "MIRF tri-view ensemble layer synthesizing $R_{\\mathrm{RRFN}}$, $R_{\\mathrm{LLM}}$, and $R_{\\mathrm{bomb}}$ into weights $w_{ui}$."],
+        ["catalog/pareto_partition.py", "ParetoCatalogPartitioner", "Partitions catalog at $\\rho=0.20$ into Head ($\\mathcal{I}_{\\mathrm{head}}$) and Tail ($\\mathcal{I}_{\\mathrm{tail}}$) item subsets."],
+        ["super_engine/blueprint.py", "PurifiedBlueprintBuilder", "Purifies historical user blueprints by filtering edges below trust threshold $\\theta_{\\mathrm{trust}}$."],
+        ["super_engine/inclination.py", "TailInclinationCalculator", "Computes personalized tail inclination $\\alpha_u$ using normalized reliability weights."],
+        ["super_engine/merger.py", "RankCalibratedMerger", "Assembles top-$K$ recommendations via rank-calibrated trajectory interleaving."],
         ["trainer/dual_trainer.py", "DualPartitionTrainer", "Concurrent training orchestrator for Head and Tail models under joint risk and contrastive losses."],
-        ["trainer/contrastive_loss.py", "SampleWeightedInfoNCE", "InfoNCE contrastive loss modulated by sample-level reliability weights w_i."],
-        ["evaluation/metrics.py", "RecommendationMetrics", "Evaluates Recall@K, nDCG@K, RMSE-PC, MRMC, LTC@K, and General KPI (GKPI)."],
-        ["evaluation/robustness_metrics.py", "RobustnessMetrics", "Evaluates Genuine Long-Tail Coverage (g-LTC), Spam Target Exposure (STER), ROC, and AP."],
+        ["trainer/contrastive_loss.py", "SampleWeightedInfoNCE", "InfoNCE contrastive loss modulated by sample-level reliability weights $w_{ui}$."],
+        ["evaluation/metrics.py", "RecommendationMetrics", "Evaluates $\\mathrm{Recall}@K$, $\\mathrm{nDCG}@K$, $\\mathrm{RMSE\text{-}PC}$, $\\mathrm{MRMC}$, $\\mathrm{LTC}@K$, and General KPI (GKPI)."],
+        ["evaluation/robustness_metrics.py", "RobustnessMetrics", "Evaluates Genuine Long-Tail Coverage ($g\\text{-}\\mathrm{LTC}$), Spam Target Exposure ($\\mathrm{STER}$), ROC, and AP."],
         ["evaluation/ab_simulator.py", "OfflineABSimulator", "1,000-sample Monte Carlo bootstrap economic simulator projecting CTR, CVR, and GMV."],
         ["dashboard.py", "StreamlitDashboard", "Interactive 4-panel web dashboard providing real-time telemetry, heatmaps, and user inspection."]
     ]
@@ -117,8 +117,8 @@ def build_chapter_4(doc, student_config=None):
         "The neural modeling layer abstracts model architectures behind a unified interface supporting forward prediction, embedding extraction, and contrastive view generation:"
     )
     add_bullet(doc, "NeuMF (neumf.py): Implements dual towers—Generalized Matrix Factorization (element-wise product of user-item embeddings) and Multi-Layer Perceptron (3-layer feed-forward network with ReLU). The tower outputs are concatenated and projected to clean rating logits z(u, i) in R^K.", bold_prefix="NeuMF Backbone: ")
-    add_bullet(doc, "SimGCL (simgcl.py): Builds upon LightGCN message passing. In each forward training pass, two perturbed contrastive views are generated by injecting scaled uniform noise into normalized embeddings: z' = Normalize(e + epsilon * sgn(e) * Delta). This eliminates graph reconstruction overhead while maximizing hyperspherical uniformity.", bold_prefix="SimGCL Backbone: ")
-    add_bullet(doc, "SGL (sgl.py): Implements structural edge dropout on the normalized adjacency matrix: A_hat' = (M' odot A) * D'^(-1) with dropout ratio p_drop = 0.10. Contrastive views are generated by passing node embeddings through distinct augmented adjacency graphs.", bold_prefix="SGL Backbone: ")
+    add_bullet(doc, "SimGCL (simgcl.py): Builds upon LightGCN message passing. In each forward training pass, two perturbed contrastive views are generated by injecting scaled uniform noise into normalized embeddings: $\\mathbf{z}' = \\mathrm{Normalize}(\\mathbf{e} + \\epsilon \\cdot \\mathrm{sgn}(\\mathbf{e}) \\odot \\mathbf{\\Delta})$. This eliminates graph reconstruction overhead while maximizing hyperspherical uniformity.", bold_prefix="SimGCL Backbone: ")
+    add_bullet(doc, "SGL (sgl.py): Implements structural edge dropout on the normalized adjacency matrix: $\\hat{A}' = (M' \\odot A) D'^{-1}$ with dropout ratio $p_{\\mathrm{drop}} = 0.10$. Contrastive views are generated by passing node embeddings through distinct augmented adjacency graphs.", bold_prefix="SGL Backbone: ")
 
     # 4.5 MIRF Filter & BLAS Acceleration
     add_section_heading(doc, "4.5 MIRF Filter Modules and High-Performance BLAS Acceleration")
@@ -129,8 +129,8 @@ def build_chapter_4(doc, student_config=None):
     add_paragraph(
         doc,
         "Review-Bombing Vectorization (bomb_scorer.py): Rolling interaction velocity and rating polarity skew are computed simultaneously via 2D BLAS array operations. "
-        "Given interaction array X of shape (N, 3) containing [user_id, item_id, timestamp], items are pre-binned into temporal windows. The score matrix is computed as: "
-        "Score_Matrix = W @ Feature_Tensor, executed entirely through hardware-optimized BLAS Level-3 GEMM routines. Benchmarking on 42,000 interactions demonstrates "
+        "Given interaction array $X$ of shape $(N, 3)$ containing [user_id, item_id, timestamp], items are pre-binned into temporal windows. The score matrix is computed as: "
+        "$\\mathrm{Score\\_Matrix} = W \\cdot \\mathrm{Feature\\_Tensor}$, executed entirely through hardware-optimized BLAS Level-3 GEMM routines. Benchmarking on 42,000 interactions demonstrates "
         "an execution latency of exactly 4.95 milliseconds, representing a >500x speedup over nested Python loops.",
         bold_prefix="Vectorized Burst Scoring: "
     )
@@ -138,7 +138,7 @@ def build_chapter_4(doc, student_config=None):
         doc,
         "Thread-Safe SQLite WAL Caching (cache.py): LLM review auditing queries are cryptographically hashed using SHA-256 over the tuple (user_id, item_id, rating, review_text). "
         "The cache database is initialized with PRAGMA journal_mode = WAL and PRAGMA synchronous = NORMAL. This enables concurrent multi-threaded worker reads while background "
-        "threads write audit results without database lock contention. Cache hits execute in O(1) time (< 0.1 ms), entirely insulating training runs from network latency.",
+        "threads write audit results without database lock contention. Cache hits execute in $\\mathcal{O}(1)$ time (< 0.1 ms), entirely insulating training runs from network latency.",
         bold_prefix="SQLite WAL Caching: "
     )
 
@@ -148,10 +148,10 @@ def build_chapter_4(doc, student_config=None):
         doc,
         "The SUPER engine implementation guarantees calibrated item exposure while actively purging malicious interactions:"
     )
-    add_numbered(doc, "1.", "Pareto Partitioning (pareto_partition.py): Sorts all catalog items by interaction frequency in descending order. The top items accounting for cumulative interaction fraction rho_pareto = 0.20 are assigned to Head catalog I_head; the remaining items form Tail catalog I_tail.", bold_prefix="Partitioning: ")
-    add_numbered(doc, "2.", "Blueprint Purification (blueprint.py): For user u, observed interaction edges are filtered against trust threshold theta_trust = 0.50. Edges with w_ui < theta_trust (malicious bot interactions) are expunged from blueprint B_u.", bold_prefix="Purification: ")
-    add_numbered(doc, "3.", "Calibrated Inclination (inclination.py): Calculates personalized tail preference alpha_u using reliability-weighted sums, smoothed by epsilon_smooth = 1e-6 to prevent zero division on sparse profiles.", bold_prefix="Inclination: ")
-    add_numbered(doc, "4.", "Trajectory Interleaving (merger.py): Greedily selects candidate items from Head and Tail queues to maintain cumulative tail proportion <= alpha_u at every rank k in {1, ..., K}.", bold_prefix="Interleaving: ")
+    add_numbered(doc, "1.", "Pareto Partitioning (pareto_partition.py): Sorts all catalog items by interaction frequency in descending order. The top items accounting for cumulative interaction fraction $\\rho_{\\mathrm{pareto}} = 0.20$ are assigned to Head catalog $\\mathcal{I}_{\\mathrm{head}}$; the remaining items form Tail catalog $\\mathcal{I}_{\\mathrm{tail}}$.", bold_prefix="Partitioning: ")
+    add_numbered(doc, "2.", "Blueprint Purification (blueprint.py): For user $u$, observed interaction edges are filtered against trust threshold $\\theta_{\\mathrm{trust}} = 0.50$. Edges with $w_{ui} < \\theta_{\\mathrm{trust}}$ (malicious bot interactions) are expunged from blueprint $\\mathcal{B}_u$.", bold_prefix="Purification: ")
+    add_numbered(doc, "3.", "Calibrated Inclination (inclination.py): Calculates personalized tail preference $\\alpha_u$ using reliability-weighted sums, smoothed by $\\epsilon_{\\mathrm{smooth}} = 10^{-6}$ to prevent zero division on sparse profiles.", bold_prefix="Inclination: ")
+    add_numbered(doc, "4.", "Trajectory Interleaving (merger.py): Greedily selects candidate items from Head and Tail queues to maintain cumulative tail proportion $\\le \\alpha_u$ at every rank $k \\in \\{1, \\dots, K\\}$.", bold_prefix="Interleaving: ")
 
     # 4.7 Pseudocode
     add_section_heading(doc, "4.7 Algorithmic Workflows and End-to-End Pseudocode")
@@ -238,9 +238,9 @@ def build_chapter_4(doc, student_config=None):
         doc,
         "To guarantee fail-safe stability in production and testing environments, the codebase includes four key software hardening protections:"
     )
-    add_numbered(doc, "1. Tikhonov Regularized Pseudo-Inversion:", "All matrix inversion operations in transition_matrix.py utilize T_lambda^dagger = (T^T T + lambda I)^(-1) T^T with damping factor lambda = 1e-4. This strictly prevents singular matrix crashes even when rating classes have zero empirical support.", bold_prefix="Numerical Inversion Guard: ")
+    add_numbered(doc, "1. Tikhonov Regularized Pseudo-Inversion:", "All matrix inversion operations in transition_matrix.py utilize $T_\\lambda^\\dagger = (T^T T + \\lambda I)^{-1} T^T$ with damping factor $\\lambda = 10^{-4}$. This strictly prevents singular matrix crashes even when rating classes have zero empirical support.", bold_prefix="Numerical Inversion Guard: ")
     add_numbered(doc, "2. Log-Variance Clamping in Variational Backbones:", "In vaecf.py, latent log-variance tensors are clamped to [-10.0, 10.0] prior to exponential exponentiation, preventing numerical underflow to 0.0 or overflow to infinity.", bold_prefix="Float32 Clamping: ")
-    add_numbered(doc, "3. Zero-Division and Empty-Candidate Guards:", "In merger.py and inclination.py, user blueprints with zero tail interactions are protected by epsilon_smooth = 1e-6. If a candidate queue becomes exhausted before top-K assembly completes, the interleaver dynamically falls back to the alternate partition queue.", bold_prefix="Empty Set Guards: ")
+    add_numbered(doc, "3. Zero-Division and Empty-Candidate Guards:", "In merger.py and inclination.py, user blueprints with zero tail interactions are protected by $\\epsilon_{\\mathrm{smooth}} = 10^{-6}$. If a candidate queue becomes exhausted before top-K assembly completes, the interleaver dynamically falls back to the alternate partition queue.", bold_prefix="Empty Set Guards: ")
     add_numbered(doc, "4. Secret Redaction and API Sanitization:", "In auditor.py and cache.py, OpenAI API keys and environment variables are sanitized; credentials are never written to logs, console telemetry, or serialized model checkpoints.", bold_prefix="Security Hardening: ")
 
     doc.add_page_break()
