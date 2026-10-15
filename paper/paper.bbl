@@ -35,11 +35,20 @@ L.~Mu, Z.~Liu, Z.~Zhu, and Z.~Lin, ``{Trust-GRS}: A trustworthy training framewo
 \bibitem{he2020lightgcn}
 X.~He, K.~Deng, X.~Wang, Y.~Li, Y.~Zhang, and M.~Wang, ``{LightGCN}: Simplifying and powering graph convolution network for recommendation,'' in \emph{Proceedings of the 43rd International ACM SIGIR Conference on Research and Development in Information Retrieval (SIGIR)}, 2020, pp. 639--648.
 
+\bibitem{wang2019ngcf}
+X.~Wang, X.~He, M.~Wang, F.~Feng, and T.-S. Chua, ``Neural graph collaborative filtering,'' in \emph{Proceedings of the 42nd International ACM SIGIR Conference on Research and Development in Information Retrieval (SIGIR)}, 2019, pp. 165--174.
+
 \bibitem{yang2022super}
 M.~Yang, Q.~Dai, Z.~Dong, X.~Chen, X.~He, and J.~Wang, ``Calibrated long-tail recommendation via soft blueprint merging,'' in \emph{Proceedings of the 16th ACM Conference on Recommender Systems (RecSys)}, 2022, pp. 245--255.
 
 \bibitem{steck2018calibrated}
 H.~Steck, ``Calibrated recommendations,'' in \emph{Proceedings of the 12th ACM Conference on Recommender Systems (RecSys)}, 2018, pp. 11--19.
+
+\bibitem{fan2023recommender}
+W.~Fan, Z.~Zhao, J.~Li, Y.~Liu, X.~Mei, Y.~Wang, J.~Tang, and Q.~Li, ``Recommender systems in the era of large language models (llms),'' \emph{IEEE Transactions on Knowledge and Data Engineering (TKDE)}, vol.~36, no.~10, pp. 5200--5218, 2024.
+
+\bibitem{liang2018variational}
+D.~Liang, R.~G. Krishnan, M.~D. Hoffman, and T.~Jebara, ``Variational autoencoders for collaborative filtering,'' in \emph{Proceedings of the 2018 World Wide Web Conference (WWW)}, 2018, pp. 687--696.
 
 \bibitem{patrini2017making}
 G.~Patrini, A.~Rozza, A.~K. Menon, R.~Nock, and L.~Qu, ``Making deep neural networks robust to label noise: A loss correction approach,'' \emph{IEEE Conference on Computer Vision and Pattern Recognition (CVPR)}, pp. 1944--1952, 2017.
@@ -56,7 +65,28 @@ J.~Wu, X.~Wang, F.~Feng, X.~He, L.~Chen, J.~Lian, and X.~Xie, ``Self-supervised 
 \bibitem{yu2022simgcl}
 J.~Yu, H.~Yin, X.~Xia, T.~Chen, L.~Cui, and Q.~V.~H. Nguyen, ``Are graph augmentations necessary? simple graph contrastive learning for recommendation,'' in \emph{Proceedings of the 45th International ACM SIGIR Conference on Research and Development in Information Retrieval (SIGIR)}, 2022, pp. 1294--1303.
 
+\bibitem{lin2022ncl}
+Z.~Lin, C.~Tian, Y.~Hou, and W.~X. Zhao, ``Improving graph collaborative filtering with neighborhood-enriched contrastive learning,'' in \emph{Proceedings of the Web Conference 2022 (WWW)}, 2022, pp. 2320--2329.
+
+\bibitem{chen2021autodebias}
+J.~Chen, H.~Dong, X.~Wang, F.~Feng, M.~Wang, and H.~Zhang, ``{AutoDebias}: Learning to debias for recommendation,'' in \emph{Proceedings of the 44th International ACM SIGIR Conference on Research and Development in Information Retrieval (SIGIR)}, 2021, pp. 21--30.
+
+\bibitem{bao2023tallrec}
+K.~Bao, J.~Zhang, Y.~Zhang, W.~Wang, F.~Feng, and X.~He, ``{TALLRec}: An effective and efficient tuning framework to align large language model with recommendation,'' in \emph{Proceedings of the 17th ACM Conference on Recommender Systems (RecSys)}, 2023, pp. 1007--1014.
+
+\bibitem{chen2020simple}
+T.~Chen, S.~Kornblith, M.~Norouzi, and G.~Hinton, ``A simple framework for contrastive learning of visual representations,'' in \emph{Proceedings of the 37th International Conference on Machine Learning (ICML)}, 2020, pp. 1597--1607.
+
+\bibitem{rendle2009bpr}
+S.~Rendle, C.~Freudenthaler, Z.~Gantner, and L.~Schmidt-Thieme, ``{BPR}: Bayesian personalized ranking from implicit feedback,'' in \emph{Proceedings of the 25th Conference on Uncertainty in Artificial Intelligence (UAI)}, 2009, pp. 452--461.
+
+\bibitem{he2017neural}
+X.~He, L.~Liao, H.~Zhang, L.~Nie, X.~Hu, and T.-S. Chua, ``Neural collaborative filtering,'' in \emph{Proceedings of the 26th International Conference on World Wide Web (WWW)}, 2017, pp. 173--182.
+
 \bibitem{ni2019justifying}
 J.~Ni, J.~Li, and J.~McAuley, ``Justifying recommendations using distantly-labeled reviews and fine-grained aspects,'' in \emph{Proceedings of the 2019 Conference on Empirical Methods in Natural Language Processing (EMNLP)}, 2019, pp. 188--197.
+
+\bibitem{harper2015movielens}
+F.~M. Harper and J.~A. Konstan, ``The {MovieLens} datasets: History and context,'' \emph{ACM Transactions on Interactive Intelligent Systems (TiiS)}, vol.~5, no.~4, pp. 19:1--19:19, 2015.
 
 \end{thebibliography}
