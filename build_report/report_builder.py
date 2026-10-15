@@ -214,9 +214,67 @@ def add_numbered(doc, num_str, text, bold_prefix=None):
     run.font.size = Pt(12)
     return p
 
+_OMML_TRANSFORM = None
+
+def _get_omml_transform():
+    global _OMML_TRANSFORM
+    if _OMML_TRANSFORM is not None:
+        return _OMML_TRANSFORM
+    
+    import lxml.etree as ET
+    
+    candidates = [
+        os.path.join(os.path.dirname(__file__), 'MML2OMML.XSL'),
+        r'C:\Program Files\Microsoft Office\root\Office16\MML2OMML.XSL',
+        r'C:\Program Files (x86)\Microsoft Office\root\Office16\MML2OMML.XSL',
+        r'C:\Program Files\Microsoft Office\Office16\MML2OMML.XSL',
+        r'C:\Program Files\Microsoft Office\Office15\MML2OMML.XSL',
+        r'C:\Program Files\Microsoft Office\Office14\MML2OMML.XSL',
+    ]
+    xslt_path = None
+    for p in candidates:
+        if os.path.exists(p):
+            xslt_path = p
+            break
+            
+    if xslt_path is None:
+        return None
+        
+    try:
+        xslt_doc = ET.parse(xslt_path)
+        _OMML_TRANSFORM = ET.XSLT(xslt_doc)
+        return _OMML_TRANSFORM
+    except Exception as e:
+        print(f"Warning: Failed to load MML2OMML XSLT: {e}")
+        return None
+
+def latex_to_omml_element(latex_code):
+    """
+    Converts LaTeX math string to Word OMML XML element (<m:oMath>).
+    Returns an oxml element if successful, or None on error.
+    """
+    try:
+        from latex2mathml.converter import convert
+        import lxml.etree as ET
+        
+        transform = _get_omml_transform()
+        if transform is None:
+            return None
+            
+        clean_latex = latex_code.strip()
+        mathml_str = convert(clean_latex)
+        tree = ET.fromstring(mathml_str.encode('utf-8'))
+        omml_dom = transform(tree)
+        xml_bytes = ET.tostring(omml_dom.getroot())
+        return parse_xml(xml_bytes.decode('utf-8'))
+    except Exception as ex:
+        print(f"Warning: OMML conversion failed for '{latex_code[:30]}...': {ex}")
+        return None
+
 def add_equation(doc, eq_text, eq_num_str):
     """
     Renders an equation in a 2-column callout table with subtle light background.
+    Compiles LaTeX formula into native Word OMML (<m:oMath>) equation element.
     """
     tbl = doc.add_table(rows=1, cols=2)
     tbl.alignment = WD_TABLE_ALIGNMENT.CENTER
@@ -241,6 +299,8 @@ def add_equation(doc, eq_text, eq_num_str):
     
     cell_eq.width = Cm(12.5)
     cell_num.width = Cm(2.0)
+    cell_eq.vertical_alignment = WD_ALIGN_VERTICAL.CENTER
+    cell_num.vertical_alignment = WD_ALIGN_VERTICAL.CENTER
     
     # Cell shading
     shd1 = parse_xml(f'<w:shd {nsdecls("w")} w:fill="F8F9FA"/>')
@@ -253,10 +313,16 @@ def add_equation(doc, eq_text, eq_num_str):
     p_eq.paragraph_format.line_spacing = 1.15
     p_eq.paragraph_format.space_before = Pt(4)
     p_eq.paragraph_format.space_after = Pt(4)
-    r_eq = p_eq.add_run(eq_text)
-    r_eq.font.name = 'Cambria Math'
-    r_eq.font.size = Pt(11)
-    r_eq.italic = True
+    
+    omml_elem = latex_to_omml_element(eq_text)
+    if omml_elem is not None:
+        p_eq._p.append(omml_elem)
+    else:
+        # Fallback to plain text run if converter is unavailable
+        r_eq = p_eq.add_run(eq_text)
+        r_eq.font.name = 'Cambria Math'
+        r_eq.font.size = Pt(11)
+        r_eq.italic = True
     
     p_num = cell_num.paragraphs[0]
     p_num.alignment = WD_ALIGN_PARAGRAPH.RIGHT
