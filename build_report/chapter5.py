@@ -108,10 +108,10 @@ def build_chapter_5(doc, student_config=None):
         doc,
         "Crucial Insights and Analysis from Table 5.2:"
     )
-    add_bullet(doc, "1. Recovery of Ranking Fidelity: When subjected to attack, Vanilla SUPER's Recall@10 degrades from 0.2320 to 0.2147. RRFN-LLM-SUPER successfully filters poisoned interactions, recovering Recall@10 to 0.2307 +/- 0.0153 and nDCG@10 to 0.1036 +/- 0.0113.", bold_prefix="Ranking Recovery: ")
-    add_bullet(doc, "2. Significant Calibration Improvement: RRFN-LLM-SUPER achieves statistically significant reductions in popularity calibration errors over the attacked baseline: RMSE-PC improves from 0.1111 to 0.1067 +/- 0.0056 (p = 0.0166) and MRMC improves from 0.1159 to 0.1128 +/- 0.0034 (p = 0.0088).", bold_prefix="Popularity Calibration: ")
-    add_bullet(doc, "3. Unmasking Deceptive Tail Inflation: Notice that attacked Vanilla SUPER reports a raw LTC@10 of 0.1575, which naively appears higher than clean SUPER (0.1428). However, this increase is an illusion: STER@10 jumps from 0.7200 to 0.8800, proving that the additional 'tail coverage' consists entirely of the attacker's spam targets! RRFN-LLM-SUPER purges the spam items, restoring STER@10 back to 0.7200.", bold_prefix="Deceptive Inflation: ")
-    add_bullet(doc, "4. High Denoising Discrimination: MIRF achieves a Denoising ROC-AUC of 0.7931 +/- 0.0038, decisively outperforming uncalibrated random filtering (0.5000).", bold_prefix="Denoising ROC: ")
+    add_bullet(doc, "When subjected to attack, Vanilla SUPER's $\\mathrm{Recall}@10$ degrades from 0.2320 to 0.2147. RRFN-LLM-SUPER successfully filters poisoned interactions, recovering $\\mathrm{Recall}@10$ to $0.2307 \\pm 0.0153$ and $\\mathrm{nDCG}@10$ to $0.1036 \\pm 0.0113$.", bold_prefix="Ranking Recovery: ")
+    add_bullet(doc, "RRFN-LLM-SUPER achieves statistically significant reductions in popularity calibration errors over the attacked baseline: $\\mathrm{RMSE\text{-}PC}$ improves from 0.1111 to $0.1067 \\pm 0.0056$ ($p = 0.0166$) and $\\mathrm{MRMC}$ improves from 0.1159 to $0.1128 \\pm 0.0034$ ($p = 0.0088$).", bold_prefix="Popularity Calibration: ")
+    add_bullet(doc, "Notice that attacked Vanilla SUPER reports a raw $\\mathrm{LTC}@10$ of 0.1575, which naively appears higher than clean SUPER (0.1428). However, this increase is an illusion: $\\mathrm{STER}@10$ jumps from 0.7200 to 0.8800, proving that the additional 'tail coverage' consists entirely of the attacker's spam targets! RRFN-LLM-SUPER purges the spam items, restoring $\\mathrm{STER}@10$ back to 0.7200.", bold_prefix="Deceptive Tail Inflation: ")
+    add_bullet(doc, "MIRF achieves a Denoising ROC-AUC of $0.7931 \\pm 0.0038$, decisively outperforming uncalibrated random filtering (0.5000).", bold_prefix="Denoising ROC: ")
 
     # 5.5 Multi-Domain Benchmarking
     add_section_heading(doc, "5.5 Multi-Domain Benchmarking on Amazon Reviews and Yelp Academic")

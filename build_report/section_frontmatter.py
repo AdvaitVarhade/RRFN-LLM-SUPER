@@ -124,7 +124,7 @@ def add_cover_page(doc, student_config=None):
     p_dt.alignment = WD_ALIGN_PARAGRAPH.CENTER
     p_dt.paragraph_format.space_before = Pt(2)
     p_dt.paragraph_format.space_after = Pt(6)
-    r_dt = p_dt.add_run("November, 2025")
+    r_dt = p_dt.add_run("October, 2026")
     r_dt.font.name = 'Times New Roman'
     r_dt.font.size = Pt(12)
 
@@ -234,7 +234,7 @@ def add_title_page(doc, student_config=None):
     p_dt.alignment = WD_ALIGN_PARAGRAPH.CENTER
     p_dt.paragraph_format.space_before = Pt(2)
     p_dt.paragraph_format.space_after = Pt(6)
-    r_dt = p_dt.add_run("November, 2025")
+    r_dt = p_dt.add_run("October, 2026")
     r_dt.font.name = 'Times New Roman'
     r_dt.font.size = Pt(12)
 
@@ -277,7 +277,7 @@ def add_declaration_page(doc, student_config=None):
     p_sign.paragraph_format.space_after = Pt(6)
     p_sign.paragraph_format.line_spacing = 1.3
     
-    r_pl = p_sign.add_run("Place: Chennai\nDate: November 2025")
+    r_pl = p_sign.add_run("Place: Chennai\nDate: October 2026")
     r_pl.font.name = 'Times New Roman'
     r_pl.font.size = Pt(12)
     r_pl.bold = True
@@ -356,7 +356,7 @@ def add_certificate_page(doc, student_config=None):
     p00.paragraph_format.space_before = Pt(16)
     p00.paragraph_format.space_after = Pt(2)
     p00.paragraph_format.line_spacing = 1.2
-    r00 = p00.add_run("Signature of the Project Guide:\nName: Dr. Suganeshwari G\nDesignation: Associate Professor\nDate: November 2025")
+    r00 = p00.add_run("Signature of the Project Guide:\nName: Dr. Suganeshwari G\nDesignation: Associate Professor\nDate: October 2026")
     r00.font.name = 'Times New Roman'
     r00.font.size = Pt(11)
     r00.bold = True
@@ -540,7 +540,7 @@ def add_acknowledgement_page(doc, student_config=None):
     p_sign.paragraph_format.space_after = Pt(2)
     p_sign.paragraph_format.line_spacing = 1.15
     
-    r_pl = p_sign.add_run("Place: Chennai\nDate: November 2025")
+    r_pl = p_sign.add_run("Place: Chennai\nDate: October 2026")
     r_pl.font.name = 'Times New Roman'
     r_pl.font.size = Pt(11)
     r_pl.bold = True

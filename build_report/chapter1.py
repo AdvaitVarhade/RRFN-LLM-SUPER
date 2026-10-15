@@ -119,10 +119,10 @@ def build_chapter_1(doc, student_config=None):
         "of authentic clean interactions $\\mathcal{E}^*$ and malicious adversarial injection edges $\\mathcal{E}_{\\mathrm{attack}}$, and where item interaction frequencies exhibit severe "
         "Pareto skew, how can an end-to-end recommender system simultaneously:"
     )
-    add_bullet(doc, "1. Identify and downweight corrupted interaction edges without discarding authentic user feedback;", bold_prefix="Denoising: ")
-    add_bullet(doc, "2. Provide rigorous mathematical guarantees against gradient explosion and noise amplification during model optimization;", bold_prefix="Theoretical Soundness: ")
-    add_bullet(doc, "3. Prevent poisoned interactions from distorting self-supervised graph contrastive representation embeddings;", bold_prefix="Graph Contrastive Alignment: ")
-    add_bullet(doc, "4. Calibrate top-K recommendations to match individual users' genuine historical tail preferences without pushing malicious spam targets.", bold_prefix="Calibrated Debiasing: ")
+    add_bullet(doc, "Identify and downweight corrupted interaction edges without discarding authentic user feedback;", bold_prefix="Denoising: ")
+    add_bullet(doc, "Provide rigorous mathematical guarantees against gradient explosion and noise amplification during model optimization;", bold_prefix="Theoretical Soundness: ")
+    add_bullet(doc, "Prevent poisoned interactions from distorting self-supervised graph contrastive representation embeddings;", bold_prefix="Graph Contrastive Alignment: ")
+    add_bullet(doc, "Calibrate top-$K$ recommendations to match individual users' genuine historical tail preferences without pushing malicious spam targets.", bold_prefix="Calibrated Debiasing: ")
     
     add_paragraph(
         doc,

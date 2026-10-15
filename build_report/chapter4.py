@@ -25,16 +25,16 @@ def build_chapter_4(doc, student_config=None):
         "Separation of Concerns, High Cohesion, Loose Coupling, Deterministic Reproducibility, and Hardware-Aware Vectorization. "
         "Implemented in Python 3.11 with PyTorch 2.x, NumPy, SciPy, and Streamlit, the system is partitioned into ten specialized packages:"
     )
-    add_bullet(doc, "data: Multi-domain data ingestion, k-core graph filtering, temporal splitting, and adversarial attack injection engines.", bold_prefix="1. Data Pipeline: ")
-    add_bullet(doc, "models: Deep collaborative filtering (NeuMF), Variational Autoencoders (VaeCF), and graph neural networks (LightGCN, SimGCL, SGL).", bold_prefix="2. Neural Backbones: ")
-    add_bullet(doc, "rrfn: Consensus anchor selection, empirical rating transition matrix estimation, and Tikhonov regularized inversion.", bold_prefix="3. Noise Inversion: ")
-    add_bullet(doc, "llm_auditor: Prompt engineering, LLM API interaction, structured JSON parsing, and SQLite WAL caching.", bold_prefix="4. LLM Semantic Auditing: ")
-    add_bullet(doc, "bombing_detector: Temporal velocity acceleration, rating polarity skew, and 2D BLAS matrix burst detection.", bold_prefix="5. Burst Detector: ")
-    add_bullet(doc, "fusion: Tri-view signal synthesis combining statistical, semantic, and burst views into sample reliability weights.", bold_prefix="6. Multi-View Fusion: ")
-    add_bullet(doc, "catalog: Pareto volume partitioning dividing items into Head ($\mathcal{M}_{\\mathrm{pop}}$) and Tail ($\mathcal{M}_{\\mathrm{tail}}$) subsets.", bold_prefix="7. Catalog Partitioning: ")
-    add_bullet(doc, "super_engine: Purified historical blueprints, personalized tail inclinations, and trajectory interleaving.", bold_prefix="8. Calibrated SUPER Engine: ")
-    add_bullet(doc, "trainer: Dual partition training orchestrators, sample-reliability weighted InfoNCE losses, and optimizers.", bold_prefix="9. Training Engine: ")
-    add_bullet(doc, "evaluation: Information retrieval metrics, popularity calibration metrics, attack detection metrics, and Monte Carlo economic simulation.", bold_prefix="10. Evaluation Engine: ")
+    add_bullet(doc, "data: Multi-domain data ingestion, $k$-core graph filtering, temporal splitting, and adversarial attack injection engines.", bold_prefix="Data Pipeline: ")
+    add_bullet(doc, "models: Deep collaborative filtering (NeuMF), Variational Autoencoders (VaeCF), and graph neural networks (LightGCN, SimGCL, SGL).", bold_prefix="Neural Backbones: ")
+    add_bullet(doc, "rrfn: Consensus anchor selection, empirical rating transition matrix estimation, and Tikhonov regularized inversion.", bold_prefix="Noise Inversion: ")
+    add_bullet(doc, "llm_auditor: Prompt engineering, LLM API interaction, structured JSON parsing, and SQLite WAL caching.", bold_prefix="LLM Semantic Auditing: ")
+    add_bullet(doc, "bombing_detector: Temporal velocity acceleration, rating polarity skew, and 2D BLAS matrix burst detection.", bold_prefix="Burst Detector: ")
+    add_bullet(doc, "fusion: Tri-view signal synthesis combining statistical, semantic, and burst views into sample reliability weights.", bold_prefix="Multi-View Fusion: ")
+    add_bullet(doc, "catalog: Pareto volume partitioning dividing items into Head ($\mathcal{M}_{\\mathrm{pop}}$) and Tail ($\mathcal{M}_{\\mathrm{tail}}$) subsets.", bold_prefix="Catalog Partitioning: ")
+    add_bullet(doc, "super_engine: Purified historical blueprints, personalized tail inclinations, and trajectory interleaving.", bold_prefix="Calibrated SUPER Engine: ")
+    add_bullet(doc, "trainer: Dual partition training orchestrators, sample-reliability weighted InfoNCE losses, and optimizers.", bold_prefix="Training Engine: ")
+    add_bullet(doc, "evaluation: Information retrieval metrics, popularity calibration metrics, attack detection metrics, and Monte Carlo economic simulation.", bold_prefix="Evaluation Engine: ")
 
     # 4.2 Module Mapping Table
     add_section_heading(doc, "4.2 Comprehensive Module Mapping and Source Code Index")
