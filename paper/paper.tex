@@ -38,14 +38,17 @@
 
 \title{Robust Risk-Consistent Graph-Contrastive Learning for Popularity-Calibrated Recommendation with MIRF Auditing}
 
-\author{Advait~Varhade,~\IEEEmembership{Student Member,~IEEE}%
-\thanks{A. Varhade is with the Department of Computer Science and Engineering (e-mail: advaitvarhade@project.org).}%
+\author{Advait~Varhade,
+        P.~Manas,
+        Vivaash~Koundal,
+        and~Suganeshwari~G%
+\thanks{A.~Varhade, P.~Manas, V.~Koundal, and G.~Suganeshwari are with the School of Computer Science and Engineering, Vellore Institute of Technology (VIT), Tamil Nadu, India (e-mail: varhadeadvait@gmail.com, manas.peddareddy615@gmail.com, vivaash.hp@gmail.com, suganeshwari.g@vit.ac.in).}%
 }
 
 \maketitle
 
 \begin{abstract}
-Modern graph-based recommender systems deployed in web platforms suffer from two co-occurring systemic vulnerabilities: (1) susceptibility to coordinated adversarial shilling attacks and temporal review-bombing bursts that inject deceptive feedback to distort item exposure, and (2) severe catalog popularity bias where Pareto-skewed interaction distributions starve niche long-tail items of visibility. Existing paradigms address adversarial robustness or popularity debiasing in isolation, failing when both phenomena co-occur. In this paper, we propose \textbf{RRFN-LLM-SUPER}, an end-to-end framework uniting stochastic noise-transition estimation, the \textbf{Multi-view Interaction Reliability Filter (MIRF)}, risk-aware Graph Contrastive Learning (GCL), and calibrated Pareto debiasing. We provide formal mathematical foundations, establishing that Tikhonov-regularized noise inversion strictly upper-bounds operator norms by $\|T^{\dagger}_\lambda\|_2 \le \frac{1}{2\sqrt{\lambda}}$, guaranteeing gradient stability without singular divergence, and prove asymptotic surrogate risk consistency $\mathcal{O}(\delta + 1/\sqrt{N})$ for the implemented forward-corrected loss alongside confidence inversion bounds $\mathcal{O}(\delta/\sqrt{\lambda} + \sqrt{\lambda})$. MIRF derives continuous sample reliability weights $w_{ui} \in [0, 1]$ by synthesizing model prediction consistency, asynchronous LLM semantic review verification with thread-safe SQLite WAL caching, and 2D BLAS vectorized burst scoring (measured $4.95\,$ms latency for $42\,$K interactions, $>500\times$ speedup). These weights modulate InfoNCE contrastive losses and purify historical blueprints for personalized tail inclination ($\alpha_u$) allocation. Extensive empirical evaluations across 5 independent random seeds on three benchmark domains (MovieLens-1M sub-graph, Amazon Reviews, Yelp Academic) spanning multiple neural backbones (NeuMF, SimGCL, SGL) demonstrate that RRFN-LLM-SUPER achieves an attack detection Average Precision of \textbf{0.6884} on Amazon and \textbf{0.6816} on Yelp ($3.9$--$4.3\times$ gain over random edge baselines), maintains an Authentic Retention AP of \textbf{0.9989} (ROC-AUC = $\mathbf{0.7931 \pm 0.0038}$ on MovieLens-1M under 15\% bandwagon attack), provides statistically significant reductions in popularity calibration error (RMSE-PC $0.1067 \pm 0.0056$, $p=0.0166$; MRMC $0.1128 \pm 0.0034$, $p=0.0088$), purges attack-induced deceptive tail inflation (reducing spam exposure STER@10 from 88\% to 72\%), elevates genuine long-tail discovery ($g$-LTC@10 = $0.4202 \pm 0.0333$ vs. $0.3371 \pm 0.0693$, $p=0.0397$ on Yelp), and yields statistically significant improvements under 1,000-iteration offline Monte Carlo bootstrap simulations ($p < 0.001$). Complete source code, configurations, and evaluation logs are publicly accessible at \url{https://github.com/advaitvarhade/RRFN-LLM-SUPER}.
+However, state-of-the-art recommender systems based on graphs deployed in web-based platforms are inherently vulnerable to two correlated phenomena: (1) susceptibility to adversarial shilling attacks and temporal review-bombing attacks, which are deliberate insertion of deceiving feedback to affect the exposure of the items, and (2) strong popularity bias of the catalog, since Pareto interaction distributions result in long-tail items being neglected. The existing approaches tackle either adversarial robustness or popularity debiasing separately and fail to account for both phenomena at the same time. In this paper, we introduce \textbf{RRFN-LLM-SUPER}, a complete solution framework that combines stochastic noise transition modeling, the \textbf{Multi-view Interaction Reliability Filter (MIRF)}, risk-aware Graph Contrastive Learning (GCL), and Pareto debiasing approach. We formulate rigorous mathematical foundations and prove that the Tikhonov-regularized noise inversion is bounded by $\|T^{\dagger}_\lambda\|_2 \le \frac{1}{2\sqrt{\lambda}}$ avoiding operator singularity or divergence, and the risk-consistency of the asymptotic surrogate loss is $\mathcal{O}(\delta + 1/\sqrt{N})$ with confidence inversion bounds $\mathcal{O}(\delta/\sqrt{\lambda} + \sqrt{\lambda})$. MIRF learns continuous sample reliability weights $w_{ui} \in [0, 1]$ using synthesis of model prediction consistency, asynchronous LLM-based semantic review verification via thread-safe SQLite WAL caching mechanism, and BLAS vectorized burst scoring. The weights serve as modulating factors of InfoNCE contrastive losses, while ensuring purification of historical blueprints for personalized tail inclination ($\alpha_u$) assignment. Comprehensive empirical studies involving 5 independent random seeds and 3 benchmark domains (subgraph of MovieLens-1M, Amazon Reviews, and Yelp Academic) featuring several neural architectures (NeuMF, SimGCL, and SGL) reveal that RRFN-LLM-SUPER is able to detect attacks with an Average Precision of \textbf{0.6884} on Amazon and \textbf{0.6816} on Yelp ($3.9$--$4.3\times$ improvement compared to the performance of random edges), retain an Authentic Retention AP of \textbf{0.9989} (ROC-AUC = $\mathbf{0.7931 \pm 0.0038}$ on MovieLens-1M in case of 15\% bandwagon attack), provide statistically significant improvements in popularity calibration error (RMSE-PC = $\mathbf{0.1067 \pm 0.0056}$, $p = 0.0166$; MRMC = $\mathbf{0.1128 \pm 0.0034}$, $p = 0.0088$), eliminate attack-driven deceptive tail inflation (reduction of spam exposure STER@10 from 88\% to 72\%), increase true long-tail discovery ($g$-LTC@10 = $0.4202 \pm 0.0333$ vs. $0.3371 \pm 0.0693$, $p = 0.0397$ on Yelp), and produce statistically significant improvements in offline Monte Carlo bootstrap simulations (1,000 iterations). Complete source code, configurations, and evaluation logs are publicly accessible at \url{https://github.com/advaitvarhade/RRFN-LLM-SUPER}.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -55,11 +58,11 @@ Recommender Systems, Graph Neural Networks, Graph Contrastive Learning, Multi-vi
 \section{Introduction and Motivation}
 \label{sec:intro}
 
-\IEEEPARstart{W}{eb-scale} recommender systems operate on bipartite user-item interaction graphs $\mathcal{G} = (\mathcal{U}, \mathcal{I}, \mathcal{E})$. However, real-world recommendation graphs are contaminated by two orthogonal sources of degradation: \textbf{adversarial data corruption} and \textbf{structural popularity bias}~\cite{wu2021robust,abdollahpouri2019popularity}.
+\IEEEPARstart{W}{eb-scale} recommender systems work on bipartite user-item interaction graph $\mathcal{G} = (\mathcal{U}, \mathcal{I}, \mathcal{E})$. However, real-world recommendation graphs suffer from two mutually orthogonal forms of deterioration: \textbf{adversarial data corruption} and \textbf{structural popularity bias}~\cite{wu2021robust,abdollahpouri2019popularity}.
 
-First, malicious actors orchestrate coordinated injection attacks, including bandwagon shilling campaigns and temporal review-bombing bursts~\cite{si2022shilling,trustgrs2025}. In bandwagon attacks, automated bot accounts inject extreme ratings on target items combined with high ratings on popular anchor items to camouflage their behavior. Standard Collaborative Filtering (CF) and Graph Convolutional Networks (GCNs) treat all observed edges equally, causing noisy perturbations to propagate through high-order message passing layers and distorting user/item representations~\cite{he2020lightgcn}.
+First, adversaries plan large-scale injection attacks, including bandwagon shilling and temporal review bombing~\cite{si2022shilling,trustgrs2025}. In the bandwagon attacks, the automated bot accounts inject extremely high ratings for target items together with extremely high ratings for popular anchor items to mask their behavior. The standard Collaborative Filtering (CF) and Graph Convolutional Networks (GCNs) do not distinguish between different types of edges and hence the noise propagates through high-order message passing layers and misaligns user/item representations~\cite{he2020lightgcn}.
 
-Second, user interaction behavior exhibits extreme Pareto concentration: approximately $20\%$ of head items capture over $80\%$ of all interactions~\cite{yang2022super,steck2018calibrated}. Standard optimization objectives minimize global empirical loss, rewarding models for prioritizing popular items while systematically suppressing relevant niche items in the long tail.
+Second, the interaction behavior of users is extremely concentrated according to Pareto distribution: approximately $20\%$ of the head items receive over $80\%$ of interactions~\cite{yang2022super,steck2018calibrated}. The standard objective functions minimize global empirical loss, and hence encourage the popular items while suppressing relevant niche items in the long tail.
 
 \begin{figure*}[!t]
 \centering
@@ -71,76 +74,79 @@ Second, user interaction behavior exhibits extreme Pareto concentration: approxi
 \subsection{Grounding Key Concepts: SUP, RRFN, and MIRF}
 To establish conceptual and terminological precision throughout this paper:
 
-\textbf{1. What is SUP?} In existing literature, \textbf{SUP} (also known as \textbf{SUPER}) refers to \textit{Soft Blueprint Merging for Calibrated Long-Tail Recommendation}~\cite{yang2022super}. SUP addresses catalog popularity skew by partitioning items into Head ($M_{\text{pop}}$) and Tail ($M_{\text{tail}}$) models and soft-merging candidate lists based on user tail inclination $\alpha_u$. However, standalone SUP fundamentally assumes an idealized, uncorrupted interaction graph. When subjected to adversarial shilling or review-bombing noise, SUP's interaction blueprints ingest corrupted ratings, resulting in severe degradation of recommendation fidelity.
+\textbf{1. What is SUP?} \textbf{SUP} (\textbf{SUPER}) is the abbreviation of \textit{Soft Blueprint Merging for Calibrated Long-Tail Recommendation}~\cite{yang2022super} in the context of literature. SUP considers the problem of catalog popularity skew through partitioning of items into Head model ($M_{\text{pop}}$) and Tail model ($M_{\text{tail}}$) as well as soft merging of candidate lists according to user tail inclination $\alpha_u$. Nonetheless, SUP inherently makes the assumption of a perfect, pristine interaction graph. Upon the presence of adversarial shilling or review bombing noise, SUP's interaction blueprints take in corrupted ratings causing substantial degradation of recommendation quality.
 
-\textbf{2. What is RRFN?} \textbf{RRFN} refers to the \textit{Robust Risk-consistent Fusion Network}. RRFN is a noise-transition modeling framework that constructs a $K \times K$ stochastic rating transition matrix $T_{ij} = P(\tilde{Y}=j \mid Y^*=i)$ from high-confidence anchor items, regularizes matrix inversion using Tikhonov regularization, and optimizes a risk-consistent bounded forward loss function $\mathcal{L}_{\text{risk}}$.
+\textbf{2. What is RRFN?} \textbf{RRFN} is \textit{Robust Risk-consistent Fusion Network}. RRFN is a framework for modeling noise transitions that creates a $K \times K$ stochastic rating transition matrix $T_{ij} = P(\tilde{Y} = j \mid Y^* = i)$ from high-confidence anchor items, uses Tikhonov regularization to stabilize the inverse of the matrix, and minimizes the risk-consistent bounded forward loss function $\mathcal{L}_{\text{risk}}$.
 
-\textbf{3. What is MIRF?} \textbf{MIRF} stands for the \textbf{Multi-view Interaction Reliability Filter}. MIRF is the unified tri-view ensemble mechanism that synthesizes:
+\textbf{3. What is MIRF?} \textbf{MIRF} refers to \textit{Multi-view Interaction Reliability Filter}. MIRF is the unified tri-view ensemble framework consisting of the following views:
 \begin{itemize}
-    \item $R_{\text{RRFN}}$: Statistical model prediction consistency derived from regularized transition matrix $T$.
-    \item $R_{\text{LLM}}$: Semantic LLM review-text verification evaluated via asynchronous prompt queries and cached in a thread-safe SQLite WAL database.
-    \item $R_{\text{bomb}}$: Vectorized temporal-polarity review-bombing burst detection computed via 2D BLAS matrix broadcasting.
+    \item $R_{\text{RRFN}}$: Statistical consistency of model predictions based on regularized transition matrix $T$.
+    \item $R_{\text{LLM}}$: Semantic LLM review-text validation using asynchronous prompting queries and caching in the thread-safe SQLite WAL database.
+    \item $R_{\text{bomb}}$: Vector-based temporal-polarity review-bombing burst identification using 2D BLAS matrix broadcasting.
 \end{itemize}
-MIRF produces a continuous sample reliability weight $w_{ui} = R_{\text{MIRF}}(u, i) \in [0, 1]$ for every interaction edge.
+The output of MIRF is a continuous sample reliability weight $w_{ui} = R_{\text{MIRF}}(u, i) \in [0, 1]$.
 
-\textbf{4. Our Unified Algorithm (RRFN-LLM-SUPER):} We propose \textbf{RRFN-LLM-SUPER}, an end-to-end architecture that unifies the noise-mitigation power of RRFN and MIRF, the self-supervised representation alignment of Graph Contrastive Learning (SimGCL / SGL), and the calibrated debiasing of SUPER. By filtering interaction blueprints through MIRF reliability auditing and weighting the InfoNCE contrastive loss by sample-level trust weights, our approach simultaneously repels coordinated attacks and recovers genuine long-tail catalog exposure.
+\textbf{4. Our Unified Approach (RRFN-LLM-SUPER):} We introduce the \textbf{RRFN-LLM-SUPER} architecture, which merges the noise reduction ability of RRFN and MIRF, the unsupervised learning of representation alignment in Graph Contrastive Learning (SimGCL / SGL) framework, and the bias correction capability of SUPER. By performing interaction blueprint filtering via MIRF reliability check and weighting the InfoNCE contrastive loss via sample weights, we achieve coordinated attack resilience and long-tail recovery simultaneously.
 
 \subsection{Summary of Contributions}
 The main contributions of this work are summarized as follows:
 \begin{enumerate}
-    \item \textbf{Mathematical Noise Transition \& Operator Boundedness Proof}: We derive an anchor-selected $5 \times 5$ stochastic noise transition matrix $T$ and prove (Theorem 1) that Tikhonov regularization $(T^T T + \lambda I)^{-1} T^T$ strictly bounds the spectral operator norm by $\|T^{\dagger}_\lambda\|_2 \le \frac{1}{2\sqrt{\lambda}}$, guaranteeing Lipschitz gradient stability and preventing numerical explosion. Furthermore, we prove Theorem 2 establishing formal forward surrogate risk consistency $\mathcal{O}(\delta + 1/\sqrt{N})$ converging asymptotically to clean Bayes risk, coupled with regularized confidence inversion error $\mathcal{O}(\delta/\sqrt{\lambda} + \sqrt{\lambda})$.
-    \item \textbf{Multi-view Interaction Reliability Filter (MIRF)}: We formulate the MIRF ensemble layer combining model prediction divergence ($R_{\text{RRFN}}$), prompt-audited LLM semantic review verification ($R_{\text{LLM}}$) supported by a thread-safe SQLite WAL cache, and 2D BLAS vectorized temporal-polarity burst scoring ($R_{\text{bomb}}$), achieving a $>500\times$ computational acceleration ($4.95\,$ms for 42K interactions).
-    \item \textbf{Risk-Aware Graph Contrastive Learning}: We integrate SimGCL (latent uniform noise) and SGL (structural dropout) backbones guided by a sample-reliability weighted InfoNCE contrastive loss, preventing poisoned interactions from corrupting graph embeddings.
-    \item \textbf{Purified SUPER Blueprint Merging \& Attack-Aware LTC Metrics}: We formulate Genuine Long-Tail Coverage ($g$-LTC@K) and Spam Target Exposure Rate (STER@K), proving that raw LTC inflation under attack represents malicious spam injection rather than authentic user discovery, and design a clean-anchor blueprint engine that eliminates fake feedback.
-    \item \textbf{Multi-Domain 5-Seed Benchmark \& Statistical Evaluation}: We evaluate RRFN-LLM-SUPER across 5 independent seeds on three domains (MovieLens-1M sub-graph, Amazon Reviews with SimGCL, Yelp Academic with SGL), reporting exact mean $\pm$ standard deviation, paired $t$-test significance, component ablation, and a 1,000-sample Monte Carlo bootstrap financial simulation ($p < 0.001$).
+    \item \textbf{Mathematical Noise Transition \& Operator Boundedness Proof}: We construct a stochastic noise transition matrix $T$ and prove (Theorem~\ref{thm:bound}) that Tikhonov regularization $(T^T T + \lambda I)^{-1} T^T$ is bounded in spectral operator norm by $\|T^{\dagger}_\lambda\|_2 \le \frac{1}{2\sqrt{\lambda}}$, ensuring Lipschitz gradient stability and numerical safety. Further, we establish (Theorem~\ref{thm:consistency}) the forward surrogate risk consistency bound $\mathcal{O}(\delta/\sigma_0 + 1/\sqrt{N})$, converging asymptotically to clean Bayes risk, alongside regularized confidence inversion error bound $\mathcal{O}(\delta/\sqrt{\lambda} + \sqrt{\lambda})$.
+    \item \textbf{Multi-view Interaction Reliability Filter (MIRF)}: We propose a MIRF ensemble layer including the model prediction divergence ($R_{\text{RRFN}}$), prompt-audited LLM semantic review verification ($R_{\text{LLM}}$) aided by a thread-safe SQLite WAL cache, and 2D BLAS vectorized temporal-polarity burst scoring ($R_{\text{bomb}}$), which provides a $500\times$ speedup ($4.95\,$ms on 42K interactions).
+    \item \textbf{Risk-Aware Graph Contrastive Learning}: SimGCL (latent uniform noise) and SGL (structural dropout) backbone models are combined with a sample-reliability weighted InfoNCE contrastive loss to prevent poisoned interactions from poisoning graph embeddings.
+    \item \textbf{Purer SUPER Blueprint Merging \& Attack-Aware LTC Metrics}: We present Genuine Long-Tail Coverage ($g$-LTC@K) and Spam Target Exposure Rate (STER@K), demonstrating that raw LTC inflation under attack corresponds to malicious spam injection and not actual discovery of genuine users, and develop an anchor-free blueprint engine that filters out any form of fabricated feedback.
+    \item \textbf{Multi-Domain 5-Seeds Benchmarking and Statistical Analysis}: We benchmark RRFN-LLM-SUPER with 5 seeds independently in three domains (MovieLens-1M subgraph, Amazon reviews with SimGCL, and Yelp Academic with SGL), providing exact mean $\pm$ standard deviation, statistical significance with paired $t$-test, ablation study, and 1,000 samples Monte Carlo bootstrapping finance simulation ($p < 0.001$).
 \end{enumerate}
 
 \section{Related Work and Positioning}
 \label{sec:related}
 
 \subsection{Robust Collaborative Filtering \& Noise Denoising}
-Early robust CF methods focused on heuristic filtering of shilling attacks using clustering or threshold-based anomaly detection~\cite{wu2021robust,si2022shilling}. Loss-correction approaches in computer vision~\cite{patrini2017making} demonstrated that stochastic transition matrices $T$ can asymptotically invert label corruption. Recent recommendation models such as T-CE~\cite{gao2022self} applied transition matrices to implicit feedback. However, these methods assume uniform random noise and collapse under non-stationary, coordinated review-bombing campaigns characterized by temporal bursts and extreme polarity skews.
+Prior robust collaborative filtering techniques addressed filtering out shilling attacks through heuristic means, like clustering and threshold-based outlier detection~\cite{wu2021robust,si2022shilling}. Loss correction techniques in computer vision~\cite{patrini2017making} showed that transition matrices $T$ could theoretically asymptotically revert label manipulations. Recent recommender systems like T-CE~\cite{gao2022self} used transition matrices for implicit feedback. Nevertheless, such techniques rely on the assumption of uniformly randomly distributed noise and do not work in face of non-stationary coordinated review bombing characterized by temporal burst and polarity skews.
 
 \subsection{Popularity Bias \& Long-Tail Calibration}
-Popularity bias in recommender systems has been studied through causal graph interventions~\cite{zheng2021disentangling}, propensity score reweighting, and calibrated ranking~\cite{steck2018calibrated,abdollahpouri2019popularity}. Standalone SUPER~\cite{yang2022super} introduced soft blueprint merging to balance user-specific tail quotas. Nonetheless, prior debiasing literature uniformly presupposes clean training interactions; when adversarial actors inject popular items to execute bandwagon attacks, standalone debiasing algorithms misinterpret injected interactions as genuine user interest.
+Research of popularity bias in recommender systems has employed causality graphs, interventions, propensity score weighting, and calibrated ranking~\cite{abdollahpouri2019popularity,steck2018calibrated,zheng2021disentangling}. Independent SUPER~\cite{yang2022super} technique suggested soft merging blueprints in order to compensate for user-specific long-tail quotas. Yet, prior debiasing research assumed only unbiased training interactions and, hence, fails to handle cases when an adversary introduces popular items in order to run a bandwagon attack.
 
 \subsection{Graph Contrastive Learning \& Trust-GRS Positioning}
-Graph Contrastive Learning (GCL) approaches such as SGL~\cite{wu2021sgl} and SimGCL~\cite{yu2022simgcl} enhance representation uniformity through data augmentation and noise perturbation. Recently, Trust-GRS~\cite{trustgrs2025} investigated trustworthy graph neural networks under shilling attacks via contrastive learning. Our framework distinctively differs from and advances beyond Trust-GRS in three foundational respects:
+GCL algorithms including SGL~\cite{wu2021sgl} and SimGCL~\cite{yu2022simgcl} improve uniformity by means of data augmentation and noise perturbation. The recent Trust-GRS~\cite{trustgrs2025} work studies trustworthy graph neural network models in the face of shilling attacks by contrastive learning, while other solutions including AutoDebias work to mitigate popularity bias in clean interaction graphs. Our solution significantly diverges from and goes beyond these baseline solutions in three basic ways:
 \begin{enumerate}
-    \item \textbf{Joint Denoising and Pareto Debiasing}: Trust-GRS focuses strictly on graph representation robustness without addressing catalog popularity skew; RRFN-LLM-SUPER uniquely couples robust representation learning with purified Pareto partition calibration.
-    \item \textbf{Multi-Modal LLM \& Vectorized Burst Auditing}: While Trust-GRS relies solely on graph topology contrastive views, MIRF synthesizes statistical rating transition matrices ($R_{\text{RRFN}}$), semantic text review auditing ($R_{\text{LLM}}$), and 2D BLAS temporal-polarity burst detection ($R_{\text{bomb}}$).
-    \item \textbf{Mathematical Gradient Boundedness}: We provide formal proofs establishing non-singular Tikhonov gradient bounds and asymptotic surrogate risk consistency.
+    \item \textbf{Combined Denoising and Pareto Debiasing}: As opposed to the graph representation focus of Trust-GRS that does not solve catalog popularity bias problems and the clean interaction graphs of AutoDebias, RRFN-LLM-SUPER integrates robust learning of graph representation and Pareto partition calibration.
+    \item \textbf{Multi-Modal LLM and Vectorized Burst Auditing}: In addition to the only graph topological contrastive views, our solution integrates the statistical rating transition matrix ($R_{\text{RRFN}}$), semantic text reviews auditing ($R_{\text{LLM}}$), and 2D BLAS burst polarities temporal auditing ($R_{\text{bomb}}$).
+    \item \textbf{Mathematical Proof of Bounded Gradient}: We provide formal proof for the boundedness of non-singular Tikhonov gradients and excess risk asymptotic.
 \end{enumerate}
 
 \section{Theoretical Foundations and Mathematical Analysis}
 \label{sec:theory}
 
 \subsection{Noise Transition Model and Anchor Assumptions}
-Observed ratings $\tilde{Y} \in \{1, \dots, K\}$ are modeled as noisy realizations of unobserved clean ratings $Y^* \in \{1, \dots, K\}$ governed by a conditional transition matrix $T \in \mathbb{R}^{K \times K}$:
+The observed ratings $\tilde{Y} \in \{1, \dots, K\}$ are treated as a noisy observation of the underlying clean ratings $Y^* \in \{1, \dots, K\}$ under the conditional transition matrix $T \in \mathbb{R}^{K \times K}$:
 \begin{equation}
     T_{ij} = P(\tilde{Y} = j \mid Y^* = i), \quad \sum_{j=1}^K T_{ij} = 1.
 \end{equation}
-Let $\mathbf{p}(u, i) \in \Delta^{K-1}$ denote the model's predicted probability distribution over clean rating classes, where $\Delta^{K-1}$ is the probability simplex. The probability distribution over observed noisy ratings is given by $\tilde{\mathbf{p}}(u, i) = T^T \mathbf{p}(u, i)$.
+Let us define $\mathbf{p}(u, i) \in \Delta^{K-1}$ as the distribution over clean rating classes predicted by our model, where $\Delta^{K-1}$ denotes the probability simplex. The distribution over observed noisy ratings takes the form:
+\begin{equation}
+    \tilde{\mathbf{p}}(u, i) = T^T \mathbf{p}(u, i).
+\end{equation}
 
 \begin{assumption}[Anchor Separability and Prior Consistency]
 \label{ass:anchor}
-For each rating class $k \in \{1, \dots, K\}$, there exists a subset of anchor items $\mathcal{A}_k \subset \mathcal{I}$ identified via consensus agreement such that:
+There exists for every rating class $k \in \{1, \dots, K\}$ a set of anchor items $\mathcal{A}_k \subset \mathcal{I}$ such that their rating is known to be $k$ with high precision:
 \begin{equation}
     P(Y^* = k \mid i \in \mathcal{A}_k) \ge 1 - \epsilon_{\mathrm{anchor}},
 \end{equation}
-enabling estimation of the anchor transition prior $\hat{T}_{kj} = \frac{1}{|\mathcal{A}_k|} \sum_{i \in \mathcal{A}_k} P(\tilde{r}_{ui} = j)$, with Frobenius estimation error $\|\hat{T} - T^*\|_F \le \delta$.
+which allows us to estimate the transition prior between anchors $\hat{T}_{kj} = \frac{1}{|\mathcal{A}_k|} \sum_{i \in \mathcal{A}_k} P(\tilde{r}_{ui} = j)$ with Frobenius error bound $\|\hat{T} - T^*\|_F \le \delta$.
 \end{assumption}
 
-\begin{assumption}[Bounded Logits and Non-Singular Transition Spectrum]
+\begin{assumption}[Bounded Logits and Non-Singular Transition Matrix Spectrum]
 \label{ass:bounded}
-The clean model logits $\mathbf{z}(u, i) \in \mathbb{R}^K$ satisfy $\|\mathbf{z}\|_\infty \le C < \infty$, and the true transition matrix $T^*$ is regular with minimum singular value $\sigma_{\min}(T^*) \ge \sigma_0 > 0$.
+The clean logits $\mathbf{z}(u, i) \in \mathbb{R}^K$ are bounded in norm, $\|\mathbf{z}\|_\infty \le C < \infty$. The true transition matrix $T^*$ is regular with its minimum singular value being $\sigma_{\min}(T^*) \ge \sigma_0 > 0$.
 \end{assumption}
 
 \subsection{Theoretical Analysis of Tikhonov Noise Inversion}
 
 \begin{definition}[Tikhonov-Regularized Pseudo-Inverse]
 \label{def:tikhonov}
-For transition matrix $T \in \mathbb{R}^{K \times K}$ and damping factor $\lambda > 0$, the Tikhonov-regularized pseudo-inverse is defined as:
+Given transition matrix $T \in \mathbb{R}^{K \times K}$ and damping factor $\lambda > 0$, the Tikhonov-regularized pseudo-inverse is given by:
 \begin{equation}
     T^{\dagger}_{\lambda} = (T^T T + \lambda I)^{-1} T^T.
 \end{equation}
@@ -148,15 +154,15 @@ For transition matrix $T \in \mathbb{R}^{K \times K}$ and damping factor $\lambd
 
 \begin{theorem}[Spectral Operator Norm Bound and Gradient Stability]
 \label{thm:bound}
-Let $T \in \mathbb{R}^{K \times K}$ have singular value decomposition $T = U \Sigma V^T$ with singular values $\sigma_1 \ge \sigma_2 \ge \dots \ge \sigma_K \ge 0$. For any regularization damping factor $\lambda > 0$, the spectral operator norm of the Tikhonov-regularized pseudo-inverse $T^{\dagger}_{\lambda} = (T^T T + \lambda I)^{-1} T^T$ is strictly bounded by:
+For transition matrix $T \in \mathbb{R}^{K \times K}$ with singular value decomposition $T = U \Sigma V^T$ with singular values $\sigma_1 \ge \sigma_2 \ge \dots \ge \sigma_K \ge 0$, for all $\lambda > 0$, the spectral operator norm of the Tikhonov-regularized pseudo-inverse is strictly bounded by:
 \begin{equation}
     \|T^{\dagger}_{\lambda}\|_2 \le \frac{1}{2\sqrt{\lambda}}.
 \end{equation}
-Furthermore, for the forward-corrected surrogate loss $\mathcal{L}_{\mathrm{risk}} = \ell_{\mathrm{CE}}(T^T \mathbf{p}(X), \tilde{\mathbf{y}})$ with $L_{\mathrm{loss}}$-Lipschitz cross-entropy, the parameter gradient satisfies:
+Furthermore, for the forward-corrected surrogate loss $\mathcal{L}_{\mathrm{risk}} = \ell_{\mathrm{CE}}(T^T \mathbf{p}(X), \tilde{\mathbf{y}})$ with $L_{\mathrm{loss}}$-Lipschitz cross-entropy, parameter gradient satisfies:
 \begin{equation}
-    \|\nabla_\theta \mathcal{L}_{\mathrm{risk}}\| \le L_{\mathrm{loss}} \|T\|_2 \|\nabla_\theta \mathbf{p}\| \le L_{\mathrm{loss}} \sqrt{K} \|\nabla_\theta \mathbf{p}\|,
+    \|\nabla_\theta \mathcal{L}_{\mathrm{risk}}\| \le L_{\mathrm{loss}} \|T\|_2 \|\nabla_\theta \mathbf{p}\| \le L_{\mathrm{loss}} \sqrt{K} \|\nabla_\theta \mathbf{p}\|.
 \end{equation}
-since $\|T\|_2 \le \sqrt{\|T\|_1 \|T\|_\infty} \le \sqrt{K}$ for any $K \times K$ row-stochastic transition matrix by the Riesz-Thorin interpolation theorem. Moreover, inverting predicted ratings for confidence estimation and sample reliability $R_{\text{RRFN}}$ via $T^{\dagger}_{\lambda}$ is strictly protected against gradient explosion and noise amplification by $\|T^{\dagger}_{\lambda}\|_2 \le \frac{1}{2\sqrt{\lambda}}$, independently of the condition number $\kappa(T)$.
+As $\|T\|_2 \le \sqrt{\|T\|_1 \|T\|_\infty} \le \sqrt{K}$ for any $K \times K$ row-stochastic transition matrix $T$ by Riesz-Thorin interpolation theorem. Additionally, inverting predicted ratings for confidence estimation and sample reliability $R_{\text{RRFN}}$ through $T^{\dagger}_{\lambda}$ is strictly protected from gradient explosion and noise amplification via the strict bound $\|T^{\dagger}_{\lambda}\|_2 \le \frac{1}{2\sqrt{\lambda}}$, regardless of the condition number $\kappa(T)$.
 \end{theorem}
 
 \begin{proof}
@@ -166,27 +172,23 @@ Substituting $T = U \Sigma V^T$ into Definition~\ref{def:tikhonov}:
     &= (V (\Sigma^2 + \lambda I) V^T)^{-1} V \Sigma^T U^T \nonumber \\
     &= V (\Sigma^2 + \lambda I)^{-1} \Sigma U^T.
 \end{align}
-The singular values of $T^{\dagger}_{\lambda}$ are given by the continuous scalar function $f(\sigma) = \frac{\sigma}{\sigma^2 + \lambda}$ for $\sigma \ge 0$. Differentiating with respect to $\sigma$:
+The singular values of $T^{\dagger}_{\lambda}$ are given by the continuous scalar function $f(\sigma) = \frac{\sigma}{\sigma^2 + \lambda}$ for $\sigma \ge 0$. Taking derivatives with respect to $\sigma$:
 \begin{equation}
     f'(\sigma) = \frac{(\sigma^2 + \lambda) - \sigma(2\sigma)}{(\sigma^2 + \lambda)^2} = \frac{\lambda - \sigma^2}{(\sigma^2 + \lambda)^2}.
 \end{equation}
-Setting $f'(\sigma) = 0$ yields the unique stationary critical point at $\sigma^* = \sqrt{\lambda}$. Evaluating $f(\sigma^*)$:
+Equating $f'(\sigma) = 0$ gives the unique critical point $\sigma^* = \sqrt{\lambda}$. Evaluating $f(\sigma^*)$ as:
 \begin{equation}
     f(\sqrt{\lambda}) = \frac{\sqrt{\lambda}}{(\sqrt{\lambda})^2 + \lambda} = \frac{\sqrt{\lambda}}{2\lambda} = \frac{1}{2\sqrt{\lambda}}.
 \end{equation}
-Because $f(0) = 0$ and $\lim_{\sigma \to \infty} f(\sigma) = 0$, $\sigma^* = \sqrt{\lambda}$ is the unique global maximum on $[0, \infty)$. Therefore, for any matrix $T$ with singular values $\{\sigma_i\}_{i=1}^K$, the spectral norm satisfies:
-\begin{equation}
-    \|T^{\dagger}_{\lambda}\|_2 = \max_{1 \le i \le K} f(\sigma_i) \le \sup_{\sigma \ge 0} f(\sigma) = \frac{1}{2\sqrt{\lambda}}.
-\end{equation}
-For forward loss $\mathcal{L}_{\mathrm{risk}}$, applying the chain rule gives $\nabla_\theta \mathcal{L}_{\mathrm{risk}} = \left(\nabla_{\tilde{\mathbf{p}}} \ell_{\mathrm{CE}}\right) T^T \nabla_\theta \mathbf{p}$. Since $T \in \mathbb{R}^{K \times K}$ is row-stochastic, $\|T\|_\infty = \max_i \sum_{j=1}^K T_{ij} = 1$, and its maximum column sum satisfies $\|T\|_1 = \max_j \sum_{i=1}^K T_{ij} \le K$. By the Riesz-Thorin interpolation theorem, the spectral norm satisfies $\|T\|_2 \le \sqrt{\|T\|_1 \|T\|_\infty} \le \sqrt{K}$. Hence $\|\nabla_\theta \mathcal{L}_{\mathrm{risk}}\| \le L_{\mathrm{loss}} \sqrt{K} \|\nabla_\theta \mathbf{p}\|$, completing the proof.
+As $f(0) = 0$ and $\lim_{\sigma \to \infty} f(\sigma) = 0$, then the unique global maximum on $[0, \infty)$ is $\sigma^* = \sqrt{\lambda}$. Thus, for any matrix $T$ with singular values $\{\sigma_i\}_{i=1}^K$, the spectral norm satisfies $\|T^{\dagger}_{\lambda}\|_2 = \max_i f(\sigma_i) \le \sup_{\sigma \ge 0} f(\sigma) = \frac{1}{2\sqrt{\lambda}}$. For forward loss $\mathcal{L}_{\mathrm{risk}}$, chain rule yields $\nabla_\theta \mathcal{L}_{\mathrm{risk}} = (\nabla_{\tilde{\mathbf{p}}} \ell_{\mathrm{CE}}) T^T \nabla_\theta \mathbf{p}$. Row-stochasticity ensures $\|T\|_\infty = 1$ and $\|T\|_1 \le K$, and therefore, $\|T\|_2 \le \sqrt{K}$, completing the proof.
 \end{proof}
 
 \begin{theorem}[Forward Surrogate Risk Consistency and Excess Clean Risk Bounds]
 \label{thm:consistency}
-Let $\mathcal{R}^*_{\mathrm{CE}}(f) = \mathbb{E}_{(X, Y^*)} [\ell_{\mathrm{CE}}(f(X), Y^*)]$ denote the Bayes risk over clean distribution $P(X, Y^*)$, and let $\hat{T}$ be the estimated anchor transition matrix satisfying Frobenius estimation error $\|\hat{T} - T^*\|_F \le \delta$. Let the forward-corrected surrogate loss be $\ell_{\mathrm{forward}}(f(X), \tilde{Y}; \hat{T}) = -\log (\hat{T}^T f(X))_{\tilde{Y}}$ with empirical risk $\hat{\mathcal{R}}_{\mathrm{forward}}(f; \hat{T}) = \frac{1}{N} \sum_{i=1}^N \ell_{\mathrm{forward}}(f(X_i), \tilde{Y}_i; \hat{T})$. Under Assumptions~\ref{ass:anchor} and~\ref{ass:bounded} with bounded logits and hypothesis Rademacher complexity $\mathfrak{R}_N(\mathcal{F}) \le \frac{C_{\mathcal{F}}}{\sqrt{N}}$:
+Denote $\mathcal{R}^*_{\mathrm{CE}}(f) = \mathbb{E}_{(X, Y^*)} [\ell_{\mathrm{CE}}(f(X), Y^*)]$ to be the Bayes risk over clean distribution $P(X, Y^*)$, and denote $\hat{T}$ to be the estimated anchor transition matrix such that Frobenius estimation error $\|\hat{T} - T^*\|_F \le \delta$. The forward-corrected surrogate loss is $\ell_{\mathrm{forward}}(f(X), \tilde{Y}; \hat{T}) = -\log (\hat{T}^T f(X))_{\tilde{Y}}$, and empirical risk is $\hat{\mathcal{R}}_{\mathrm{forward}}(f; \hat{T})$. Under Assumptions~\ref{ass:anchor} and~\ref{ass:bounded} with bounded logits and hypothesis Rademacher complexity $\mathfrak{R}_N(\mathcal{F}) \le \frac{C_{\mathcal{F}}}{\sqrt{N}}$:
 \begin{enumerate}
-    \item \textbf{Minimizer Invariance}: While expected surrogate forward risk and clean Bayes risk differ by the additive irreducible label transition entropy gap $\Delta_H \triangleq \mathbb{E}_X [H(T^{*T}\mathbf{p}^*(X)) - H(\mathbf{p}^*(X))] \ge 0$, their unique global minimizers coincide at $f^*(X) = \mathbf{p}^*(X) = P(Y^* \mid X)$.
-    \item \textbf{Excess Clean Risk Consistency}: For empirical surrogate minimizer $\hat{f} = \arg\min_{f \in \mathcal{F}} \hat{\mathcal{R}}_{\mathrm{forward}}(f; \hat{T})$, the clean excess risk $\mathcal{E}^*(\hat{f}) \triangleq \mathcal{R}^*(\hat{f}) - \min_f \mathcal{R}^*(f)$ satisfies:
+    \item \textbf{Minimizer Invariance}: Even though the difference between the surrogate forward risk and Bayes risk is the irreducible label transition entropy gap $\Delta_H \triangleq \mathbb{E}_X [H(T^{*T}\mathbf{p}^*(X)) - H(\mathbf{p}^*(X))] \ge 0$, their minimizers are identical to each other, i.e., $f^*(X) = \mathbf{p}^*(X) = P(Y^* \mid X)$.
+    \item \textbf{Excess Clean Risk Consistency}: For empirical surrogate minimizer $\hat{f} = \arg\min_f \hat{\mathcal{R}}_{\mathrm{forward}}(f; \hat{T})$, the clean excess risk $\mathcal{E}^*(\hat{f}) = \mathcal{R}^*(\hat{f}) - \min \mathcal{R}^*(f)$ is such that:
     \begin{equation}
         \mathcal{E}^*(\hat{f}) \le \frac{L_{\mathrm{CE}}}{\sigma_0} \delta + \mathcal{O}\left(\frac{1}{\sqrt{N}}\right),
     \end{equation}
@@ -199,18 +201,19 @@ Let $\mathcal{R}^*_{\mathrm{CE}}(f) = \mathbb{E}_{(X, Y^*)} [\ell_{\mathrm{CE}}(
 \end{theorem}
 
 \begin{proof}
-For Part 1, by the law of total expectation conditioned on $X$:
+For Part 1, by the law of total expectation given $X$:
 \begin{align}
-    \mathbb{E}_{\tilde{Y}|X}[\ell_{\mathrm{forward}}(f(X), \tilde{Y}; T^*)] &= -\sum_{j=1}^K P(\tilde{Y}=j \mid X) \log (T^{*T} f(X))_j \nonumber \\
+    \mathbb{E}_{\tilde{Y}|X}&\left[\ell_{\mathrm{forward}}(f(X), \tilde{Y}; T^*)\right] \nonumber \\
+    &= -\sum_{j=1}^K P(\tilde{Y}=j \mid X) \log (T^{*T} f(X))_j \nonumber \\
     &= H(T^{*T} \mathbf{p}^*(X)) + D_{\mathrm{KL}}(T^{*T} \mathbf{p}^*(X) \parallel T^{*T} f(X)),
 \end{align}
 where $\mathbf{p}^*(X) = P(Y^* \mid X)$. For clean Bayes risk:
 \begin{equation}
     \mathcal{R}^*(f) = \mathbb{E}_X [H(\mathbf{p}^*(X)) + D_{\mathrm{KL}}(\mathbf{p}^*(X) \parallel f(X))].
 \end{equation}
-Both attain minimal risk when the KL divergence vanishes: $D_{\mathrm{KL}}(T^{*T}\mathbf{p}^* \parallel T^{*T}f) = 0 \iff T^{*T}f(X) = T^{*T}\mathbf{p}^*(X)$. By Assumption~\ref{ass:bounded}, $\sigma_{\min}(T^*) \ge \sigma_0 > 0$, so $T^{*T}$ is strictly invertible, yielding $f^*(X) = \mathbf{p}^*(X)$ uniquely. The baseline risks differ solely by the hypothesis-independent constant $\Delta_H = \mathbb{E}_X [H(T^{*T}\mathbf{p}^*(X)) - H(\mathbf{p}^*(X))]$.
+Both attain minimum risk for zero KL divergence: $D_{\mathrm{KL}}(T^{*T} \mathbf{p}^* \parallel T^{*T} f) = 0 \iff T^{*T} f(X) = T^{*T} \mathbf{p}^*(X)$. Since $\sigma_{\min}(T^*) \ge \sigma_0 > 0$, then $T^{*T}$ is strictly invertible resulting in $f^*(X) = \mathbf{p}^*(X)$. The base risks differ only by a constant $\Delta_H$ independent of hypotheses.
 
-For Part 2, for any candidate $f$, clean excess risk is $\mathcal{E}^*(f) = \mathbb{E}_X [D_{\mathrm{KL}}(\mathbf{p}^*(X) \parallel f(X))]$. By Pinsker's inequality and non-singularity $\|T^{*T}\mathbf{v}\|_2 \ge \sigma_0 \|\mathbf{v}\|_2$:
+For Part 2: For all $f$, clean excess risk is given by $\mathcal{E}^*(f) = \mathbb{E}_X [D_{\mathrm{KL}}(\mathbf{p}^*(X) \parallel f(X))]$. By Pinsker's inequality and non-singularity $\|T^{*T}\mathbf{v}\|_2 \ge \sigma_0 \|\mathbf{v}\|_2$:
 \begin{equation}
     \|\mathbf{p}^*(X) - f(X)\|_1 \le \frac{1}{\sigma_0} \|T^{*T}(\mathbf{p}^*(X) - f(X))\|_1.
 \end{equation}
@@ -225,22 +228,22 @@ For Part 3, decomposing regularized pseudo-inverse perturbation:
     \|\hat{T}^{\dagger}_\lambda - (T^*)^{-1}\|_2 &\le \|\hat{T}^{\dagger}_\lambda - T^{*\dagger}_\lambda\|_2 + \|T^{*\dagger}_\lambda - (T^*)^{-1}\|_2 \nonumber \\
     &\le \frac{\delta}{\sqrt{\lambda}} + \frac{\lambda}{\sigma_0(\sigma_0^2 + \lambda)},
 \end{align}
-where $\|\hat{T}^{\dagger}_\lambda - T^{*\dagger}_\lambda\|_2 \le \frac{1}{\sqrt{\lambda}} \|\hat{T} - T^*\|_2 \le \frac{\delta}{\sqrt{\lambda}}$ via the Lipschitz resolvent mapping, and the regularization bias satisfies $\|T^{*\dagger}_\lambda - (T^*)^{-1}\|_2 = \|\lambda (T^{*T} T^* + \lambda I)^{-1} (T^*)^{-1}\|_2 \le \frac{\lambda}{\sigma_0^2 + \lambda} \frac{1}{\sigma_0}$, completing the proof.
+completing the proof.
 \end{proof}
 
 \subsection{Formal Mathematical Definitions of Evaluation Metrics}
 To ensure rigorous reproducibility and unambiguous benchmarking:
 \begin{itemize}
-    \item \textbf{Recall@K \& nDCG@K}: Standard top-$K$ ranking accuracy metrics evaluated against held-out ground truth test interactions $\mathcal{I}_u^{\text{test}}$.
-    \item \textbf{Raw Long-Tail Coverage (LTC@K)}: The fraction of unique tail catalog items $\mathcal{I}_{\text{tail}}$ recommended across all users:
+    \item \textbf{Recall@K \& nDCG@K}: Standard top $K$ ranking accuracy metrics are evaluated against ground truth test interactions.
+    \item \textbf{Raw Long-Tail Coverage (LTC@K)}: The fraction of unique tail catalog items that are recommended across all users:
     \begin{equation}
         \text{LTC@K} = \frac{|\bigcup_{u \in \mathcal{U}} \text{TopK}(u) \cap \mathcal{I}_{\text{tail}}|}{|\mathcal{I}_{\text{tail}}|}.
     \end{equation}
-    \item \textbf{Genuine Long-Tail Coverage ($g$-LTC@K)}: Catalog coverage of authentic long-tail items excluding injected attack targets $\mathcal{I}_{\text{target}}$:
+    \item \textbf{Genuine Long-Tail Coverage ($g$-LTC@K)}: Catalog coverage of authentic long tail items excluding injected attack targets:
     \begin{equation}
         g\text{-LTC@K} = \frac{|\bigcup_{u \in \mathcal{U}} \text{TopK}(u) \cap (\mathcal{I}_{\text{tail}} \setminus \mathcal{I}_{\text{target}})|}{|\mathcal{I}_{\text{tail}} \setminus \mathcal{I}_{\text{target}}|}.
     \end{equation}
-    \item \textbf{Spam Target Exposure Rate (STER@K)}: Fraction of designated attack target items forced into user recommendation lists:
+    \item \textbf{Spam Target Exposure Rate (STER@K)}: Fraction of designated attack target items which are forced into user recommendation lists:
     \begin{equation}
         \text{STER@K} = \frac{|\bigcup_{u \in \mathcal{U}} \text{TopK}(u) \cap \mathcal{I}_{\text{target}}|}{|\mathcal{I}_{\text{target}}|}.
     \end{equation}
@@ -263,17 +266,17 @@ To ensure rigorous reproducibility and unambiguous benchmarking:
 \begin{figure*}[!t]
 \centering
 \includegraphics[width=0.80\textwidth]{figures/fig2_mirf_pipeline.pdf}
-\caption{Architecture of the Multi-view Interaction Reliability Filter (MIRF), showing the synthesis of statistical prediction divergence ($R_{\text{RRFN}}$), prompt-audited LLM review text analysis ($R_{\text{LLM}}$), and vectorized burst detection ($R_{\text{bomb}}$) to compute sample-level trust weights $w_i$.}
+\caption{Architecture of the Multi view Interaction Reliability Filter (MIRF), showing the synthesis of statistical prediction divergence ($R_{\text{RRFN}}$), prompt-audited LLM review text analysis ($R_{\text{LLM}}$), and vectorized burst detection ($R_{\text{bomb}}$) to compute sample-level trust weights $w_i$.}
 \label{fig:mirf_pipeline}
 \end{figure*}
 
 \section{The RRFN-LLM-SUPER Methodology}
 \label{sec:methodology}
 
-The RRFN-LLM-SUPER architecture proceeds through five interconnected stages, detailed below.
+The RRFN-LLM-SUPER architecture proceeds through five interconnected stages, detailed below:
 
 \subsection{Stage 1: Anchor Selection \& Tikhonov Noise Inversion}
-We identify anchor subset $\mathcal{A}_{\text{clean}} \subset \mathcal{I}$ satisfying Assumption~\ref{ass:anchor}. For rating classes $k \in \{1, \dots, K\}$, row vectors $T_{k,:}$ are estimated via consensus kernel density estimation. The risk-consistent loss regularized against anchor prior $\hat{T}$ is:
+We consider anchor set $\mathcal{A}_{\text{clean}} \subset \mathcal{I}$, which satisfies Assumption~\ref{ass:anchor}. For each rating group $k \in \{1, \dots, K\}$, row vector $T_{k,:}$ is estimated by consensus kernel density estimation. Loss function with risk-consistency regularization based on anchor prior $\hat{T}$ is:
 \begin{equation}
     \mathcal{L}_{\text{risk}} = \frac{1}{\sum_i w_i} \sum_{i=1}^B w_i \cdot \ell_{\text{CE}}\left(T^T \mathbf{p}_i, \tilde{\mathbf{y}}_i\right) + \beta_{\text{reg}} \|T - \hat{T}\|_F^2.
 \end{equation}
@@ -286,29 +289,27 @@ MIRF synthesizes three complementary signal views:
     R_{\text{RRFN}}(u, i) = \exp\left(-\frac{|\tilde{r}_{ui} - \mathbb{E}_{\mathbf{p}(u,i)}[Y^*]|^2}{2 \sigma_{\text{RRFN}}^2}\right).
 \end{equation}
 
-\textbf{2. LLM Semantic Review Text Auditing ($R_{\text{LLM}}$)}:
-When review text $S_{ui}$ is available, prompt auditing verifies sentiment alignment and bot phrasing:
+\textbf{2. LLM Semantic Review Text Auditing ($R_{\text{LLM}}$)}: When review text $S_{ui}$ is available, prompt auditing verifies sentiment alignment and bot phrasing:
 \begin{equation}
     R_{\text{LLM}}(u, i) = \text{LLM\_Audit}(S_{ui}, \tilde{r}_{ui}) \in [0, 1].
 \end{equation}
-Results are indexed in a local SQLite database configured with Write-Ahead Logging (\texttt{PRAGMA journal\_mode=WAL}) for $\mathcal{O}(1)$ lookup.
+Results are indexed in a local SQLite database configured with Write Ahead Logging (\texttt{PRAGMA journal\_mode=WAL}) for $\mathcal{O}(1)$ lookup.
 
-\textbf{3. Vectorized Review-Bombing Burst Detection ($R_{\text{bomb}}$)}:
+\textbf{3. Vectorized Review Bombing Burst Detection ($R_{\text{bomb}}$)}:
 \begin{equation}
     R_{\text{bomb}}(u, i) = 1 - \sigma\left(\omega_1 Z_{\text{temp}}(i, t) + \omega_2 S_{\text{pol}}(i, t) - \theta_{\text{bomb}}\right),
 \end{equation}
-where $Z_{\text{temp}}$ is rolling temporal acceleration and $S_{\text{pol}} = \frac{|N_1 - N_5|}{N_1 + N_5 + \epsilon}$ is polarity skew, computed simultaneously via 2D NumPy array matrix multiplication ($W @ X$, measured $4.95\,$ms latency for 42K interactions, $>500\times$ speedup over nested Python loops).
+Where $Z_{\text{temp}}$ represents rolling temporal acceleration and $S_{\text{pol}} = \frac{|N_1 - N_5|}{N_1 + N_5 + \epsilon}$ denotes polarity skew, calculated simultaneously by 2D NumPy array matrix multiplication ($W @ X$), observed to have $4.95\,$ms latency in 42K interactions ($>500$ times faster than nested Python loops).
 
-\textbf{MIRF Signal Synthesis and Detection Metric Formulation}:
-The unified interaction reliability weight $w_{ui} = R_{\text{MIRF}}(u, i) \in [0, 1]$ is computed as:
+\textbf{MIRF Signal Synthesis and Detection Metric Formulation}: The unified interaction reliability weight $w_{ui} = R_{\text{MIRF}}(u, i) \in [0, 1]$ is computed as:
 \begin{equation}
     w_{ui} = \alpha R_{\text{RRFN}}(u, i) + \beta R_{\text{LLM}}(u, i) + \gamma R_{\text{bomb}}(u, i),
 \end{equation}
-where $\alpha + \beta + \gamma = 1$. When evaluating interaction reliability on graph edges:
+where $\alpha + \beta + \gamma = 1$. For evaluation of interaction reliability on graph edges:
 \begin{itemize}
-    \item \textbf{Attack Detection Task}: The positive class ($y_{\text{attack}}=1$) corresponds to injected attack ratings, scored by anomaly confidence $s_{ui} = 1 - w_{ui}$. On Amazon ($\pi_{\text{edge}} = 17.40\%$), MIRF achieves $\text{AP}_{\text{attack}} = \mathbf{0.6884 \pm 0.0185}$ ($3.9\times$ above the $0.1748$ random baseline). On Yelp ($\pi_{\text{edge}} = 15.72\%$), MIRF achieves $\text{AP}_{\text{attack}} = \mathbf{0.6816 \pm 0.0239}$ ($4.3\times$ above the $0.1572$ random baseline). On MovieLens-1M (899 attack edges in 238,320 total interactions, $\pi_{\text{edge}} = 0.38\%$), $\text{AP}_{\text{attack}} = \mathbf{0.0122 \pm 0.0021}$ ($3.2\times$ above random baseline $0.0038$).
-    \item \textbf{Authentic Retention Task}: Evaluating the preservation of authentic interactions ($y_{\text{auth}}=1$, score $w_{ui}$) yields $\text{AP}_{\text{auth}} = \mathbf{0.9989 \pm 0.0000}$ on MovieLens-1M (with Authentic Retention F1 = $\mathbf{0.9513 \pm 0.0010}$, Precision = $0.9225$, Recall = $0.9820$), $\mathbf{0.9295 \pm 0.0065}$ on Amazon, and $\mathbf{0.9491 \pm 0.0019}$ on Yelp.
-    \item \textbf{Discrimination ROC-AUC}: Symmetric ranking discrimination achieves $\mathbf{0.7931 \pm 0.0038}$ on MovieLens-1M, $\mathbf{0.7867 \pm 0.0208}$ on Amazon, and $\mathbf{0.7961 \pm 0.0232}$ on Yelp (Figure~\ref{fig:roc_pr}).
+    \item \textbf{Attack Detection Task}: Positive class ($y_{\text{attack}}=1$) refers to attack ratings. Anomaly confidence is measured by $s_{ui} = 1 - w_{ui}$. For Amazon ($\pi_{\text{edge}} = 17.40\%$), MIRF obtains $\text{AP}_{\text{attack}} = \mathbf{0.6884 \pm 0.0185}$ ($3.9\times$ higher than the $0.1748$ random baseline). For Yelp ($\pi_{\text{edge}} = 15.72\%$), MIRF obtains $\text{AP}_{\text{attack}} = \mathbf{0.6816 \pm 0.0239}$ ($4.3\times$ higher than the $0.1572$ random baseline). For MovieLens-1M (899 attack edges out of 238,320 interactions, $\pi_{\text{edge}} = 0.38\%$), $\text{AP}_{\text{attack}} = \mathbf{0.0122 \pm 0.0021}$ ($3.2\times$ higher than random baseline $0.0038$).
+    \item \textbf{Authentic Retention Task}: Evaluation of preserving authentic interactions ($y_{\text{auth}}=1$, score $w_{ui}$) results in $\text{AP}_{\text{auth}} = \mathbf{0.9989 \pm 0.0000}$ on MovieLens-1M (with Authentic Retention F1 = $\mathbf{0.9513 \pm 0.0010}$, Precision = $0.9225$, Recall = $0.9820$), $\mathbf{0.9295 \pm 0.0065}$ on Amazon, and $\mathbf{0.9491 \pm 0.0019}$ on Yelp.
+    \item \textbf{Discrimination ROC-AUC}: Symmetric ranking discrimination gives $\mathbf{0.7931 \pm 0.0038}$ on MovieLens-1M, $\mathbf{0.7867 \pm 0.0208}$ on Amazon, and $\mathbf{0.7961 \pm 0.0232}$ on Yelp.
 \end{itemize}
 
 \begin{figure}[!t]
@@ -326,7 +327,7 @@ where $\alpha + \beta + \gamma = 1$. When evaluating interaction reliability on 
 \end{figure}
 
 \subsection{Stage 3: Graph Contrastive Learning \& Dual Models}
-Let $\mathbf{e}_u, \mathbf{e}_i \in \mathbb{R}^d$ denote graph representations. SimGCL views inject latent uniform noise $\mathbf{z}_i' = \mathbf{e}_i + \epsilon \cdot \text{sgn}(\mathbf{e}_i) \odot \Delta'$, while SGL views apply structural edge dropout $\hat{A}' = (M' \odot A) D'^{-1}$.
+Let $\mathbf{e}_u, \mathbf{e}_i \in \mathbb{R}^d$ denote graph embeddings. SimGCL views inject uniform noise $\mathbf{z}_i' = \mathbf{e}_i + \epsilon \cdot \text{sgn}(\mathbf{e}_i) \odot \Delta'$, while SGL views apply structural edge dropping $\hat{A}' = (M' \odot A) D'^{-1}$.
 
 \textbf{Risk-Aware InfoNCE Loss}:
 \begin{equation}
@@ -334,8 +335,7 @@ Let $\mathbf{e}_u, \mathbf{e}_i \in \mathbb{R}^d$ denote graph representations. 
 \end{equation}
 Poisoned interactions ($w_i \to 0$) contribute zero pull force in contrastive alignment.
 
-\textbf{Dual Partition Training}:
-The catalog is partitioned at $\rho_{\text{pareto}} = 0.20$ into $\mathcal{I}_{\text{head}}$ and $\mathcal{I}_{\text{tail}}$. Head model $M_{\text{pop}}$ is trained under $\mathcal{L}_{\text{risk}}^{\text{head}} + \lambda_{\text{cl}} \mathcal{L}_{\text{cl}}^{\text{head}}$, and tail model $M_{\text{tail}}$ is trained under $\mathcal{L}_{\text{risk}}^{\text{tail}} + \lambda_{\text{cl}} \mathcal{L}_{\text{cl}}^{\text{tail}}$.
+\textbf{Dual Partition Training}: The catalog is split according to $\rho_{\text{pareto}} = 0.20$ in $\mathcal{I}_{\text{head}}$ and $\mathcal{I}_{\text{tail}}$. The head model $M_{\text{pop}}$ is trained using $\mathcal{L}_{\text{risk}}^{\text{head}} + \lambda_{\text{cl}} \mathcal{L}_{\text{cl}}^{\text{head}}$, while the tail model $M_{\text{tail}}$ is trained using $\mathcal{L}_{\text{risk}}^{\text{tail}} + \lambda_{\text{cl}} \mathcal{L}_{\text{cl}}^{\text{tail}}$.
 
 \begin{figure}[!t]
 \centering
@@ -360,7 +360,7 @@ Personalized tail inclination is computed with normalized reliability weights:
 \begin{equation}
     \alpha_u = \frac{\sum_{i \in B_u \cap \mathcal{I}_{\text{tail}}} w_{ui}}{\sum_{i \in B_u} w_{ui} + \epsilon_{\text{smooth}}}.
 \end{equation}
-To minimize Mean Rank Miscalibration (MRMC), recommendations are assembled using rank-calibrated trajectory interleaving, dynamically selecting between Head ($\mathcal{C}_{\text{head}} \setminus B_u$) and Tail ($\mathcal{C}_{\text{tail}} \setminus B_u$) candidate queues at each rank $k \in \{1, \dots, K\}$ to continuously track cumulative inclination $\alpha_u$.
+To minimize Mean Rank Miscalibration (MRMC), recommendations are assembled using rank calibrated trajectory interleaving, dynamically selecting between Head ($\mathcal{C}_{\text{head}} \setminus B_u$) and Tail ($\mathcal{C}_{\text{tail}} \setminus B_u$) candidate queues at each rank $k \in \{1, \dots, K\}$ to continuously track cumulative inclination $\alpha_u$.
 
 \begin{table*}[!t]
 \caption{Detailed 14-Dimension Architectural Comparison between Standalone SUP~\cite{yang2022super} and RRFN-LLM-SUPER (Ours).}
@@ -394,6 +394,23 @@ To minimize Mean Rank Miscalibration (MRMC), recommendations are assembled using
 \label{sec:experiments}
 
 \subsection{Experimental Setup, Datasets \& Multi-Seed Protocol}
+Exact Dataset Specifications:
+\begin{enumerate}
+    \item \textbf{MovieLens-1M benchmark sub-graph}: Derived from GroupLens MovieLens-1M (1,000,209 ratings by 6,040 users of 3,900 movies). Processed using $k$-core iterative pruning ($k_{\text{user}} \ge 10, k_{\text{item}} \ge 5$). The sub-graph includes the most 300 active users and contains $|\mathcal{U}| = 300$ users, $|\mathcal{I}| = 3,405$ items (208 Head items, 3,197 Tail items in Pareto ratio $\rho = 0.20$) and 237,421 clean training interactions. Modalities: Discrete rating (1--5), timestamp, movie genres. No review text available; MIRF weights adjust dynamically to ($\alpha = 0.55, \beta = 0.00, \gamma = 0.45$).
+    \item \textbf{Amazon Reviews (Electronics) sub-graph}~\cite{ni2019justifying}: 5-core filtered ecommerce sub-graph ($|\mathcal{U}| = 60$ users, $|\mathcal{I}| = 81$ items, 888 train interactions), constructed to act as a dense multi-modal prototype in order to test LLM review verification with controlled API caching. Tested using SimGCL backbone ($\lambda_{\text{cl}} = 0.15, \tau = 0.15$, 8 dual epochs on CUDA). Modalities: Ratings, timestamps, natural language review text ($\alpha = 0.40, \beta = 0.30, \gamma = 0.30$).
+    \item \textbf{Yelp Academic sub-graph}: 5-core filtered local business sub-graph ($|\mathcal{U}| = 70$ users, $|\mathcal{I}| = 100$ items, 1,152 train interactions), tested using SGL backbone ($\lambda_{\text{cl}} = 0.15, \tau = 0.15$, 8 dual epochs on CUDA). Modalities: Ratings, timestamps, dense text reviews ($\alpha = 0.40, \beta = 0.30, \gamma = 0.30$).
+\end{enumerate}
+
+\textbf{Data Partitioning and Strict Zero-Leakage Adversarial Attack Injection}: Data partitioning is performed strictly before adversarial attack injection using leave-one-out temporal order for each user $u \in \mathcal{U}$, where their last interaction is taken to the test set $\mathcal{I}_u^{\text{test}}$, second-last interaction to the validation set $\mathcal{I}_u^{\text{val}}$, and all other interactions to the training graph $\mathcal{G}_{\text{train}}$. Adversarial shilling attacks are injected only into the training graph $\mathcal{G}_{\text{train}}$ after temporal splitting. Validation and test sets remain strictly clean and untouched to ensure zero test set leakage or contamination with synthetic labels.
+
+\textbf{Protocol for Adversarial Attacks Generation}: To assess the robustness of the defense against adversarial attacks, we consider three different types of adversarial campaigns:
+\begin{itemize}
+    \item \textbf{Bandwagon Shilling Campaigns ($\rho \in [0.05, 0.25]$)}: When $\rho = 0.15$, number of shills $N_{\text{shill}} = \lceil \rho |\mathcal{U}| \rceil$ is generated. Every shill profile generates 5-star ratings on the target tail items $\mathcal{I}_{\text{target}} \subset \mathcal{I}_{\text{tail}}$ in order to increase their exposure, 4- and 5-star ratings on the top popular anchor items $\mathcal{I}_{\text{push}} \subset \mathcal{I}_{\text{head}}$ to mask their profile, and randomly generated filler ratings from normal distribution $\mathcal{N}(\mu_r, \sigma_r^2)$.
+    \item \textbf{Random Rating Noise ($\eta \in [0.05, 0.20]$)}: Uniformly distributed symmetric noise in ratings.
+    \item \textbf{Review-Bombing Nuke Campaigns}: Coordinated negative rating bursts concentrated on competitor items within narrow time windows ($Z_{\text{temp}} > 2.5, S_{\text{pol}} > 0.70$).
+\end{itemize}
+
+\textbf{Multi-Seed Repeated Evaluation Setup}: In order to achieve absolute empirical reproducibility and rigorous statistics, all the experiments on all three datasets and all backbones are conducted on $S = 5$ independent random seeds ($S = \{42, 43, 44, 45, 46\}$). We report empirical mean and standard deviation across all 5 trials ($\text{Mean} \pm \text{Std}$). Significance level is calculated by means of two-tailed paired Student's $t$-test (degrees of freedom $df = 4$) between RRFN-LLM-SUPER and the attacked model ($^*p < 0.05$).
 
 \begin{table*}[!t]
 \caption{Dataset Characteristics, Graph Topology, and Bandwagon Attack Injection Statistics.}
@@ -411,28 +428,6 @@ Yelp Academic & Business Reviews & $k_u \ge 5, k_i \ge 5$ & 70 & 100 & 1,152 & 7
 \bottomrule
 \end{tabular}}
 \end{table*}
-
-\textbf{Exact Dataset Specifications}:
-As summarized in Table~\ref{tab:dataset_topology}:
-\begin{enumerate}
-    \item \textbf{MovieLens-1M Benchmark Sub-Graph}: Sourced from GroupLens MovieLens-1M ($1,000,209$ ratings from $6,040$ users across $3,900$ movies). Processed via iterative $k$-core pruning ($k_{\text{user}} \ge 10, k_{\text{item}} \ge 5$). The top 300 active users are sampled for the dense evaluation sub-graph, yielding $|\mathcal{U}| = 300$ users, $|\mathcal{I}| = 3,405$ items ($208$ Head items, $3,197$ Tail items under Pareto ratio $\rho=0.20$), and $237,421$ clean training interactions. Modalities: discrete ratings ($1$--$5$), timestamps, movie genres. Review text is absent; MIRF weights dynamically configure to $(\alpha=0.55, \beta=0.00, \gamma=0.45)$.
-    \item \textbf{Amazon Reviews (Electronics) Sub-Graph}~\cite{ni2019justifying}: 5-core filtered e-commerce evaluation sub-graph ($|\mathcal{U}| = 60$ users, $|\mathcal{I}| = 81$ items, $888$ train interactions), structured as a dense multi-modal prototype to evaluate LLM review verification under controlled API caching. Evaluated with SimGCL backbone ($\lambda_{\text{cl}}=0.15, \tau=0.15$, 8 dual epochs on CUDA). Modalities: ratings, timestamps, and full natural language review text ($\alpha=0.40, \beta=0.30, \gamma=0.30$).
-    \item \textbf{Yelp Academic Sub-Graph}: 5-core filtered local business evaluation sub-graph ($|\mathcal{U}| = 70$ users, $|\mathcal{I}| = 100$ items, $1,152$ train interactions), evaluated with SGL backbone ($\lambda_{\text{cl}}=0.15, \tau=0.15$, 8 dual epochs on CUDA). Modalities: ratings, timestamps, dense text reviews ($\alpha=0.40, \beta=0.30, \gamma=0.30$).
-\end{enumerate}
-
-\textbf{Data Partitioning and Strict Zero-Leakage Attack Injection}:
-Data partitioning is executed strictly prior to attack injection using leave-one-out temporal ordering: for each user $u \in \mathcal{U}$, their chronologically final interaction is assigned to the test set $\mathcal{I}_u^{\text{test}}$, their penultimate interaction to the validation set $\mathcal{I}_u^{\text{val}}$, and all preceding interactions to the training graph $\mathcal{G}_{\text{train}}$. Adversarial shilling attacks are injected exclusively into $\mathcal{G}_{\text{train}}$ after temporal splitting. The validation and test sets remain strictly uncorrupted and held-out, ensuring zero test set leakage or synthetic label contamination.
-
-\textbf{Adversarial Attack Generation Protocol}:
-We evaluate defense robustness across three distinct adversarial campaign families:
-\begin{itemize}
-    \item \textbf{Bandwagon Shilling Campaigns ($\rho \in [0.05, 0.25]$)}: For attack injection ratio $\rho = 0.15$, $N_{\text{shill}} = \lceil \rho |\mathcal{U}| \rceil$ synthetic bot user profiles are generated. Each bot injects 5-star ratings on target tail items $\mathcal{I}_{\text{target}} \subset \mathcal{I}_{\text{tail}}$ to push their exposure, 4- and 5-star ratings on top popular anchor items $\mathcal{I}_{\text{push}} \subset \mathcal{I}_{\text{head}}$ to camouflage bot profiles, and filler ratings sampled from empirical rating distribution $\mathcal{N}(\mu_r, \sigma_r^2)$ to evade standard variance filters.
-    \item \textbf{Random Rating Noise ($\eta \in [0.05, 0.20]$)}: Symmetric uniform rating perturbations modeling non-coordinated random rating noise.
-    \item \textbf{Review-Bombing Nuke Campaigns}: Coordinated negative rating bursts concentrated on competitor items within narrow temporal windows ($Z_{\text{temp}} > 2.5, S_{\text{pol}} > 0.70$).
-\end{itemize}
-
-\textbf{Multi-Seed Repeated Evaluation Protocol}:
-To ensure absolute empirical reproducibility and statistical rigour, all experiments across all three datasets and backbones are executed over $S=5$ independent random seeds ($S = \{42, 43, 44, 45, 46\}$). We report the empirical sample mean and sample standard deviation ($\text{Mean} \pm \text{Std}$) across all 5 runs. Statistical significance is computed via two-tailed paired Student's $t$-tests ($df=4$) comparing RRFN-LLM-SUPER against the attacked baseline across identical seeds ($^*p < 0.05$).
 
 \begin{table*}[!t]
 \caption{Empirical 5-Seed Benchmark Comparison across Baselines and RRFN-LLM-SUPER on MovieLens-1M Sub-Graph (CUDA, 15 Epochs, $\rho=0.15$ Bandwagon Attack, Seeds: 42--46).}
@@ -491,36 +486,27 @@ Vanilla SUPER (Attacked $\rho=0.15$) & $0.2147 \pm 0.0119$ & $0.1002 \pm 0.0121$
 \label{fig:dashboard_app}
 \end{figure*}
 
-\subsection{Main Benchmark Results \& Metric Trade-Off Analysis}
+\subsection{Main Benchmark Results \& Trade-Off Analysis}
 
-Tables~\ref{tab:movielens_benchmark} and~\ref{tab:multidomain_benchmark} report quantitative performance across all 5 random seeds.
-
-\textbf{1. Popularity Calibration Superiority (RMSE-PC and MRMC)}:
-Across all three datasets, RRFN-LLM-SUPER achieves statistically significant improvements in popularity calibration fidelity over attacked baselines:
+\textbf{1. Popularity Calibration Superiority (RMSE-PC and MRMC)}: For all three datasets, there is a statistically significant gain in popularity calibration fidelity for attacked data over attacked baselines:
 \begin{itemize}
-    \item \textbf{MovieLens-1M}: RMSE-PC decreases from $0.1111 \pm 0.0044$ to $\mathbf{0.1067 \pm 0.0056}$ ($p = 0.0166^*$), and MRMC decreases from $0.1159 \pm 0.0029$ to $\mathbf{0.1128 \pm 0.0034}$ ($p = 0.0088^*$).
-    \item \textbf{Amazon}: RMSE-PC decreases from $0.1605 \pm 0.0068$ to $\mathbf{0.1459 \pm 0.0050}$ ($p = 0.0068^*$).
-    \item \textbf{Yelp}: RMSE-PC decreases from $0.1236 \pm 0.0050$ to $\mathbf{0.1090 \pm 0.0004}$ ($p = 0.0026^*$), and MRMC decreases from $0.1164 \pm 0.0019$ to $\mathbf{0.1106 \pm 0.0013}$ ($p = 0.0006^*$).
+    \item \textbf{MovieLens-1M}: RMSE-PC improves from $0.1111 \pm 0.0044$ to $\mathbf{0.1067 \pm 0.0056}$ ($p = 0.0166^*$) and MRMC goes from $0.1159 \pm 0.0029$ to $\mathbf{0.1128 \pm 0.0034}$ ($p = 0.0088^*$).
+    \item \textbf{Amazon (SimGCL)}: RMSE-PC goes from $0.1605 \pm 0.0068$ to $\mathbf{0.1459 \pm 0.0050}$ ($p = 0.0068^*$).
+    \item \textbf{Yelp (SGL)}: RMSE-PC is reduced from $0.1236 \pm 0.0050$ to $\mathbf{0.1090 \pm 0.0004}$ ($p = 0.0026^*$), and MRMC decreases from $0.1164 \pm 0.0019$ to $\mathbf{0.1106 \pm 0.0013}$ ($p = 0.0006^*$).
 \end{itemize}
 
-\textbf{2. Resolution of Deceptive Tail Inflation vs. Genuine LTC}:
-A central empirical contribution of our work is resolving the apparent contradiction in raw catalog coverage under shilling attacks:
+\textbf{2. Purging Deceptive Tail Inflation vs. Genuine LTC}: Bandwagon attacks introduce the inflation of LTC@10 from $0.1428$ to $0.1575$ on MovieLens dataset, since bots generate huge volumes of interaction w.r.t. low degree items. Yet when calculating the Spam Target Exposure Rate (STER@10) metric, one can see that it was a deceiving improvement since 88\% of target items are exposed under Attacked Vanilla SUPER. RRFN-LLM-SUPER filters out corrupted interactions ($w_{ui} \to 0.02$) and therefore reduces spam exposure from $88.0\%$ to $72.0\%$ on MovieLens-1M and from $48.0\%$ to $40.0\%$ on Amazon.
+
+Note that RRFN-LLM-SUPER significantly outperforms all baselines in terms of genuine long-tail coverage ($g$-LTC@10), which is the coverage of unattacked genuine tail items: Amazon $g$-LTC@10 goes from $0.4506 \pm 0.1275$ to $\mathbf{0.5155 \pm 0.0807}$ ($+14.4\%$), while Yelp $g$-LTC@10 goes from $0.3371 \pm 0.0693$ to $\mathbf{0.4202 \pm 0.0333}$ ($p = 0.0397^*$, $+24.7\%$ more genuine discoveries).
+
+\textbf{3. Attack Denoising Detection Precision \& ROC Unified}: In order to avoid any possible confusion due to ambiguous metrics, we assess MIRF using two mutually complementary viewpoints of the edge attacks:
 \begin{itemize}
-    \item In bandwagon attacks, injected bot profiles give 5-star ratings to designated target items $\mathcal{I}_{\text{target}}$. Because un-denoised Vanilla SUPER treats all observed interactions as genuine user interest, it ingests these fake interactions into blueprints $B_u$, forcing the attacker's spam target items into user feeds ($\text{STER@10} = 88.0\%$ on MovieLens-1M). This artificially inflates ``raw LTC@10'' by spamming users.
-    \item In contrast, \textbf{RRFN-LLM-SUPER purges these poisoned edges} ($w_{ui} \approx 0.02-0.05$), reducing spam exposure STER@10 from $88.0\%$ back to the clean baseline level of $72.0\%$ on MovieLens-1M and from $48.0\%$ to $40.0\%$ on Amazon.
-    \item Crucially, when evaluating \textbf{Genuine Long-Tail Coverage ($g$-LTC@10)}—the coverage of non-attacked authentic tail items—RRFN-LLM-SUPER strictly outperforms attacked baselines: on Amazon, $g$-LTC@10 increases from $0.4506 \pm 0.1275$ to $\mathbf{0.5155 \pm 0.0807}$ ($+14.4\%$), and on Yelp, $g$-LTC@10 increases from $0.3371 \pm 0.0693$ to $\mathbf{0.4202 \pm 0.0333}$ ($p = 0.0397^*$, $+24.7\%$ higher genuine discovery).
+    \item \textbf{Attack detection ($\text{AP}_{\text{attack}}$)}: Evaluates the ability to detect minority injected attack ratings ($y = 1$ for attacks, measured by $1 - w_{ui}$). On Amazon ($\pi_{\text{edge}} = 17.40\%$), MIRF achieves $\text{AP}_{\text{attack}} = \mathbf{0.6884 \pm 0.0185}$, which is a $3.9\times$ improvement over the random baseline $\text{AP}_{\text{rand}} = 0.1748$. On Yelp ($\pi_{\text{edge}} = 15.72\%$), MIRF achieves $\text{AP}_{\text{attack}} = \mathbf{0.6816 \pm 0.0239}$ ($4.3\times$ over the $0.1572$ random baseline). On MovieLens-1M dataset (899 attack edges out of 238,320 total interactions, $\pi_{\text{edge}} = 0.38\%$), MIRF achieves $\text{AP}_{\text{attack}} = \mathbf{0.0122 \pm 0.0021}$ ($3.2\times$ above the random baseline $0.0038$).
+    \item \textbf{Authentic Retention ($\text{AP}_{\text{auth}}$ and $\text{F1}_{\text{auth}}$)}: Measures preservation of authentic interactions ($y = 1$ for clean interactions; scored by $w_{ui}$). Results in $\text{AP}_{\text{auth}} = \mathbf{0.9989 \pm 0.0000}$ on MovieLens-1M (with Authentic Retention F1-score $\mathbf{0.9513 \pm 0.0010}$, Precision: $0.9225$, Recall: $0.9820$ with $w_{ui} > 0.50$ threshold), $\mathbf{0.9295 \pm 0.0065}$ on Amazon and $\mathbf{0.9491 \pm 0.0019}$ on Yelp.
+    \item \textbf{ROC-AUC}: Symmetric ranking discrimination gives $\mathbf{0.7931 \pm 0.0038}$ on MovieLens-1M, $\mathbf{0.7867 \pm 0.0208}$ on Amazon and $\mathbf{0.7961 \pm 0.0232}$ on Yelp.
 \end{itemize}
 
-\textbf{3. Denoising Detection Precision \& ROC Reconciled}:
-To prevent metric ambiguity, we evaluate MIRF from two complementary perspectives on the interaction edges:
-\begin{itemize}
-    \item \textbf{Attack Detection ($\text{AP}_{\text{attack}}$)}: Evaluates identification of minority injected attack ratings ($y=1$ for attack, scored by $1 - w_{ui}$). On Amazon ($\pi_{\text{edge}} = 17.40\%$), MIRF achieves $\text{AP}_{\text{attack}} = \mathbf{0.6884 \pm 0.0185}$, representing a $3.9\times$ lift over the random baseline ($\text{AP}_{\text{rand}} = 0.1748$). On Yelp ($\pi_{\text{edge}} = 15.72\%$), MIRF achieves $\text{AP}_{\text{attack}} = \mathbf{0.6816 \pm 0.0239}$ ($4.3\times$ above the $0.1572$ random baseline). On MovieLens-1M (899 attack edges in 238,320 total interactions, $\pi_{\text{edge}} = 0.38\%$), $\text{AP}_{\text{attack}} = \mathbf{0.0122 \pm 0.0021}$ ($3.2\times$ above random baseline $0.0038$).
-    \item \textbf{Authentic Retention ($\text{AP}_{\text{auth}}$ and $\text{F1}_{\text{auth}}$)}: Evaluates preservation of authentic interactions ($y=1$ for clean interactions, scored by $w_{ui}$). Yields $\text{AP}_{\text{auth}} = \mathbf{0.9989 \pm 0.0000}$ on MovieLens-1M (with Authentic Retention F1-score of $\mathbf{0.9513 \pm 0.0010}$, Precision: $0.9225$, Recall: $0.9820$ at threshold $w_{ui} \ge 0.50$), $\mathbf{0.9295 \pm 0.0065}$ on Amazon, and $\mathbf{0.9491 \pm 0.0019}$ on Yelp.
-    \item \textbf{ROC-AUC}: Symmetric ranking discrimination achieves $\mathbf{0.7931 \pm 0.0038}$ on MovieLens-1M, $\mathbf{0.7867 \pm 0.0208}$ on Amazon, and $\mathbf{0.7961 \pm 0.0232}$ on Yelp.
-\end{itemize}
-
-\textbf{4. Pareto Trade-Off: Ranking Utility vs. Trustworthiness}:
-On Amazon and Yelp, Attacked Vanilla SUPER exhibits higher nominal Recall@10 ($0.2967$ vs. $0.2600$ on Amazon) and higher nominal nDCG@10 ($0.1326$ vs. $0.1051$). This reflects an intentional Pareto trade-off between nominal accuracy on contaminated test sets and trustworthy catalog calibration. In bandwagon shilling campaigns, bot profiles inject high ratings on popular head filler items to camouflage themselves; un-denoised collaborative filtering reinforces these popular head item co-occurrences, artificially boosting top-$K$ accuracy on head-dominated test splits. RRFN-LLM-SUPER deliberately downweights these suspicious filler interactions ($w_i \to 0.02$), contracting recommendation capacity on compromised head items to allocate quota to authentic long-tail discovery ($g$-LTC@10 increases $+24.7\%$ on Yelp, $p=0.0397$). This represents a deliberate robustness-versus-nominal-utility trade-off rather than an unalloyed accuracy claim.
+\textbf{4. Trade-Off on Pareto Front Between Utility \& Trustworthiness}: On Amazon and Yelp, the attacked Vanilla SUPER has greater nominal Recall@10 ($0.2967$ vs. $0.2600$ on Amazon) and greater nominal nDCG@10 ($0.1326$ vs. $0.1051$). This is due to a deliberate Pareto trade-off of utility and catalog calibration against the accuracy of the model on the contaminated test dataset. In bandwagon shilling attacks, bots add high ratings on popular head filler items to disguise themselves; denoising is not performed by un-denoised collaborative filtering, thereby amplifying the popularity bias for popular head items, increasing top-$K$ precision on popular test sets. By design, RRFN-LLM-SUPER gives lower weights to these interactions ($w_i \to 0.02$), thereby shrinking the recommendation power on the compromised head items, and making room for genuine long tail item exploration ($g$-LTC@10 increased by $+24.7\%$ on Yelp, $p = 0.0397$).
 
 \begin{table}[!b]
 \caption{Component Ablation Study on Amazon Reviews (SimGCL) under 15\% Bandwagon Attack (Ratings, Timestamps, and Review Text; Weights: $\alpha=0.40, \beta=0.30, \gamma=0.30$).}
@@ -542,27 +528,34 @@ w/o SUPER Debiasing (Monolithic) & 0.1667 & 0.0674 & 0.4342 & 0.7963 \\
 \end{tabular}}
 \end{table}
 
-\subsection{Ablation Study}
-Table~\ref{tab:ablation} quantifies component contributions on the multi-modal Amazon Reviews benchmark where all three MIRF views are active ($\alpha=0.40, \beta=0.30, \gamma=0.30$) (on MovieLens-1M, LLM auditing is inactive by design ($\beta=0.00$) due to the absence of review text): (1) \textbf{w/o Bombing Detector}: Omitting temporal burst scoring ($\gamma = 0$) causes a catastrophic collapse in detection discrimination, dropping Denoising ROC-AUC from $0.7963$ to $0.3909$ ($-50.9\%$), demonstrating that temporal acceleration is the primary defense against synchronized shilling bursts; (2) \textbf{w/o LLM Auditing}: Setting $\beta = 0$ removes natural language sentiment verification, decreasing detection discrimination; (3) \textbf{w/o RRFN ($T$ Matrix)}: Omitting the transition matrix prior removes stochastic rating shift correction; (4) \textbf{w/o GCL Contrastive Loss}: Setting $\lambda_{\text{cl}} = 0$ removes self-supervised uniform representation alignment; (5) \textbf{w/o SUPER Debiasing}: Reverting to a monolithic model without blueprint merging removes calibrated long-tail quotas.
+\subsection{Ablation Analysis}
+In Table~\ref{tab:ablation} below we quantify the contributions of each component on the multi-modal Amazon Reviews dataset with all three views enabled for MIRF ($\alpha = 0.40, \beta = 0.30, \gamma = 0.30$) (on MovieLens-1M, LLM auditing is disabled by design ($\beta = 0.00$) due to the absence of review text):
+\begin{enumerate}
+    \item \textbf{w/o Bombing Detector}: Disabling temporal burst scoring ($\gamma = 0$) results in an utter failure of detection discrimination, reducing the Denoising ROC-AUC from $0.7963$ to $0.3909$ ($-50.9\%$), showing that temporal speed-up is the key defence against shilling attack bursts;
+    \item \textbf{w/o LLM Auditing}: Disabling natural language sentiment verification (setting $\beta = 0$) decreases the detection discrimination;
+    \item \textbf{w/o RRFN ($T$ Matrix)}: Disabling the transition matrix prior disables stochastic rating shift correction;
+    \item \textbf{w/o GCL Contrastive Loss}: Disabling self-supervised uniform representation alignment (setting $\lambda_{\text{cl}} = 0$);
+    \item \textbf{w/o SUPER Debiasing}: Going back to a monolithic model (without blueprint merging) disables calibrated long-tail quotas.
+\end{enumerate}
 
 \subsection{Scenario-Based Offline Economic Sensitivity \& Monte Carlo Simulation}
-To explore hypothetical deployment implications under standardized commercial assumptions, we conduct an offline scenario-based Monte Carlo sensitivity analysis across 1,000 bootstrap iterations ($B=1,000$). Baseline click-through rate is modeled at $\text{CTR}=2.5\% \pm 0.5\%$, conversion rate at $\text{CVR}=3.0\% \pm 0.5\%$, and average order value at $\text{AOV}=\$35.00 \pm \$10.00$ for Amazon Electronics and $\$25.00 \pm \$5.00$ for Yelp services. Projected sensitivity outcomes include: MovieLens-1M $+0.15\%$ CTR lift, $+\$911$ annual GMV lift ($p < 0.001$); Amazon (SimGCL) $+13.93\%$ CTR lift, $+\$389,114$ annual GMV lift ($95\%$ CI: $[\$312\text{K}, \$466\text{K}]$); Yelp (SGL) $+16.96\%$ CTR lift, $+\$144,466$ annual GMV lift ($95\%$ CI: $[\$118\text{K}, \$171\text{K}]$); yielding a combined projected sensitivity lift of $+\$534,491$/year across modeled catalogs ($p < 0.001$). We emphasize that these projections reflect offline parametric sensitivity simulations under stylized market assumptions rather than causal real-world revenue claims.
+For investigating the implications under hypothetical application based on standard commercial considerations, we run an offline scenario-based Monte Carlo simulation of sensitivity analysis with $B = 1,000$ bootstrapped iterations. Baseline values for the CTR ($2.5\% \pm 0.5\%$), CVR ($3.0\% \pm 0.5\%$), and AOV ($\$35.00 \pm \$10.00$ for Amazon Electronics, $\$25.00 \pm \$5.00$ for Yelp services) are used. The sensitivity projections include: MovieLens-1M $+0.15\%$ CTR gain, $+\$911$ GMV gain per year ($p < 0.001$); Amazon (SimGCL) $+13.93\%$ CTR gain, $+\$389,114$ GMV gain per year (95\% confidence interval [CI]: $[\$312\text{K}, \$466\text{K}]$); Yelp (SGL) $+16.96\%$ CTR gain, $+\$144,466$ GMV gain per year (95\% CI: $[\$118\text{K}, \$171\text{K}]$); resulting in a sensitivity lift of $+\$534,491$ GMV per year for all the analyzed catalog ($p < 0.001$). It should be noted that these figures are simulated sensitivity gains under stylized market conditions.
 
 \section{Discussion, Reproducibility \& Limitations}
 \label{sec:discussion}
 
-\textbf{Open-Source Reproducibility Package}: All source code, neural network backbones, multi-seed benchmark scripts, and evaluation logs are publicly accessible in our repository: \url{https://github.com/advaitvarhade/RRFN-LLM-SUPER}. The full experimental suite can be reproduced deterministically via: (1) multi-seed benchmark: \texttt{python run\_multiseed\_benchmark.py}; (2) figure generation: \texttt{python paper/generate\_figures.py}; (3) unit test suite: \texttt{pytest robust\_super/tests/ -v}.
+\textbf{Reproducibility Open-Source Package}: All source code, NN backbones, multi-seed benchmark scripts, and evaluation logs are available in an open-source manner in our GitHub repo at: \url{https://github.com/advaitvarhade/RRFN-LLM-SUPER}. The complete experimental procedure can be executed deterministically using the following steps: (1) multi-seed benchmarking: \texttt{python run\_multiseed\_benchmark.py}; (2) generating figures: \texttt{python paper/generate\_figures.py}; (3) running unit test suite: \texttt{pytest robust\_super/tests/ -v}.
 
-\textbf{Vectorization Efficiency}: Using 2D BLAS matrix broadcasting, MIRF evaluates 42,000 user-item interaction pairs in $4.95\,$ms, achieving a $>500\times$ speedup over nested Python loops.
+\textbf{Vectorization Efficiency}: Leveraging 2D BLAS matrix broadcasting, MIRF evaluates 42,000 user-item pairs in $4.95\,$ms, yielding more than 500X speedup over naive implementation in nested Python loop iterations.
 
-\textbf{Scalability and Sub-Graph Prototyping}: While MovieLens-1M evaluates 237,421 training interactions across 3,405 catalog items, Amazon and Yelp operate on dense 5-core evaluation sub-graphs (60--70 users) to ensure feasible LLM verification latency and reproducible prompt caching. In enterprise deployments with millions of catalog nodes, asynchronous batch verification or offline vector search should be used to avoid real-time LLM inference bottlenecks.
+\textbf{Scalability \& Sub-Graph Prototyping}: While MovieLens-1M evaluates 237,421 interactions among 3,405 catalog items, Amazon and Yelp use dense evaluation sub-graphs of 5 cores (users), each having 60 to 70 edges (interactions). In cases of enterprise-scale deployment with million nodes in catalog, asynchronous batch verification, or vector offline lookup must be employed to avoid LLM inference bottlenecking latency issues.
 
-\textbf{Cold-Start Limitations}: In ultra-sparse graphs with zero clean anchor interactions, anchor-based transition matrix estimation defaults to category-level prior distributions.
+\textbf{Cold Start Challenges}: In extreme cases of ultra-sparse graph where the clean anchor pairs do not exist, the estimation of anchor-based transition matrix relies upon category priors only.
 
 \section{Conclusion}
 \label{sec:conclusion}
 
-In this paper, we introduced \textbf{RRFN-LLM-SUPER}, an end-to-end framework resolving the dual vulnerabilities of adversarial shilling noise and catalog popularity bias in recommender systems. By coupling anchor-guided noise transition modeling with Tikhonov pseudo-inversion, the Multi-view Interaction Reliability Filter (MIRF), sample-reliability weighted Graph Contrastive Learning, and calibrated SUPER blueprint merging, our approach provides verifiable robustness and balanced catalog discovery. Theoretical analysis proves that Tikhonov regularization strictly bounds the spectral operator norm by $\|T^{\dagger}_\lambda\|_2 \le \frac{1}{2\sqrt{\lambda}}$, ensuring Lipschitz gradient stability, and guarantees forward surrogate risk consistency $\mathcal{O}(\delta + 1/\sqrt{N})$ with unique Bayes minimizer alignment. Empirical 5-seed experiments across MovieLens-1M, Amazon, and Yelp validate that RRFN-LLM-SUPER achieves an attack detection AP of \textbf{0.6884} on Amazon and \textbf{0.6816} on Yelp ($>4\times$ over random baselines), maintains an Authentic Retention AP of \textbf{0.9989} (ROC-AUC \textbf{0.7931} on MovieLens-1M), provides statistically significant reductions in popularity calibration error (RMSE-PC and MRMC, $p < 0.05$), purges deceptive tail inflation, elevates genuine long-tail coverage ($g$-LTC@10) by $+24.7\%$ on Yelp, accelerates inference by $>500\times$, and restores trustworthy recommendation quality.
+In this study, we have presented a novel framework of RRFN-LLM-SUPER addressing both the vulnerability to adversarial shilling attacks through noise transition modeling alongside anchor-guided Tikhonov pseudo-inversion and bias towards catalogue popularity via graph-based SUPER blueprint aggregation. As for theoretical justification, Tikhonov regularization ensures the boundedness of the spectral norm of the operator via $\|T^{\dagger}_\lambda\|_2 \le \frac{1}{2\sqrt{\lambda}}$ and Lipschitz gradient, as well as consistency of surrogate risk $\mathcal{O}(\delta/\sigma_0 + 1/\sqrt{N})$ with unique Bayes minimizer alignment. Based on five different seed evaluations of MovieLens-1M, Amazon, and Yelp datasets, it has been proved that RRFN-LLM-SUPER demonstrates an Attack Detection AP of 0.6884 and 0.6816 for Amazon and Yelp respectively ($>4\times$ better than random baselines), Authentic Retention AP of 0.9989 with ROC-AUC equaling to 0.7931 (MovieLens-1M), statistically significant decreases in popularity calibration errors (RMSE-PC and MRMC, $p < 0.05$), prevents the presence of tail catalogue inflation due to deceptive recommendations, increases genuine long-tail coverage ($g$-LTC@10) by $+24.7\%$ for Yelp, boosts inference speed more than 500$\times$.
 
 \bibliographystyle{IEEEtran}
 {\footnotesize
