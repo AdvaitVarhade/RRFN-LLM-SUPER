@@ -106,9 +106,9 @@ def add_cover_page(doc, student_config=None):
     p_logo.alignment = WD_ALIGN_PARAGRAPH.CENTER
     p_logo.paragraph_format.space_before = Pt(8)
     p_logo.paragraph_format.space_after = Pt(12)
-    logo_path = r"template_images/vit_logo.png"
+    logo_path = r"template_images/vit_logo.jpg"
     if os.path.exists(logo_path):
-        p_logo.add_run().add_picture(logo_path, width=Cm(9.2))
+        p_logo.add_run().add_picture(logo_path, width=Cm(8.8))
 
     # School & Date
     p_sch = doc.add_paragraph()
@@ -216,7 +216,7 @@ def add_title_page(doc, student_config=None):
     p_logo.alignment = WD_ALIGN_PARAGRAPH.CENTER
     p_logo.paragraph_format.space_before = Pt(6)
     p_logo.paragraph_format.space_after = Pt(10)
-    logo_path = r"template_images/vit_logo.png"
+    logo_path = r"template_images/vit_logo.jpg"
     if os.path.exists(logo_path):
         p_logo.add_run().add_picture(logo_path, width=Cm(8.8))
 
