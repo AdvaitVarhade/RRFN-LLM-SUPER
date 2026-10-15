@@ -124,7 +124,7 @@ def add_cover_page(doc, student_config=None):
     p_dt.alignment = WD_ALIGN_PARAGRAPH.CENTER
     p_dt.paragraph_format.space_before = Pt(2)
     p_dt.paragraph_format.space_after = Pt(6)
-    r_dt = p_dt.add_run("October, 2026")
+    r_dt = p_dt.add_run("November, 2025")
     r_dt.font.name = 'Times New Roman'
     r_dt.font.size = Pt(12)
 
@@ -140,8 +140,8 @@ def add_title_page(doc, student_config=None):
 
     p_title = doc.add_paragraph()
     p_title.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    p_title.paragraph_format.space_before = Pt(32)
-    p_title.paragraph_format.space_after = Pt(18)
+    p_title.paragraph_format.space_before = Pt(24)
+    p_title.paragraph_format.space_after = Pt(14)
     p_title.paragraph_format.line_spacing = 1.15
     r_title = p_title.add_run("ROBUST RISK-CONSISTENT GRAPH-CONTRASTIVE LEARNING FOR POPULARITY-CALIBRATED RECOMMENDATION WITH MIRF AUDITING")
     r_title.font.name = 'Times New Roman'
@@ -151,7 +151,7 @@ def add_title_page(doc, student_config=None):
     # Submitted in partial fulfillment... (TNR Font 14, Italic)
     p_sub = doc.add_paragraph()
     p_sub.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    p_sub.paragraph_format.space_before = Pt(8)
+    p_sub.paragraph_format.space_before = Pt(6)
     p_sub.paragraph_format.space_after = Pt(4)
     r_sub = p_sub.add_run("Submitted in partial fulfillment for the award of the degree of")
     r_sub.font.name = 'Times New Roman'
@@ -162,7 +162,7 @@ def add_title_page(doc, student_config=None):
     p_deg = doc.add_paragraph()
     p_deg.alignment = WD_ALIGN_PARAGRAPH.CENTER
     p_deg.paragraph_format.space_before = Pt(4)
-    p_deg.paragraph_format.space_after = Pt(16)
+    p_deg.paragraph_format.space_after = Pt(14)
     r_deg = p_deg.add_run("Bachelor of Technology in Computer Science and Engineering")
     r_deg.font.name = 'Times New Roman'
     r_deg.font.size = Pt(16)
@@ -182,7 +182,7 @@ def add_title_page(doc, student_config=None):
     p_cand = doc.add_paragraph()
     p_cand.alignment = WD_ALIGN_PARAGRAPH.CENTER
     p_cand.paragraph_format.space_before = Pt(4)
-    p_cand.paragraph_format.space_after = Pt(18)
+    p_cand.paragraph_format.space_after = Pt(12)
     p_cand.paragraph_format.line_spacing = 1.25
 
     names = [(student_config["name"], student_config["reg_no"])]
@@ -197,20 +197,34 @@ def add_title_page(doc, student_config=None):
         if idx < len(names) - 1:
             p_cand.add_run("\n")
 
+    # Guide details on Title Page
+    p_gd = doc.add_paragraph()
+    p_gd.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    p_gd.paragraph_format.space_before = Pt(4)
+    p_gd.paragraph_format.space_after = Pt(6)
+    r_gdh = p_gd.add_run("Under the guidance of\n")
+    r_gdh.font.name = 'Times New Roman'
+    r_gdh.font.size = Pt(12)
+    r_gdh.italic = True
+    r_gdn = p_gd.add_run("Dr. Suganeshwari G\nAssociate Professor")
+    r_gdn.font.name = 'Times New Roman'
+    r_gdn.font.size = Pt(13)
+    r_gdn.bold = True
+
     # Logo
     p_logo = doc.add_paragraph()
     p_logo.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    p_logo.paragraph_format.space_before = Pt(8)
-    p_logo.paragraph_format.space_after = Pt(14)
+    p_logo.paragraph_format.space_before = Pt(6)
+    p_logo.paragraph_format.space_after = Pt(10)
     logo_path = r"template_images/vit_logo.png"
     if os.path.exists(logo_path):
-        p_logo.add_run().add_picture(logo_path, width=Cm(9.2))
+        p_logo.add_run().add_picture(logo_path, width=Cm(8.8))
 
     # School & Date
     p_sch = doc.add_paragraph()
     p_sch.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    p_sch.paragraph_format.space_before = Pt(6)
-    p_sch.paragraph_format.space_after = Pt(3)
+    p_sch.paragraph_format.space_before = Pt(4)
+    p_sch.paragraph_format.space_after = Pt(2)
     r_sch = p_sch.add_run("SCHOOL OF COMPUTER SCIENCE AND ENGINEERING")
     r_sch.font.name = 'Times New Roman'
     r_sch.font.size = Pt(14)
@@ -220,7 +234,7 @@ def add_title_page(doc, student_config=None):
     p_dt.alignment = WD_ALIGN_PARAGRAPH.CENTER
     p_dt.paragraph_format.space_before = Pt(2)
     p_dt.paragraph_format.space_after = Pt(6)
-    r_dt = p_dt.add_run("October, 2026")
+    r_dt = p_dt.add_run("November, 2025")
     r_dt.font.name = 'Times New Roman'
     r_dt.font.size = Pt(12)
 
@@ -247,7 +261,7 @@ def add_declaration_page(doc, student_config=None):
         doc,
         f"I hereby declare that the thesis entitled “ROBUST RISK-CONSISTENT GRAPH-CONTRASTIVE LEARNING FOR POPULARITY-CALIBRATED RECOMMENDATION WITH MIRF AUDITING” "
         f"submitted by {student_config['name']} ({student_config['reg_no']}), for the award of the degree of Bachelor of Technology in Computer Science and Engineering, "
-        f"Vellore Institute of Technology, Chennai is a record of bonafide work carried out by me under the supervision of [Dr. XYZ, Associate Professor], "
+        f"Vellore Institute of Technology, Chennai is a record of bonafide work carried out by me under the supervision of Dr. Suganeshwari G, Associate Professor, "
         f"School of Computer Science and Engineering, Vellore Institute of Technology, Chennai."
     )
 
@@ -259,11 +273,11 @@ def add_declaration_page(doc, student_config=None):
 
     # Place, Date, Signature
     p_sign = doc.add_paragraph()
-    p_sign.paragraph_format.space_before = Pt(40)
+    p_sign.paragraph_format.space_before = Pt(48)
     p_sign.paragraph_format.space_after = Pt(6)
     p_sign.paragraph_format.line_spacing = 1.3
     
-    r_pl = p_sign.add_run("Place: Chennai\nDate: October 2026")
+    r_pl = p_sign.add_run("Place: Chennai\nDate: November 2025")
     r_pl.font.name = 'Times New Roman'
     r_pl.font.size = Pt(12)
     r_pl.bold = True
@@ -271,20 +285,12 @@ def add_declaration_page(doc, student_config=None):
     # Signature on right
     p_cand = doc.add_paragraph()
     p_cand.alignment = WD_ALIGN_PARAGRAPH.RIGHT
-    p_cand.paragraph_format.space_before = Pt(10)
+    p_cand.paragraph_format.space_before = Pt(16)
     p_cand.paragraph_format.space_after = Pt(20)
     r_cand = p_cand.add_run(f"Signature of the Candidate\n{student_config['name']}\n(Reg. No. {student_config['reg_no']})")
     r_cand.font.name = 'Times New Roman'
     r_cand.font.size = Pt(12)
     r_cand.bold = True
-
-    add_callout_box(
-        doc,
-        "SUBMISSION NOTE: As per the BCSE497J project evaluation instructions, after the final offline panel review, "
-        "a high-resolution scanned photograph of this physically signed and endorsed Declaration page will be affixed "
-        "directly into this soft copy document prior to final submission on VTOP.",
-        title="POST-REVIEW SUBMISSION COMPLIANCE"
-    )
 
     doc.add_page_break()
 
@@ -350,7 +356,7 @@ def add_certificate_page(doc, student_config=None):
     p00.paragraph_format.space_before = Pt(16)
     p00.paragraph_format.space_after = Pt(2)
     p00.paragraph_format.line_spacing = 1.2
-    r00 = p00.add_run("Signature of the Project Guide:\nName: [Dr. XYZ, Associate Professor]\nDate: October 2026")
+    r00 = p00.add_run("Signature of the Project Guide:\nName: Dr. Suganeshwari G\nDesignation: Associate Professor\nDate: November 2025")
     r00.font.name = 'Times New Roman'
     r00.font.size = Pt(11)
     r00.bold = True
@@ -382,7 +388,7 @@ def add_certificate_page(doc, student_config=None):
     p20.paragraph_format.space_before = Pt(20)
     p20.paragraph_format.space_after = Pt(2)
     p20.paragraph_format.line_spacing = 1.2
-    r20 = p20.add_run("Approved by the Head of Department:\nDepartment of Computer Science and Engineering\nName: [HOD NAME]\nDate:")
+    r20 = p20.add_run("Approved by the Head of Department:\nDepartment of Computer Science and Engineering\nName: Head of the Department\nDate:")
     r20.font.name = 'Times New Roman'
     r20.font.size = Pt(11)
     r20.bold = True
@@ -398,104 +404,70 @@ def add_certificate_page(doc, student_config=None):
     r31.font.size = Pt(10)
     r31.italic = True
 
-    p_sp = doc.add_paragraph()
-    p_sp.paragraph_format.space_before = Pt(12)
-
-    add_callout_box(
-        doc,
-        "OFFICIAL ENDORSEMENT NOTICE: Following the completion of the Pre-Final and Final Offline Viva-Voce Review Panel, "
-        "the physical signatures of the Project Guide, Panel Examiners, and Head of Department along with the official School Seal "
-        "will be stamped on this Certificate page. A clear photograph/scan will be integrated prior to VTOP submission.",
-        title="CERTIFICATE COMPLIANCE"
-    )
-
-    doc.add_page_break()
-
-def add_external_certificate_page(doc):
-    p_h = doc.add_paragraph()
-    p_h.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    p_h.paragraph_format.space_before = Pt(18)
-    p_h.paragraph_format.space_after = Pt(24)
-    r_h = p_h.add_run("CERTIFICATE BY EXTERNAL GUIDE")
-    r_h.font.name = 'Times New Roman'
-    r_h.font.size = Pt(14)
-    r_h.bold = True
-    r_h.underline = True
-
-    add_paragraph(
-        doc,
-        "NOT APPLICABLE"
-    )
-    add_paragraph(
-        doc,
-        "This project entitled “ROBUST RISK-CONSISTENT GRAPH-CONTRASTIVE LEARNING FOR POPULARITY-CALIBRATED RECOMMENDATION WITH MIRF AUDITING” "
-        "has been carried out purely as an in-house internal academic and research project within the School of Computer Science and Engineering (SCOPE), "
-        "Vellore Institute of Technology, Chennai. It is not an external Project-Affiliated Training (PAT) industry internship. "
-        "Hence, external industry guide endorsement is not applicable."
-    )
-
     doc.add_page_break()
 
 def add_abstract_page(doc, student_config=None):
-    if student_config is None:
-        student_config = get_default_student()
-
+    """
+    Abstract Page: Strictly one page only. Unified across all candidates.
+    """
     p_h = doc.add_paragraph()
     p_h.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    p_h.paragraph_format.space_before = Pt(18)
-    p_h.paragraph_format.space_after = Pt(18)
+    p_h.paragraph_format.space_before = Pt(6)
+    p_h.paragraph_format.space_after = Pt(8)
     r_h = p_h.add_run("ABSTRACT")
     r_h.font.name = 'Times New Roman'
     r_h.font.size = Pt(14)
     r_h.bold = True
     r_h.underline = True
 
-    add_paragraph(
-        doc,
-        "Modern web-scale recommender systems operate on bipartite user-item interaction graphs that suffer from two co-occurring "
-        "systemic vulnerabilities: (1) severe susceptibility to coordinated adversarial shilling attacks and temporal review-bombing bursts "
-        "that inject deceptive feedback to distort item exposure, and (2) extreme catalog popularity bias where Pareto-skewed interaction "
-        "distributions starve genuine long-tail items of visibility. Existing state-of-the-art paradigms address adversarial robustness or "
-        "popularity debiasing in isolation, collapsing catastrophically when both phenomena co-occur simultaneously in real-world platforms."
+    def _add_abs_p(text):
+        p = doc.add_paragraph()
+        p.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
+        p.paragraph_format.line_spacing = 1.15
+        p.paragraph_format.space_before = Pt(0)
+        p.paragraph_format.space_after = Pt(4)
+        r = p.add_run(text)
+        r.font.name = 'Times New Roman'
+        r.font.size = Pt(11)
+        return p
+
+    _add_abs_p(
+        "Modern web-scale recommender systems rely fundamentally on bipartite user-item interaction graphs to deliver personalized recommendations across digital platforms. "
+        "However, real-world deployment graphs suffer from two concurrent, orthogonal systemic vulnerabilities: (1) adversarial data poisoning via bandwagon shilling attacks "
+        "and coordinated review-bombing bursts designed to inject deceptive feedback, and (2) structural catalog popularity bias where Pareto-skewed interaction "
+        "distributions starve authentic long-tail items of visibility. Existing paradigms treat adversarial robustness and popularity debiasing as isolated objectives, "
+        "collapsing catastrophically when both co-occur: debiasing models mistake injected bot interactions for genuine niche enthusiasm, aggressively promoting spam targets "
+        "into recommended long-tail quotas."
     )
 
-    # Candidate tailored focus paragraph
-    add_paragraph(
-        doc,
-        student_config["abstract_focus"]
+    _add_abs_p(
+        "To resolve this fatal concurrence, this project introduces RRFN-LLM-SUPER, an end-to-end framework integrating stochastic noise-transition modeling, multi-modal "
+        "interaction reliability filtering, risk-aware graph contrastive learning, and popularity-calibrated blueprint debiasing. We theoretically prove a spectral operator norm "
+        "upper bound for Tikhonov-regularized noise inversion (||T_lambda^dagger||_2 <= 1 / (2*sqrt(lambda))), establishing Lipschitz gradient stability and forward surrogate excess risk consistency. "
+        "To audit edge authenticity, we architect the Multi-view Interaction Reliability Filter (MIRF), synthesizing model prediction consistency, asynchronous Large Language Model (LLM) "
+        "review text verification supported by a thread-safe SQLite WAL caching layer, and hardware-accelerated 2D BLAS review-bombing burst detection executing in sub-5 ms (>500x speedup). "
+        "The resulting sample reliability weights (w_ui in [0, 1]) modulate InfoNCE contrastive alignment across SimGCL and SGL backbones, and purify historical user blueprints for calibrated long-tail exposure."
     )
 
-    add_paragraph(
-        doc,
-        "The proposed framework unites stochastic noise-transition estimation, the Multi-view Interaction Reliability Filter (MIRF), risk-aware Graph "
-        "Contrastive Learning (GCL), and calibrated Pareto debiasing. MIRF computes continuous sample reliability weights w_ui in [0, 1] by synthesizing "
-        "statistical model prediction consistency, asynchronous Large Language Model (LLM) semantic review verification with thread-safe SQLite WAL caching, "
-        "and 2D BLAS vectorized burst scoring (achieving a measured 4.95 ms latency for 42,000 interactions, representing a >500x speedup over standard nested iteration). "
-        "These sample weights modulate InfoNCE contrastive alignment losses and purify historical blueprints for personalized tail inclination (alpha_u) allocation."
-    )
-
-    add_paragraph(
-        doc,
-        "Extensive empirical evaluations across 5 independent random seeds (42–46) on three multi-modal benchmark domains (MovieLens-1M sub-graph, "
-        "Amazon Reviews with SimGCL, and Yelp Academic with SGL) demonstrate that RRFN-LLM-SUPER achieves an Attack Detection Average Precision (AP) "
-        "of 0.6884 on Amazon and 0.6816 on Yelp (a 3.9–4.3x gain over random edge baselines), maintains an Authentic Retention AP of 0.9989 (ROC-AUC = 0.7931 "
-        "on MovieLens-1M under 15% bandwagon shilling), achieves statistically significant reductions in popularity calibration error (RMSE-PC 0.1067, p = 0.0166; "
-        "MRMC 0.1128, p = 0.0088), effectively purges spam target exposure (STER@10 reduced from 88% to 72%), and elevates genuine long-tail catalog coverage "
-        "(g-LTC@10 = 0.4202 vs. 0.3371, p = 0.0397 on Yelp). Finally, an offline 1,000-sample Monte Carlo economic simulation demonstrates statistically significant "
-        "resilience against revenue distortion (p < 0.001)."
+    _add_abs_p(
+        "Extensive 5-seed empirical benchmarks (Seeds 42–46) across MovieLens-1M, Amazon Electronics, and Yelp Academic validate our framework. RRFN-LLM-SUPER achieves an Attack Detection AP "
+        "of 0.6884 on Amazon and 0.6816 on Yelp (a 3.9–4.3x gain over random baselines), maintains an Authentic Retention AP of 0.9989 (ROC-AUC = 0.7931 under 15% bandwagon shilling), "
+        "and achieves statistically significant improvements in popularity calibration error (RMSE-PC 0.1067, p = 0.0166; MRMC 0.1128, p = 0.0088). Furthermore, blueprint purification successfully "
+        "repels deceptive tail inflation, reducing spam target exposure (STER@10) from 88% to 72% while elevating genuine long-tail coverage (g-LTC@10 = 0.4202 vs. 0.3371, p = 0.0397 on Yelp). "
+        "A 1,000-sample Monte Carlo economic simulation further confirms significant platform revenue protection (p < 0.001)."
     )
 
     p_kw = doc.add_paragraph()
-    p_kw.paragraph_format.space_before = Pt(12)
-    p_kw.paragraph_format.space_after = Pt(6)
+    p_kw.paragraph_format.space_before = Pt(4)
+    p_kw.paragraph_format.space_after = Pt(0)
     r_kwh = p_kw.add_run("Keywords: ")
     r_kwh.font.name = 'Times New Roman'
-    r_kwh.font.size = Pt(11)
+    r_kwh.font.size = Pt(10.5)
     r_kwh.bold = True
     r_kwt = p_kw.add_run("Recommender Systems, Graph Neural Networks, Graph Contrastive Learning, Multi-view Interaction Reliability Filter (MIRF), "
                          "Review-Bombing Detection, Popularity Bias, Long-Tail Calibration, Large Language Models, Trustworthy AI, Risk Consistency.")
     r_kwt.font.name = 'Times New Roman'
-    r_kwt.font.size = Pt(11)
+    r_kwt.font.size = Pt(10.5)
     r_kwt.italic = True
 
     doc.add_page_break()
@@ -509,23 +481,32 @@ def add_acknowledgement_page(doc, student_config=None):
 
     p_h = doc.add_paragraph()
     p_h.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    p_h.paragraph_format.space_before = Pt(18)
-    p_h.paragraph_format.space_after = Pt(18)
+    p_h.paragraph_format.space_before = Pt(8)
+    p_h.paragraph_format.space_after = Pt(8)
     r_h = p_h.add_run("ACKNOWLEDGEMENT")
     r_h.font.name = 'Times New Roman'
     r_h.font.size = Pt(14)
     r_h.bold = True
 
-    add_paragraph(
-        doc,
-        "It is my utmost pleasure to express with a deep sense of gratitude to [Dr. XYZ, Associate Professor], "
-        "School of Computer Science and Engineering, Vellore Institute of Technology, Chennai, for his/her constant guidance, continual encouragement, "
-        "understanding, and intellectual mentorship throughout this endeavor. His/her deep insights and rigorous critique in the domains of "
+    def _add_ack_p(text):
+        p = doc.add_paragraph()
+        p.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
+        p.paragraph_format.line_spacing = 1.15
+        p.paragraph_format.space_before = Pt(0)
+        p.paragraph_format.space_after = Pt(3)
+        r = p.add_run(text)
+        r.font.name = 'Times New Roman'
+        r.font.size = Pt(11)
+        return p
+
+    _add_ack_p(
+        "It is my utmost pleasure to express with a deep sense of gratitude to Dr. Suganeshwari G, Associate Professor, "
+        "School of Computer Science and Engineering, Vellore Institute of Technology, Chennai, for her constant guidance, continual encouragement, "
+        "understanding, and intellectual mentorship throughout this endeavor. Her deep insights and rigorous critique in the domains of "
         "Recommender Systems, Graph Machine Learning, and Trustworthy AI have been invaluable in shaping the theoretical and experimental dimensions of this research."
     )
 
-    add_paragraph(
-        doc,
+    _add_ack_p(
         "It is with profound gratitude that I extend my heartfelt thanks to the visionary leadership of Vellore Institute of Technology: "
         "Dr. G. Viswanathan, our Honorable Chancellor; Mr. Sankar Viswanathan, Dr. Sekar Viswanathan, and Dr. G. V. Selvam, Vice Presidents; "
         "Dr. Sandhya Pentareddy, Executive Director; Ms. Kadhambari S. Viswanathan, Assistant Vice-President; "
@@ -533,16 +514,14 @@ def add_acknowledgement_page(doc, student_config=None):
         "for providing an exceptional academic environment, cutting-edge computing infrastructure, and continual inspiration during the course of my study."
     )
 
-    add_paragraph(
-        doc,
+    _add_ack_p(
         "Special mention and sincere thanks are extended to Dr. Viswanathan V, Dean; Dr. Nithyanandam P, Associate Dean; "
         "Dr. Suganya G, Associate Dean; and Dr. Sweetlin Hemalatha C, Associate Dean, School of Computer Science and Engineering, "
         "Vellore Institute of Technology, Chennai, for spending their valuable time and efforts in sharing their academic knowledge and supporting us in every phase."
     )
 
-    add_paragraph(
-        doc,
-        "In a jubilant state, I express my whole-hearted thanks to [HOD NAME], Head of the Department, B.Tech. Computer Science and Engineering, "
+    _add_ack_p(
+        "In a jubilant state, I express my whole-hearted thanks to the Head of the Department, Department of Computer Science and Engineering, "
         "as well as the BCSE497J Project Coordinators and faculty committee for their structured academic framework, periodic reviews, and constant encouragement."
     )
 
@@ -552,30 +531,29 @@ def add_acknowledgement_page(doc, student_config=None):
         tm_mentions.append(f"{tm['name']} ({tm['reg_no']}) for his collaborative partnership on {tm['pillar']}")
     tm_text = "; and ".join(tm_mentions)
 
-    add_paragraph(
-        doc,
+    _add_ack_p(
         f"I also extend my sincere appreciation to my project teammates: {tm_text}, for their camaraderie, constructive technical brainstorming, "
         f"and collaborative synergy throughout the execution of this thesis. My deepest and most affectionate gratitude goes to my parents and family "
         f"members for their unconditional sacrifices, moral backing, and prayers. Finally, I thank all my friends and peers at VIT Chennai who supported me throughout this journey."
     )
 
     p_sign = doc.add_paragraph()
-    p_sign.paragraph_format.space_before = Pt(28)
-    p_sign.paragraph_format.space_after = Pt(6)
-    p_sign.paragraph_format.line_spacing = 1.3
+    p_sign.paragraph_format.space_before = Pt(12)
+    p_sign.paragraph_format.space_after = Pt(2)
+    p_sign.paragraph_format.line_spacing = 1.15
     
-    r_pl = p_sign.add_run("Place: Chennai\nDate: October 2026")
+    r_pl = p_sign.add_run("Place: Chennai\nDate: November 2025")
     r_pl.font.name = 'Times New Roman'
-    r_pl.font.size = Pt(12)
+    r_pl.font.size = Pt(11)
     r_pl.bold = True
     
     p_cand = doc.add_paragraph()
     p_cand.alignment = WD_ALIGN_PARAGRAPH.RIGHT
-    p_cand.paragraph_format.space_before = Pt(8)
-    p_cand.paragraph_format.space_after = Pt(12)
+    p_cand.paragraph_format.space_before = Pt(2)
+    p_cand.paragraph_format.space_after = Pt(4)
     r_cand = p_cand.add_run(f"{student_config['name']}\n(Reg. No. {student_config['reg_no']})")
     r_cand.font.name = 'Times New Roman'
-    r_cand.font.size = Pt(12)
+    r_cand.font.size = Pt(11)
     r_cand.bold = True
 
     doc.add_page_break()
@@ -593,12 +571,12 @@ def add_table_of_contents_page(doc, student_config=None):
     toc_items = [
         ("DECLARATION", "iii"),
         ("CERTIFICATE", "iv"),
-        ("ABSTRACT", "vi"),
-        ("ACKNOWLEDGEMENT", "vii"),
-        ("CONTENTS", "viii"),
-        ("LIST OF FIGURES", "x"),
-        ("LIST OF TABLES", "xii"),
-        ("LIST OF ACRONYMS", "xiii"),
+        ("ABSTRACT", "v"),
+        ("ACKNOWLEDGEMENT", "vi"),
+        ("CONTENTS", "vii"),
+        ("LIST OF FIGURES", "ix"),
+        ("LIST OF TABLES", "xi"),
+        ("LIST OF ACRONYMS", "xii"),
         ("CHAPTER 1   INTRODUCTION", "1"),
         ("   1.1  Background and Motivation", "1"),
         ("   1.2  Systemic Vulnerabilities in Graph Recommenders", "3"),

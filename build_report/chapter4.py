@@ -36,38 +36,6 @@ def build_chapter_4(doc, student_config=None):
     add_bullet(doc, "trainer: Dual partition training orchestrators, sample-reliability weighted InfoNCE losses, and optimizers.", bold_prefix="9. Training Engine: ")
     add_bullet(doc, "evaluation: Information retrieval metrics, popularity calibration metrics, attack detection metrics, and Monte Carlo economic simulation.", bold_prefix="10. Evaluation Engine: ")
 
-    # Candidate specific implementation callout
-    if student_config.get("id") == "advait":
-        add_callout_box(
-            doc,
-            f"SOFTWARE IMPLEMENTATION EMPHASIS — PRIMARY RESPONSIBILITY OF {student_config['name']} ({student_config['reg_no']}):\n"
-            f"The candidate engineered the core mathematical packages: `rrfn/transition_matrix.py` (implementing Tikhonov regularized pseudo-inversion "
-            f"with numerical damping lambda=1e-4), `rrfn/anchor_selector.py` (cross-user consensus anchor identification satisfying Assumption 3.1), "
-            f"`rrfn/risk_loss.py` (forward-corrected cross-entropy loss with anchor prior regularization), and Section 4.9 numerical stability guards "
-            f"against singular matrix inversion and gradient divergence.",
-            title="MODULE OWNERSHIP: NOISE TRANSITION & RISK CONSISTENT OPTIMIZATION"
-        )
-    elif student_config.get("id") == "manas":
-        add_callout_box(
-            doc,
-            f"SOFTWARE IMPLEMENTATION EMPHASIS — PRIMARY RESPONSIBILITY OF {student_config['name']} ({student_config['reg_no']}):\n"
-            f"The candidate engineered the reliability filtering and anomaly detection packages: `fusion/reliability_fusion.py` (MIRF tri-view convex "
-            f"combination orchestrator), `bombing_detector/bomb_scorer.py` (2D BLAS Level-3 GEMM burst scoring executing in 4.95 ms for 42K interactions), "
-            f"`llm_auditor/auditor.py` (asynchronous LLM review prompt verification), and `llm_auditor/cache.py` (ACID-compliant SQLite database pool with "
-            f"Write-Ahead Logging PRAGMA journal_mode=WAL ensuring zero training latency).",
-            title="MODULE OWNERSHIP: MIRF FUSION, BLAS BURST SCORER & SQLITE WAL CACHE"
-        )
-    elif student_config.get("id") == "vivaash":
-        add_callout_box(
-            doc,
-            f"SOFTWARE IMPLEMENTATION EMPHASIS — PRIMARY RESPONSIBILITY OF {student_config['name']} ({student_config['reg_no']}):\n"
-            f"The candidate engineered the representation learning, debiasing, and simulation packages: `models/simgcl.py` and `models/sgl.py` (Graph "
-            f"Contrastive Learning architectures), `trainer/contrastive_loss.py` (sample-reliability weighted InfoNCE loss), `catalog/pareto_partition.py` "
-            f"(80/20 catalog volume partitioner), `super_engine/blueprint.py` (purified historical user blueprints), `super_engine/merger.py` (rank-calibrated "
-            f"trajectory interleaver), and `evaluation/ab_simulator.py` (1,000-sample Monte Carlo economic simulator).",
-            title="MODULE OWNERSHIP: GRAPH CONTRASTIVE BACKBONES, SUPER ENGINE & ECONOMIC SIMULATION"
-        )
-
     # 4.2 Module Mapping Table
     add_section_heading(doc, "4.2 Comprehensive Module Mapping and Source Code Index")
     add_paragraph(

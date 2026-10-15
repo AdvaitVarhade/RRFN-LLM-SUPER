@@ -14,7 +14,7 @@ from report_builder import (
 )
 from section_frontmatter import (
     add_cover_page, add_title_page, add_declaration_page, add_certificate_page,
-    add_external_certificate_page, add_abstract_page, add_acknowledgement_page,
+    add_abstract_page, add_acknowledgement_page,
     add_table_of_contents_page, add_list_of_figures_page, add_list_of_tables_page,
     add_list_of_acronyms_page
 )
@@ -62,13 +62,12 @@ def generate_single_report(student_config, include_inner_title_page=True):
     print(f"-> Adding Certificate Page (Individual Candidate: {cand_name})...")
     add_certificate_page(doc, student_config=student_config)
 
-    print("-> Adding External Guide Certificate (Not Applicable)...")
-    add_external_certificate_page(doc)
+    # Note: External Guide Certificate is skipped as it is not applicable for in-house research projects
 
-    print(f"-> Adding Abstract Page with tailored emphasis on {student_config['short_pillar']}...")
+    print("-> Adding Abstract Page (Strictly 1 Page, Unified)...")
     add_abstract_page(doc, student_config=student_config)
 
-    print(f"-> Adding Acknowledgement Page (Individual Candidate: {cand_name} thanking teammates)...")
+    print(f"-> Adding Acknowledgement Page (Individual Candidate: {cand_name})...")
     add_acknowledgement_page(doc, student_config=student_config)
 
     print("-> Adding Table of Contents (CONTENTS)...")
@@ -90,22 +89,22 @@ def generate_single_report(student_config, include_inner_title_page=True):
     set_section_page_numbering(sec3, fmt='decimal', start=1)
     add_footer_page_number(sec3)
 
-    print(f"-> Building Chapter 1 with Work Division Table 1.1 and {cand_name} contribution focus...")
+    print(f"-> Building Chapter 1 with Work Division Table 1.1 and {cand_name} technical contribution focus...")
     build_chapter_1(doc, student_config=student_config)
 
     print("-> Building Chapter 2: Literature Review and Theoretical Background...")
     build_chapter_2(doc)
 
-    print(f"-> Building Chapter 3: System Design & Methodology (emphasizing {student_config['short_pillar']})...")
+    print("-> Building Chapter 3: System Design & Mathematical Methodology...")
     build_chapter_3(doc, student_config=student_config)
 
-    print(f"-> Building Chapter 4: System Implementation (emphasizing {student_config['short_pillar']} modules)...")
+    print("-> Building Chapter 4: System Implementation & Architecture Details...")
     build_chapter_4(doc, student_config=student_config)
 
-    print(f"-> Building Chapter 5: Experimental Evaluation (emphasizing {student_config['short_pillar']} validation)...")
+    print("-> Building Chapter 5: Experimental Evaluation, Results, and Discussion...")
     build_chapter_5(doc, student_config=student_config)
 
-    print(f"-> Building Chapter 6: Conclusion and Future Work (tailored roadmap for {cand_name})...")
+    print("-> Building Chapter 6: Conclusion and Future Work...")
     build_chapter_6(doc, student_config=student_config)
 
     print("-> Building References (Strict APA Format)...")
