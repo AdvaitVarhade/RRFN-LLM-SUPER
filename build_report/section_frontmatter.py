@@ -388,7 +388,7 @@ def add_certificate_page(doc, student_config=None):
     p20.paragraph_format.space_before = Pt(20)
     p20.paragraph_format.space_after = Pt(2)
     p20.paragraph_format.line_spacing = 1.2
-    r20 = p20.add_run("Approved by the Head of Department:\nDepartment of Computer Science and Engineering\nName: Head of the Department\nDate:")
+    r20 = p20.add_run("Approved by the Head of Department:\nDepartment of Computer Science and Engineering\nName: Dr. Prassanna J\nDate:")
     r20.font.name = 'Times New Roman'
     r20.font.size = Pt(11)
     r20.bold = True
@@ -521,7 +521,7 @@ def add_acknowledgement_page(doc, student_config=None):
     )
 
     _add_ack_p(
-        "In a jubilant state, I express my whole-hearted thanks to the Head of the Department, Department of Computer Science and Engineering, "
+        "In a jubilant state, I express my whole-hearted thanks to Dr. Prassanna J, Head of the Department, Department of Computer Science and Engineering, "
         "as well as the BCSE497J Project Coordinators and faculty committee for their structured academic framework, periodic reviews, and constant encouragement."
     )
 
