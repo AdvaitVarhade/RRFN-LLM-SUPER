@@ -74,3 +74,49 @@ Thumbs.db
 data/raw/
 research/data/
 robust_super/data/raw/
+
+# =============================================================================
+# Presentations, Slides & Presentation Assets (Ignored from GitHub)
+# =============================================================================
+*.pptx
+*.ppt
+slide_images/
+template_images/
+build_clean_flow_deck.py
+generate_flow_presentation.py
+logo_extracted.png
+
+# =============================================================================
+# Reports, Academic Documents & Papers (Ignored from GitHub)
+# =============================================================================
+*.docx
+*.pdf
+~$*
+paper/
+build_report/
+plagiarism_chunks/
+plagiarism_checker_helper.html
+build_advait_from_new.py
+split_report.py
+export_plagiarism_chunks.py
+
+# =============================================================================
+# Scratch Scripts & Literature Scrapes (Ignored from GitHub)
+# =============================================================================
+scratch_*.py
+arxiv_*.txt
+papers_15.json
+full_findings.txt
+preview_git_cleanup.py
+execute_git_cleanup.py
+
+# =============================================================================
+# Legacy Directories (Superseded by robust_super/)
+# =============================================================================
+research/
+fedsuper_simulation/
+dashboard-ui/
+experiments/
+src/
+tests/
+
