@@ -855,18 +855,18 @@ omega_2 = col_om2.number_input("ω₂ (Polarity Skew)", min_value=0.0, max_value
 
 st.sidebar.markdown("---")
 st.sidebar.subheader("LLM Auditor Configuration")
-llm_provider_choice = st.sidebar.selectbox("LLM Engine", ["mock (Heuristic Approximation)", "gemini (Google GenAI Live API)"], index=0)
-llm_provider = "gemini" if "gemini" in llm_provider_choice else "mock"
+llm_provider_choice = st.sidebar.selectbox("LLM Engine", ["Heuristic Profile Auditor (Local Coherence)", "Google Gemini Live API (gemini-1.5-flash)"], index=0)
+llm_provider = "gemini" if "gemini" in llm_provider_choice.lower() else "mock"
 gemini_api_key_input = os.environ.get("GEMINI_API_KEY", "")
 if llm_provider == "gemini":
     gemini_api_key_input = st.sidebar.text_input(
         "Gemini API Key",
         value=os.environ.get("GEMINI_API_KEY", ""),
         type="password",
-        help="Google AI Studio API key (gemini-3.6-flash). Reads from GEMINI_API_KEY environment variable if set."
+        help="Google AI Studio API key (gemini-1.5-flash). Reads from GEMINI_API_KEY environment variable if set."
     )
     if not gemini_api_key_input:
-        st.sidebar.warning("No key entered; falling back to mock auditor.")
+        st.sidebar.warning("No key entered; falling back to heuristic auditor.")
 
 st.sidebar.markdown("---")
 st.sidebar.subheader("SUPER Calibration Hyperparameters")

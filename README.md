@@ -106,52 +106,90 @@ Raw Interaction Stream (Users, Items, Ordinal Ratings Y in {1..5}, Timestamps, R
 - **Pareto Volume Catalog Partitioning**: Instead of arbitrary thresholding, items are partitioned into Head ($\mathcal{H}$) and Tail ($\mathcal{T}$) sets based on cumulative interaction mass, capturing the non-linear tail transition point.
 - **Decoupled Dual Neural Modeling**: Head and tail items operate in distinct representation spaces ($M_{\text{pop}}$ and $M_{\text{tail}}$) to prevent gradient dominance of high-volume head items over sparse tail signals.
 - **Bayesian Inclination Calibration**: Quantifies each individual user's inherent affinity for popularity versus tail novelty:
-  $$\tilde{C}(u) = \frac{|I_u|}{|I_u| + \tau} C(u) + \frac{\tau}{|I_u| + \tau} \bar{C}$$
+
+$$
+\tilde{C}(u) = \frac{|I_u|}{|I_u| + \tau} C(u) + \frac{\tau}{|I_u| + \tau} \bar{C}
+$$
+
   where $\tau$ serves as a Dirichlet shrinkage prior pulling low-activity profiles toward global mean preference $\bar{C}$.
 
 ### 2. Statistical Noise Transition Matrix (RRFN)
 - **Anchor Identification**: Identifies clean interaction subsets based on extreme predictive confidence and high user historical activity.
 - **Frobenius Slack Correction**: Solves the bounded risk-consistent matrix formulation with parameterized slack $\Delta T$:
-  $$T_{\text{final}} = \text{Softmax}(\hat{T} + \Delta T), \quad \mathcal{L}_{\text{risk}} = \ell_{\text{risk}} \cdot T_{\text{final}}^{-1} + \lambda_\Delta \|\Delta T\|_F^2$$
+
+$$
+T_{\mathrm{final}} = \mathrm{Softmax}(\hat{T} + \Delta T), \quad \mathcal{L}_{\mathrm{risk}} = \ell_{\mathrm{risk}} \cdot T_{\mathrm{final}}^{-1} + \lambda_{\Delta} \|\Delta T\|_F^2
+$$
+
 - **Tikhonov-Regularized Invertibility**: Protects matrix inversion against singular rank deficiency through $T^+_\lambda = (T^T T + \lambda I)^{-1} T^T$.
 
 ### 3. Compute-Conserving LLM Semantic Profile Auditor
 - **Asymmetric Gated Filtering**: To conserve inference compute and API budget, LLM evaluation is not invoked on all interactions. Interactions with high statistical confidence ($R_{\text{RRFN}} \ge 0.60$) bypass LLM audit; only anomalous interactions ($R_{\text{RRFN}} < 0.60$) undergo deep semantic coherence checking.
 - **Thread-Safe Parameterized SQLite Cache**: Caches prompt hashes, user histories, and model decisions with Write-Ahead Logging (WAL) and mutual exclusion locks to guarantee deterministic sub-millisecond retrieval.
-- **Multi-Provider Engine**: Supports Google GenAI (`gemini-2.5-flash`) for production deployments and deterministic rule-based heuristics for air-gapped test harnesses.
+- **Multi-Provider Engine**: Supports Google GenAI (`gemini-1.5-flash`) for production deployments and deterministic rule-based heuristics for air-gapped test harnesses.
 
 ### 4. Spatiotemporal Review-Bombing Detector
 - **Burst Acceleration**: Computes the second derivative of temporal interaction volume over sliding windows:
-  $$A(i, t) = \frac{V(i, t) - V(i, t - \Delta t)}{\Delta t}$$
+
+$$
+A(i, t) = \frac{V(i, t) - V(i, t - \Delta t)}{\Delta t}
+$$
+
 - **Polarity Concentration Skew**: Tracks sudden shifts in rating distribution variance, isolating coordinated malicious 1-star or 5-star brigading.
 
 ### 5. Multi-View Reliability Fusion
 - Synthesizes statistical, semantic, and temporal indicators into continuous sample weights:
-  $$w(u, i) = \alpha \cdot R_{\text{RRFN}}(u, i) + \beta \cdot R_{\text{LLM}}(u, i) + \gamma \cdot R_{\text{bomb}}(i, t)$$
-- Constrained by $\alpha + \beta + \gamma = 1.0$ and clipped to $w(u, i) \in [0.02, 1.0]$ to prevent zero-gradient deadlocks.
+
+$$
+w(u, i) = \alpha \cdot R_{\mathrm{RRFN}}(u, i) + \beta \cdot R_{\mathrm{LLM}}(u, i) + \gamma \cdot R_{\mathrm{bomb}}(i, t)
+$$
+
+  constrained by $\alpha + \beta + \gamma = 1.0$ and clipped to $w(u, i) \in [0.02, 1.0]$ to prevent zero-gradient deadlocks.
 
 ---
 
 ## Mathematical Foundations
 
 ### 1. Risk-Consistent Bounded Loss
+
 Given observed corrupted ratings $\tilde{Y} \in \{1, \dots, K\}$, unbiased loss estimation with respect to the latent clean distribution $Y^*$ satisfies:
-$$\mathbb{E}_{\tilde{Y}|X}[\mathcal{L}_{\text{risk}}(\hat{y}, \tilde{y})] = \mathbb{E}_{Y^*|X}[\ell(\hat{y}, Y^*)]$$
+
+$$
+\mathbb{E}_{\tilde{Y} \mid X}[\mathcal{L}_{\mathrm{risk}}(\hat{y}, \tilde{y})] = \mathbb{E}_{Y^* \mid X}[\ell(\hat{y}, Y^*)]
+$$
+
 Where the loss estimator is constructed via transition matrix inversion:
-$$\mathcal{L}_{\text{risk}}(\hat{y}, \tilde{y}) = \sum_{k=1}^K (T^{-1})_{\tilde{y}, k} \cdot \ell(\hat{y}, k) + \lambda_\Delta \|\Delta T\|_F^2$$
+
+$$
+\mathcal{L}_{\mathrm{risk}}(\hat{y}, \tilde{y}) = \sum_{k=1}^K (T^{-1})_{\tilde{y}, k} \cdot \ell(\hat{y}, k) + \lambda_{\Delta} \|\Delta T\|_F^2
+$$
 
 ### 2. Graph Contrastive Learning Objective (SimGCL / SGL)
+
 For tail representations, self-supervised InfoNCE contrastive alignment prevents representation collapse in sparse item subspaces:
-$$\mathcal{L}_{\text{cl}} = \sum_{i \in \mathcal{B}} -\log \frac{\exp(\text{sim}(z_i', z_i'') / \tau_{\text{cl}})}{\sum_{j \in \mathcal{B}} \exp(\text{sim}(z_i', z_j'') / \tau_{\text{cl}})}$$
+
+$$
+\mathcal{L}_{\mathrm{cl}} = \sum_{i \in \mathcal{B}} -\log \frac{\exp(\mathrm{sim}(z_i', z_i'') / \tau_{\mathrm{cl}})}{\sum_{j \in \mathcal{B}} \exp(\mathrm{sim}(z_i', z_j'') / \tau_{\mathrm{cl}})}
+$$
+
 Where $z_i'$ and $z_i''$ represent representations under uniform stochastic perturbation (SimGCL) or random node/edge dropouts (SGL).
 
 ### 3. Generalized Key Performance Index (GKPI)
+
 To assess trade-offs across accuracy, calibration, and diversity under a single holistic objective:
-$$\text{GKPI} = 0.40 \cdot \text{nDCG@10} + 0.30 \cdot (1 - \text{RMSE-PC}) + 0.20 \cdot \text{APLT@10} + 0.10 \cdot \frac{\text{Novelty}}{\text{Novelty}_{\max}}$$
+
+$$
+\mathrm{GKPI} = 0.40 \cdot \mathrm{nDCG@10} + 0.30 \cdot (1 - \mathrm{RMSE\text{-}PC}) + 0.20 \cdot \mathrm{APLT@10} + 0.10 \cdot \frac{\mathrm{Novelty}}{\mathrm{Novelty}_{\max}}
+$$
 
 ### 4. Catalog Stability Score (CSS)
+
 Measures ranking perturbation under attack relative to the clean baseline recommendation list:
-$$\text{CSS} = \frac{1}{|U|} \sum_{u \in U} \left( 1 - \frac{|\mathcal{R}_{\text{clean}}(u, K) \cap \mathcal{R}_{\text{attack}}(u, K)|}{K} \right)$$
+
+$$
+\mathrm{CSS} = \frac{1}{|U|} \sum_{u \in U} \left( 1 - \frac{|\mathcal{R}_{\mathrm{clean}}(u, K) \cap \mathcal{R}_{\mathrm{attack}}(u, K)|}{K} \right)
+$$
+
 Lower CSS indicates invariant ranking stability against adversarial poisoning.
 
 ---
@@ -286,7 +324,7 @@ The codebase has undergone a full architectural audit, numerical stabilization, 
 │   │   ├── llm_auditor/
 │   │   │   ├── prompt_builder.py             # User History and Contextual Prompt Formatter
 │   │   │   ├── cache.py                      # Thread-Safe SQLite WAL Cache with Secret Redaction
-│   │   │   ├── auditor.py                    # Live Google GenAI (gemini-2.5-flash) Integration
+│   │   │   ├── auditor.py                    # Live Google GenAI (gemini-1.5-flash) Integration
 │   │   │   └── mock_auditor.py               # Deterministic Heuristic Fallback Engine
 │   │   │
 │   │   ├── bombing_detector/
@@ -470,7 +508,7 @@ The Streamlit web application (`robust_super/app.py`) provides an interactive in
    - Delta drop percentages and qualitative primary failure mode identification.
 
 5. **Live LLM Semantic Auditor and Inspector**:
-   - Live Google GenAI (`gemini-2.5-flash`) API telemetry and query execution.
+   - Live Google GenAI (`gemini-1.5-flash`) API telemetry and query execution.
    - SQLite cache inspection showing hit rate, saved compute, and response latency.
    - Single-interaction sandbox evaluating user taste profile coherence against suspect reviews.
 

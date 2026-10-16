@@ -12,15 +12,15 @@ def test_cache_memory_database_persistence():
     """Verify that in-memory SQLite database persists across operations and handles queries."""
     cache = LLMCache(":memory:")
     for i in range(10):
-        cache.put(i, i * 2, 5, 0.85, f"reason_{i}", "gemini-3.6-flash")
+        cache.put(i, i * 2, 5, 0.85, f"reason_{i}", "gemini-1.5-flash")
 
     for i in range(10):
-        res = cache.get(i, i * 2, 5, "gemini-3.6-flash")
+        res = cache.get(i, i * 2, 5, "gemini-1.5-flash")
         assert res is not None
         assert res[0] == 0.85
         assert res[1] == f"reason_{i}"
 
-    assert cache.get(999, 999, 5, "gemini-3.6-flash") is None
+    assert cache.get(999, 999, 5, "gemini-1.5-flash") is None
     cache.close()
 
 def test_cache_connection_closure_and_file_release(tmp_path):

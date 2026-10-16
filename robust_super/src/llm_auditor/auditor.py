@@ -48,14 +48,14 @@ class LLMAuditor:
     """
     Main LLM semantic auditor engine.
     Orchestrates pre-filtering, caching, parallel concurrency, and API / mock auditing.
-    Supports both modern Google GenAI SDK (google.genai) with gemini-3.6-flash, legacy google.generativeai, and OpenAI.
+    Supports both modern Google GenAI SDK (google.genai) with gemini-1.5-flash, legacy google.generativeai, and OpenAI.
     Hardened with secret scrubbing, serialization protection, and sanitized error telemetry.
     """
     def __init__(
         self,
         prompt_builder: LLMPromptBuilder,
         provider: str = "mock",
-        model_name: str = "gemini-3.6-flash",
+        model_name: str = "gemini-1.5-flash",
         api_key: Optional[str] = None,
         cache_path: str = "data/processed/llm_cache.db",
         prefilter_threshold: float = 0.60,
@@ -104,12 +104,12 @@ class LLMAuditor:
     def _normalize_model_name(provider: str, model_name: str) -> str:
         """Normalizes model names to currently supported live endpoints."""
         if provider == "gemini":
-            if not model_name or any(old in model_name for old in ["2.5", "2.0", "1.5", "1.0", "pro-vision"]):
-                return "gemini-3.6-flash"
+            if not model_name or "pro-vision" in model_name:
+                return "gemini-1.5-flash"
             return model_name
         elif provider == "openai":
             return model_name or "gpt-4o-mini"
-        return model_name or "gemini-3.6-flash"
+        return model_name or "gemini-1.5-flash"
 
     def audit_all(
         self,
