@@ -44,15 +44,25 @@ class MovieLensLoader:
         # Fallback paths when files do not exist in data_dir
         if not ratings_path or not os.path.exists(ratings_path):
             env_synthetic = os.environ.get("ROBUST_SUPER_SYNTHETIC", "").lower() in ("1", "true")
-            if env_synthetic or not self.data_dir or self.data_dir in ("non_existent", "non_existent_dir"):
+            if env_synthetic or self.data_dir in ("non_existent", "non_existent_dir"):
                 return self._generate_synthetic_data()
 
-            alt_path = os.path.join(os.path.dirname(__file__), "../../../research/data/ml-1m")
-            if os.path.exists(os.path.join(alt_path, "ratings.dat")):
-                ratings_path = os.path.join(alt_path, "ratings.dat")
-                movies_path = os.path.join(alt_path, "movies.dat")
-                users_path = os.path.join(alt_path, "users.dat")
-            else:
+            candidates = [
+                os.path.join(os.path.dirname(__file__), "../../data/raw/ml-1m"),
+                os.path.join(os.path.dirname(__file__), "../../../research/data/ml-1m"),
+                os.path.join(os.getcwd(), "robust_super/data/raw/ml-1m"),
+                os.path.join(os.getcwd(), "data/raw/ml-1m"),
+            ]
+            found = False
+            for cand in candidates:
+                if os.path.exists(os.path.join(cand, "ratings.dat")):
+                    ratings_path = os.path.join(cand, "ratings.dat")
+                    movies_path = os.path.join(cand, "movies.dat")
+                    users_path = os.path.join(cand, "users.dat")
+                    found = True
+                    break
+
+            if not found:
                 return self._generate_synthetic_data()
 
         # Parse ratings with line corruption resilience

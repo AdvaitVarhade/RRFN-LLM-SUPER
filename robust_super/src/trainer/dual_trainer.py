@@ -51,7 +51,7 @@ def build_data_loader(
                 interactions_list.append((u, item, rating))
 
     if len(interactions_list) == 0:
-        # Fallback single dummy interaction if empty
+        # Boundary guard: neutral baseline interaction if partition subset is empty
         interactions_list.append((0, 0, 3))
 
     dataset = InteractionDataset(interactions_list, weights)

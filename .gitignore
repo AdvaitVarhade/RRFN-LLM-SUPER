@@ -71,6 +71,7 @@ Thumbs.db
 *.sqlite3
 *.db
 *.log
+*.zip
 data/raw/
 research/data/
 robust_super/data/raw/
