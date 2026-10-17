@@ -68,6 +68,9 @@ class YelpLoader:
                     except (json.JSONDecodeError, ValueError):
                         continue
 
+                    if not isinstance(item, dict):
+                        continue
+
                     u_id = item.get("user_id")
                     b_id = item.get("business_id")
                     stars = item.get("stars")
@@ -135,6 +138,9 @@ class YelpLoader:
                         try:
                             b = json.loads(line_str)
                         except (json.JSONDecodeError, ValueError):
+                            continue
+
+                        if not isinstance(b, dict):
                             continue
 
                         bid = b.get("business_id")

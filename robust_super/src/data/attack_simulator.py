@@ -24,7 +24,10 @@ class AttackSimulator:
         Injects the specified attack into a copy of the DataSplit training data.
         Returns a new corrupted DataSplit with updated ground_truth_labels.
         """
-        attacked = copy.deepcopy(split)
+        if hasattr(split, "clone"):
+            attacked = split.clone()
+        else:
+            attacked = copy.deepcopy(split)
         if attack_type == "none" or noise_rate <= 0.0:
             return attacked
 
@@ -80,7 +83,7 @@ class AttackSimulator:
         elif not target_items:
             target_items = []
 
-        num_fake_users = max(1, int(attack_rate * split.num_users)) if split.num_users > 0 else 0
+        num_fake_users = max(1, int(np.ceil(attack_rate * split.num_users))) if split.num_users > 0 else 0
         all_ts = [ts for u_list in split.train_dict.values() for _, _, ts in u_list]
         median_ts = int(np.median(all_ts)) if all_ts else 1000000
 
@@ -124,7 +127,7 @@ class AttackSimulator:
         elif not target_items:
             target_items = []
 
-        num_fake_users = max(1, int(attack_rate * split.num_users)) if split.num_users > 0 else 0
+        num_fake_users = max(1, int(np.ceil(attack_rate * split.num_users))) if split.num_users > 0 else 0
         all_ts = [ts for u_list in split.train_dict.values() for _, _, ts in u_list]
         burst_center_ts = int(np.median(all_ts)) if all_ts else 1000000
         window_seconds = time_window_hours * 3600
@@ -171,7 +174,7 @@ class AttackSimulator:
         elif not target_items:
             target_items = []
 
-        num_fake_users = max(2, int(attack_rate * split.num_users)) if split.num_users > 0 else 0
+        num_fake_users = max(2, int(np.ceil(attack_rate * split.num_users))) if split.num_users > 0 else 0
         half_users = num_fake_users // 2
         all_ts = [ts for u_list in split.train_dict.values() for _, _, ts in u_list]
         burst_ts = int(np.median(all_ts)) if all_ts else 1000000

@@ -2,6 +2,7 @@ import os
 import re
 import json
 import gzip
+import zlib
 import pandas as pd
 import numpy as np
 from typing import Tuple, Dict, Optional, List
@@ -67,7 +68,7 @@ class AmazonReviewLoader:
         is_gz = target_file.endswith(".gz")
         try:
             opener = gzip.open(target_file, "rt", encoding="utf-8") if is_gz else open(target_file, "r", encoding="utf-8")
-        except (gzip.BadGzipFile, EOFError, OSError):
+        except (gzip.BadGzipFile, EOFError, OSError, zlib.error):
             return self._generate_synthetic_data()
 
         try:
@@ -78,6 +79,9 @@ class AmazonReviewLoader:
                 try:
                     item = json.loads(line_str)
                 except (json.JSONDecodeError, ValueError):
+                    continue
+
+                if not isinstance(item, dict):
                     continue
 
                 reviewer_id = item.get("reviewerID")
@@ -104,7 +108,7 @@ class AmazonReviewLoader:
                         "timestamp": ts_val,
                         "review_text": str(review_text)
                     })
-        except (gzip.BadGzipFile, EOFError, OSError):
+        except (gzip.BadGzipFile, EOFError, OSError, zlib.error):
             if not rows:
                 return self._generate_synthetic_data()
         finally:

@@ -13,12 +13,14 @@ class MovieLensLoader:
         data_dir: str = "",
         min_user_interactions: int = 5,
         min_item_interactions: int = 5,
-        use_synthetic: bool = False
+        use_synthetic: bool = False,
+        use_full_catalog: bool = False
     ):
         self.data_dir = data_dir
         self.min_user_interactions = min_user_interactions
         self.min_item_interactions = min_item_interactions
         self.use_synthetic = use_synthetic
+        self.use_full_catalog = use_full_catalog
         
         self.user_to_idx: Dict[int, int] = {}
         self.idx_to_user: Dict[int, int] = {}
@@ -124,8 +126,14 @@ class MovieLensLoader:
             unique_users = ratings_df["user_id"].unique() if not ratings_df.empty else []
             users_df = pd.DataFrame({"user_id": unique_users})
 
-        # Iterative k-core filtering
-        ratings_df = self._filter_k_core(ratings_df)
+        # Determine whether to use full catalog (Nu=6040, Ni=3952, 1,000,209 interactions)
+        is_full_scale = self.use_full_catalog or (
+            self.min_user_interactions <= 0 and self.min_item_interactions <= 0 and not self.use_synthetic
+        )
+
+        # Iterative k-core filtering (bypass if full scale requested)
+        if not is_full_scale:
+            ratings_df = self._filter_k_core(ratings_df)
 
         if ratings_df.empty:
             self.num_users = 0
@@ -141,50 +149,115 @@ class MovieLensLoader:
                 pd.DataFrame(columns=["user_id", "gender", "age", "occupation", "zip"])
             )
 
-        # Build contiguous 0-indexed mappings
-        unique_users = sorted(ratings_df["user_id"].dropna().unique())
-        unique_items = sorted(ratings_df["item_id"].dropna().unique())
+        if is_full_scale:
+            # Full MovieLens-1M catalog scale: Nu=6,040, Ni=3,952, 1,000,209 interactions
+            num_users_cat = 6040
+            num_items_cat = 3952
 
-        self.user_to_idx = {u: idx for idx, u in enumerate(unique_users)}
-        self.idx_to_user = {idx: u for idx, u in enumerate(unique_users)}
-        self.item_to_idx = {i: idx for idx, i in enumerate(unique_items)}
-        self.idx_to_item = {idx: i for idx, i in enumerate(unique_items)}
+            self.user_to_idx = {u: u - 1 for u in range(1, num_users_cat + 1)}
+            self.idx_to_user = {idx: idx + 1 for idx in range(num_users_cat)}
+            self.item_to_idx = {i: i - 1 for i in range(1, num_items_cat + 1)}
+            self.idx_to_item = {idx: idx + 1 for idx in range(num_items_cat)}
 
-        self.num_users = len(unique_users)
-        self.num_items = len(unique_items)
+            self.num_users = num_users_cat
+            self.num_items = num_items_cat
 
-        # Remap IDs with safe non-null filtering
-        ratings_df["user_id"] = ratings_df["user_id"].map(self.user_to_idx)
-        ratings_df["item_id"] = ratings_df["item_id"].map(self.item_to_idx)
-        ratings_df = ratings_df.dropna(subset=["user_id", "item_id"])
-        ratings_df["user_id"] = ratings_df["user_id"].astype(int)
-        ratings_df["item_id"] = ratings_df["item_id"].astype(int)
-        ratings_df["rating"] = pd.to_numeric(ratings_df["rating"], errors="coerce")
-        ratings_df = ratings_df.dropna(subset=["rating"])
-        ratings_df["rating"] = ratings_df["rating"].astype(int)
-        ratings_df = ratings_df.sort_values(by=["user_id", "timestamp"]).reset_index(drop=True)
+            ratings_df["user_id"] = ratings_df["user_id"].astype(int) - 1
+            ratings_df["item_id"] = ratings_df["item_id"].astype(int) - 1
+            ratings_df = ratings_df.dropna(subset=["user_id", "item_id"])
+            ratings_df["user_id"] = ratings_df["user_id"].astype(int)
+            ratings_df["item_id"] = ratings_df["item_id"].astype(int)
+            ratings_df["rating"] = pd.to_numeric(ratings_df["rating"], errors="coerce")
+            ratings_df = ratings_df.dropna(subset=["rating"])
+            ratings_df["rating"] = ratings_df["rating"].astype(int)
+            ratings_df = ratings_df.sort_values(by=["user_id", "timestamp"]).reset_index(drop=True)
 
-        if not movies_df.empty:
-            movies_df = movies_df[movies_df["item_id"].isin(self.item_to_idx.keys())].copy()
-            movies_df["item_id"] = movies_df["item_id"].map(self.item_to_idx)
-            movies_df = movies_df.dropna(subset=["item_id"])
-            movies_df["item_id"] = movies_df["item_id"].astype(int)
-            movies_df = movies_df.sort_values(by="item_id").reset_index(drop=True)
+            # Ensure movies_df contains full catalog rows 0..3951
+            movie_lookup = {}
+            if not movies_df.empty:
+                for _, row in movies_df.iterrows():
+                    try:
+                        m_raw = int(row["item_id"])
+                        if 1 <= m_raw <= num_items_cat:
+                            movie_lookup[m_raw - 1] = (str(row.get("title", f"Movie_{m_raw}")), row.get("genres", ["Unknown"]))
+                    except (ValueError, TypeError):
+                        pass
+
+            full_movies = []
+            for idx in range(num_items_cat):
+                if idx in movie_lookup:
+                    title, genres = movie_lookup[idx]
+                    full_movies.append({"item_id": idx, "title": title, "genres": genres})
+                else:
+                    full_movies.append({"item_id": idx, "title": f"Movie_{idx+1}", "genres": ["Unknown"]})
+            movies_df = pd.DataFrame(full_movies)
+
+            # Ensure users_df contains all 6,040 users 0..6039
+            user_lookup = {}
+            if not users_df.empty and "user_id" in users_df.columns:
+                for _, row in users_df.iterrows():
+                    try:
+                        u_raw = int(row["user_id"])
+                        if 1 <= u_raw <= num_users_cat:
+                            user_lookup[u_raw - 1] = row.to_dict()
+                    except (ValueError, TypeError):
+                        pass
+
+            full_users = []
+            for idx in range(num_users_cat):
+                if idx in user_lookup:
+                    u_row = dict(user_lookup[idx])
+                    u_row["user_id"] = idx
+                    full_users.append(u_row)
+                else:
+                    full_users.append({"user_id": idx, "gender": "M", "age": 25, "occupation": 0, "zip": "00000"})
+            users_df = pd.DataFrame(full_users)
+
         else:
-            movies_df = pd.DataFrame({
-                "item_id": np.arange(self.num_items),
-                "title": [f"Movie_{i}" for i in range(self.num_items)],
-                "genres": [["Unknown"] for _ in range(self.num_items)]
-            })
+            # Standard contiguous 0-indexed mappings
+            unique_users = sorted(ratings_df["user_id"].dropna().unique())
+            unique_items = sorted(ratings_df["item_id"].dropna().unique())
 
-        if not users_df.empty and "user_id" in users_df.columns:
-            users_df = users_df[users_df["user_id"].isin(self.user_to_idx.keys())].copy()
-            users_df["user_id"] = users_df["user_id"].map(self.user_to_idx)
-            users_df = users_df.dropna(subset=["user_id"])
-            users_df["user_id"] = users_df["user_id"].astype(int)
-            users_df = users_df.sort_values(by="user_id").reset_index(drop=True)
-        else:
-            users_df = pd.DataFrame({"user_id": np.arange(self.num_users)})
+            self.user_to_idx = {u: idx for idx, u in enumerate(unique_users)}
+            self.idx_to_user = {idx: u for idx, u in enumerate(unique_users)}
+            self.item_to_idx = {i: idx for idx, i in enumerate(unique_items)}
+            self.idx_to_item = {idx: i for idx, i in enumerate(unique_items)}
+
+            self.num_users = len(unique_users)
+            self.num_items = len(unique_items)
+
+            # Remap IDs with safe non-null filtering
+            ratings_df["user_id"] = ratings_df["user_id"].map(self.user_to_idx)
+            ratings_df["item_id"] = ratings_df["item_id"].map(self.item_to_idx)
+            ratings_df = ratings_df.dropna(subset=["user_id", "item_id"])
+            ratings_df["user_id"] = ratings_df["user_id"].astype(int)
+            ratings_df["item_id"] = ratings_df["item_id"].astype(int)
+            ratings_df["rating"] = pd.to_numeric(ratings_df["rating"], errors="coerce")
+            ratings_df = ratings_df.dropna(subset=["rating"])
+            ratings_df["rating"] = ratings_df["rating"].astype(int)
+            ratings_df = ratings_df.sort_values(by=["user_id", "timestamp"]).reset_index(drop=True)
+
+            if not movies_df.empty:
+                movies_df = movies_df[movies_df["item_id"].isin(self.item_to_idx.keys())].copy()
+                movies_df["item_id"] = movies_df["item_id"].map(self.item_to_idx)
+                movies_df = movies_df.dropna(subset=["item_id"])
+                movies_df["item_id"] = movies_df["item_id"].astype(int)
+                movies_df = movies_df.sort_values(by="item_id").reset_index(drop=True)
+            else:
+                movies_df = pd.DataFrame({
+                    "item_id": np.arange(self.num_items),
+                    "title": [f"Movie_{i}" for i in range(self.num_items)],
+                    "genres": [["Unknown"] for _ in range(self.num_items)]
+                })
+
+            if not users_df.empty and "user_id" in users_df.columns:
+                users_df = users_df[users_df["user_id"].isin(self.user_to_idx.keys())].copy()
+                users_df["user_id"] = users_df["user_id"].map(self.user_to_idx)
+                users_df = users_df.dropna(subset=["user_id"])
+                users_df["user_id"] = users_df["user_id"].astype(int)
+                users_df = users_df.sort_values(by="user_id").reset_index(drop=True)
+            else:
+                users_df = pd.DataFrame({"user_id": np.arange(self.num_users)})
 
         if not ratings_df.empty and pd.notna(ratings_df["rating"].mean()):
             self.global_mean_rating = float(ratings_df["rating"].mean())

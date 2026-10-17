@@ -38,6 +38,8 @@ def main():
     parser.add_argument("--cl_temp",    default=0.20, type=float, help="InfoNCE temperature tau_cl")
     parser.add_argument("--simgcl_eps", default=0.10, type=float, help="SimGCL uniform noise epsilon")
     parser.add_argument("--sgl_drop",   default=0.10, type=float, help="SGL edge dropout rate")
+    parser.add_argument("--scale",      default="full", choices=["full", "sample"], help="full|sample scale")
+    parser.add_argument("--eval_users", default=None, type=int, help="Optional limit on number of evaluated users")
     parser.add_argument("--outdir",     default=None, help="Output directory override")
     args = parser.parse_args()
 
@@ -112,30 +114,54 @@ def main():
     )
 
     # ── Load Dataset ─────────────────────────────────────────────────────────
-    print(f"\n[DATA] Ingesting dataset: {args.dataset.upper()}...")
+    print(f"\n[DATA] Ingesting dataset: {args.dataset.upper()} (scale={args.scale})...")
     t0 = time.time()
-    raw_dir = safe_join_path(ROBUST_DIR, "data", dataset_tag)
-    os.makedirs(raw_dir, exist_ok=True)
+    if dataset_tag == "movielens":
+        raw_dir = safe_join_path(ROBUST_DIR, "data", "raw", "ml-1m")
+        if args.scale == "full":
+            loader = MovieLensLoader(data_dir=raw_dir, use_full_catalog=True)
+        else:
+            loader = MovieLensLoader(data_dir=raw_dir, min_user_interactions=10, min_item_interactions=5)
+    elif dataset_tag in ("amazon", "amazon_electronics"):
+        raw_dir = safe_join_path(ROBUST_DIR, "data", "amazon")
+        loader = AmazonReviewLoader(data_dir=raw_dir, min_user_interactions=5, min_item_interactions=5)
+    elif dataset_tag == "yelp":
+        raw_dir = safe_join_path(ROBUST_DIR, "data", "yelp")
+        loader = YelpLoader(data_dir=raw_dir, min_user_interactions=5, min_item_interactions=5)
+    else:
+        raw_dir = safe_join_path(ROBUST_DIR, "data", dataset_tag)
+        loader = get_dataset_loader(dataset_tag, data_dir=raw_dir, min_user_interactions=5, min_item_interactions=5)
 
-    loader = get_dataset_loader(dataset_tag, data_dir=raw_dir, min_user_interactions=10, min_item_interactions=5)
+    os.makedirs(raw_dir, exist_ok=True)
     ratings_df, items_df, users_df = loader.load_data()
 
-    # Sample top 300 users if dataset is very large for uniform benchmark comparison
-    if len(ratings_df["user_id"].unique()) > 300:
+    if args.scale == "sample" and len(ratings_df["user_id"].unique()) > 300:
         top_users = ratings_df["user_id"].value_counts().head(300).index
         ratings_df = ratings_df[ratings_df["user_id"].isin(top_users)].copy()
+        print(f"[DATA] Sampled 300 users: {len(ratings_df)} ratings")
 
-    # Remap IDs to contiguous 0-indexed
-    u_map = {old: new for new, old in enumerate(sorted(ratings_df["user_id"].unique()))}
-    i_map = {old: new for new, old in enumerate(sorted(ratings_df["item_id"].unique()))}
-    items_df = items_df[items_df["item_id"].isin(i_map.keys())].copy()
-    items_df["item_id"] = items_df["item_id"].map(i_map)
-    items_df = items_df.sort_values("item_id").reset_index(drop=True)
-    ratings_df["user_id"] = ratings_df["user_id"].map(u_map)
-    ratings_df["item_id"] = ratings_df["item_id"].map(i_map)
-    users_df = users_df[users_df["user_id"].isin(u_map.keys())].copy()
-    users_df["user_id"] = users_df["user_id"].map(u_map)
-    users_df = users_df.sort_values(by="user_id").reset_index(drop=True)
+        # Remap IDs to contiguous 0-indexed for sample run
+        u_map = {old: new for new, old in enumerate(sorted(ratings_df["user_id"].unique()))}
+        i_map = {old: new for new, old in enumerate(sorted(ratings_df["item_id"].unique()))}
+        items_df = items_df[items_df["item_id"].isin(i_map.keys())].copy()
+        items_df["item_id"] = items_df["item_id"].map(i_map)
+        items_df = items_df.sort_values("item_id").reset_index(drop=True)
+        ratings_df["user_id"] = ratings_df["user_id"].map(u_map)
+        ratings_df["item_id"] = ratings_df["item_id"].map(i_map)
+        users_df = users_df[users_df["user_id"].isin(u_map.keys())].copy()
+        users_df["user_id"] = users_df["user_id"].map(u_map)
+        users_df = users_df.sort_values(by="user_id").reset_index(drop=True)
+    elif dataset_tag != "movielens":
+        u_map = {old: new for new, old in enumerate(sorted(ratings_df["user_id"].unique()))}
+        i_map = {old: new for new, old in enumerate(sorted(ratings_df["item_id"].unique()))}
+        items_df = items_df[items_df["item_id"].isin(i_map.keys())].copy()
+        items_df["item_id"] = items_df["item_id"].map(i_map)
+        items_df = items_df.sort_values("item_id").reset_index(drop=True)
+        ratings_df["user_id"] = ratings_df["user_id"].map(u_map)
+        ratings_df["item_id"] = ratings_df["item_id"].map(i_map)
+        users_df = users_df[users_df["user_id"].isin(u_map.keys())].copy()
+        users_df["user_id"] = users_df["user_id"].map(u_map)
+        users_df = users_df.sort_values(by="user_id").reset_index(drop=True)
 
     clean_split = preprocess_dataset(ratings_df, items_df, users_df)
     print(f"[DATA] Ingestion complete in {time.time()-t0:.1f}s | Users: {clean_split.num_users}, Items: {clean_split.num_items}")
@@ -269,7 +295,13 @@ def main():
         clean_split.train_dict, unweighted, clean_split.user_mean_ratings, H_robust, filter_threshold=0.0
     )
 
-    eval_users = list(clean_split.test_dict.keys())
+    all_test_users = list(clean_split.test_dict.keys())
+    if args.eval_users is not None:
+        eval_users = all_test_users[:min(args.eval_users, len(all_test_users))]
+    elif args.scale == "sample":
+        eval_users = all_test_users[:min(150, len(all_test_users))]
+    else:
+        eval_users = all_test_users
     all_items_set = set(range(clean_split.num_items))
     recs_robust = {}
     recs_vanilla = {}

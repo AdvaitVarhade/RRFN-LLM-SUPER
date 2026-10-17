@@ -1,0 +1,19 @@
+\begin{table}[t]
+\caption{Component Ablation Study on MovieLens-1M under 15\% Bandwagon Attack.}
+\label{tab:ablation}
+\centering
+\setlength{\tabcolsep}{3pt}
+\resizebox{\columnwidth}{!}{
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Ablation Variant} & \textbf{Recall@10} & \textbf{nDCG@10} & \textbf{LTC@10} & \textbf{ROC-AUC} \\
+\midrule
+\textbf{Full RRFN-LLM-SUPER (Ours)} & \textbf{0.2333} & \textbf{0.1069} & \textbf{0.1531} & \textbf{0.7028} \\
+w/o RRFN (No Transition Matrix T) & 0.2467 & 0.1120 & 0.1505 & 0.4416 \\
+w/o LLM Auditing (beta = 0) & 0.2133 & 0.0963 & 0.1603 & 0.6515 \\
+w/o Bombing Detector (gamma = 0) & 0.2267 & 0.0930 & 0.1502 & 0.3953 \\
+w/o GCL Contrastive Loss (lambda_cl = 0) & 0.2400 & 0.1124 & 0.1492 & 0.7028 \\
+w/o SUPER Debiasing (Monolithic) & 0.1200 & 0.0492 & 0.0849 & 0.7028 \\
+\bottomrule
+\end{tabular}}
+\end{table}

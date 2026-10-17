@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
 class NeuMF(nn.Module):
     """
@@ -86,6 +86,22 @@ class NeuMF(nn.Module):
         logits = self.prediction_head(combined)
         probs = F.softmax(logits, dim=-1)
         return probs
+
+    def get_cl_embeddings(self, eps: float = 0.1) -> Tuple[torch.Tensor, torch.Tensor]:
+        """
+        Generates two independently perturbed embedding views for SimGCL contrastive learning.
+        Returns (view1, view2), each of shape [(num_users + num_items), embedding_dim]
+        normalized along the last dimension.
+        """
+        u_emb = self.user_embed_gmf.weight
+        i_emb = self.item_embed_gmf.weight
+        all_emb = torch.cat([u_emb, i_emb], dim=0)
+
+        noise1 = torch.empty_like(all_emb).uniform_(-eps, eps)
+        noise2 = torch.empty_like(all_emb).uniform_(-eps, eps)
+        v1 = F.normalize(all_emb + noise1, p=2, dim=-1)
+        v2 = F.normalize(all_emb + noise2, p=2, dim=-1)
+        return v1, v2
 
     def score_items(self, user_id: int, item_ids: List[int], device: str = "cpu") -> torch.Tensor:
         """

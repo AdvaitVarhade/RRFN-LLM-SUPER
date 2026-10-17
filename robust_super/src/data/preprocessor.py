@@ -41,6 +41,22 @@ class DataSplit:
     users_df: pd.DataFrame
     ground_truth_labels: Dict[Tuple[int, int], int] = field(default_factory=dict) # (u, i) -> 1 genuine, 0 injected
 
+    def clone(self) -> "DataSplit":
+        """Fast isolated clone of DataSplit without slow recursive copy.deepcopy."""
+        return DataSplit(
+            train_dict={u: list(items) for u, items in self.train_dict.items()},
+            val_dict=self.val_dict.copy(),
+            test_dict=self.test_dict.copy(),
+            weight_dict=self.weight_dict.copy(),
+            item_counts=self.item_counts.copy(),
+            user_mean_ratings=self.user_mean_ratings.copy(),
+            num_users=self.num_users,
+            num_items=self.num_items,
+            items_df=self.items_df.copy() if hasattr(self.items_df, "copy") else self.items_df,
+            users_df=self.users_df.copy() if hasattr(self.users_df, "copy") else self.users_df,
+            ground_truth_labels=self.ground_truth_labels.copy()
+        )
+
 def preprocess_dataset(
     ratings_df: pd.DataFrame,
     movies_df: pd.DataFrame,

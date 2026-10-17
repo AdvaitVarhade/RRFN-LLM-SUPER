@@ -28,20 +28,34 @@ import numpy as np
 
 # ── Set up path ──────────────────────────────────────────────────────────────
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-ROBUST_DIR = os.path.join(SCRIPT_DIR, "robust_super")
-sys.path.insert(0, ROBUST_DIR)
+if os.path.basename(SCRIPT_DIR) == "experiments":
+    ROBUST_DIR = os.path.abspath(os.path.join(SCRIPT_DIR, ".."))
+    PROJECT_ROOT = os.path.abspath(os.path.join(ROBUST_DIR, ".."))
+elif os.path.exists(os.path.join(SCRIPT_DIR, "robust_super")):
+    ROBUST_DIR = os.path.join(SCRIPT_DIR, "robust_super")
+    PROJECT_ROOT = SCRIPT_DIR
+else:
+    ROBUST_DIR = SCRIPT_DIR
+    PROJECT_ROOT = os.path.abspath(os.path.join(SCRIPT_DIR, ".."))
+
+if ROBUST_DIR not in sys.path:
+    sys.path.insert(0, ROBUST_DIR)
+if PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, PROJECT_ROOT)
 
 import torch
 
 def main():
     parser = argparse.ArgumentParser(description="RRFN-LLM-SUPER 15-Epoch GPU Training Run")
     parser.add_argument("--attack",    default="bandwagon",  help="Attack type: bandwagon|nuke_bomb|random_flip|agas|none")
-    parser.add_argument("--noise",     default=0.10, type=float, help="Noise injection rate (0.0 to 0.25)")
+    parser.add_argument("--noise",     default=0.15, type=float, help="Noise injection rate (0.0 to 0.25)")
     parser.add_argument("--seed",      default=42,   type=int)
     parser.add_argument("--backbone",  default="NeuMF", help="NeuMF|LightGCN|VaeCF")
     parser.add_argument("--dataset",   default="sample", help="sample|full")
+    parser.add_argument("--eval_users", default=None, type=int, help="Optional limit on number of evaluated users")
     parser.add_argument("--warm",      default=4, type=int, help="Warm-start epochs")
     parser.add_argument("--epochs",    default=15, type=int, help="Dual training epochs")
+    parser.add_argument("--early_stopping_patience", default=None, type=int, help="Early stopping patience (None to train full epochs)")
     parser.add_argument("--outdir",    default=None, help="Output directory override")
     args = parser.parse_args()
 
@@ -97,28 +111,30 @@ def main():
     print("[DATA] Loading MovieLens-1M...")
     t0 = time.time()
 
-    loader = MovieLensLoader(data_dir=raw_dir, min_user_interactions=20, min_item_interactions=10)
-    ratings_df, movies_df, users_df = loader.load_data()
-
     if args.dataset == "sample":
-        # Use top 300 active users for a faster but representative run
+        loader = MovieLensLoader(data_dir=raw_dir, min_user_interactions=20, min_item_interactions=10)
+        ratings_df, movies_df, users_df = loader.load_data()
+        # Use top 300 active users for a faster but representative sample run
         top_users = ratings_df["user_id"].value_counts().head(300).index
         ratings_df = ratings_df[ratings_df["user_id"].isin(top_users)].copy()
         print(f"[DATA] Sampled 300 users, {len(ratings_df)} ratings")
-    else:
-        print(f"[DATA] Full dataset: {len(ratings_df)} ratings")
 
-    # Remap IDs to contiguous 0-indexed
-    u_map = {old: new for new, old in enumerate(sorted(ratings_df["user_id"].unique()))}
-    i_map = {old: new for new, old in enumerate(sorted(ratings_df["item_id"].unique()))}
-    movies_df = movies_df[movies_df["item_id"].isin(i_map)].copy()
-    movies_df["item_id"] = movies_df["item_id"].map(i_map)
-    movies_df = movies_df.sort_values("item_id").reset_index(drop=True)
-    ratings_df["user_id"] = ratings_df["user_id"].map(u_map)
-    ratings_df["item_id"] = ratings_df["item_id"].map(i_map)
-    users_df = users_df[users_df["user_id"].isin(u_map.keys())].copy()
-    users_df["user_id"] = users_df["user_id"].map(u_map)
-    users_df = users_df.sort_values(by="user_id").reset_index(drop=True)
+        # Remap IDs to contiguous 0-indexed for sample run
+        u_map = {old: new for new, old in enumerate(sorted(ratings_df["user_id"].unique()))}
+        i_map = {old: new for new, old in enumerate(sorted(ratings_df["item_id"].unique()))}
+        movies_df = movies_df[movies_df["item_id"].isin(i_map)].copy()
+        movies_df["item_id"] = movies_df["item_id"].map(i_map)
+        movies_df = movies_df.sort_values("item_id").reset_index(drop=True)
+        ratings_df["user_id"] = ratings_df["user_id"].map(u_map)
+        ratings_df["item_id"] = ratings_df["item_id"].map(i_map)
+        users_df = users_df[users_df["user_id"].isin(u_map.keys())].copy()
+        users_df["user_id"] = users_df["user_id"].map(u_map)
+        users_df = users_df.sort_values(by="user_id").reset_index(drop=True)
+    else:
+        # Full verified MovieLens-1M: Nu=6,040, Ni=3,952, 1,000,209 interactions
+        loader = MovieLensLoader(data_dir=raw_dir, use_full_catalog=True)
+        ratings_df, movies_df, users_df = loader.load_data()
+        print(f"[DATA] Full dataset: {len(ratings_df)} ratings, {loader.num_users} users, {loader.num_items} items")
 
     clean_split = preprocess_dataset(ratings_df, movies_df, users_df)
     print(f"[DATA] Loaded in {time.time()-t0:.1f}s | Users: {clean_split.num_users}, Items: {clean_split.num_items}")
@@ -146,7 +162,7 @@ def main():
         lr=0.003,
         delta_T_reg=0.01,
         epochs=args.epochs,
-        early_stopping_patience=5  # more patience for 15-epoch run
+        early_stopping_patience=args.early_stopping_patience  # None ensures full 15 epochs run without premature truncation
     )
 
     # ── Stage 1: Warm-Start ───────────────────────────────────────────────────
@@ -253,7 +269,13 @@ def main():
     user_cand_pools = {}
     top_k = 10
 
-    eval_users = list(clean_split.test_dict.keys())[:min(150, len(clean_split.test_dict))]
+    all_test_users = list(clean_split.test_dict.keys())
+    if args.eval_users is not None:
+        eval_users = all_test_users[:min(args.eval_users, len(all_test_users))]
+    elif args.dataset == "sample":
+        eval_users = all_test_users[:min(150, len(all_test_users))]
+    else:
+        eval_users = all_test_users
     all_items_set = set(range(attacked_split.num_items))
     import random
     rng = random.Random(args.seed)

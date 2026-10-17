@@ -71,7 +71,7 @@ class DualModelTrainer:
         delta_T_reg: float = 0.01,
         gradient_clip_norm: float = 5.0,
         epochs: int = 25,
-        early_stopping_patience: int = 8,
+        early_stopping_patience: Optional[int] = 8,
         use_contrastive: bool = False,
         lambda_cl: float = 0.1,
         temperature_cl: float = 0.2
@@ -200,7 +200,7 @@ class DualModelTrainer:
                 patience_count = 0
             else:
                 patience_count += 1
-                if patience_count >= self.early_stopping_patience:
+                if self.early_stopping_patience is not None and self.early_stopping_patience > 0 and patience_count >= self.early_stopping_patience:
                     break
 
         if best_state is not None:

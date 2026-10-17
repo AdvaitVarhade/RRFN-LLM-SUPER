@@ -74,7 +74,7 @@ Thumbs.db
 *.zip
 data/raw/
 research/data/
-robust_super/data/raw/
+robust_super/data/
 
 # =============================================================================
 # Presentations, Slides & Presentation Assets (Ignored from GitHub)
@@ -88,18 +88,29 @@ generate_flow_presentation.py
 logo_extracted.png
 
 # =============================================================================
-# Reports, Academic Documents & Papers (Ignored from GitHub)
+# Reports & Word Documents (Ignored from GitHub)
 # =============================================================================
 *.docx
-*.pdf
 ~$*
-paper/
 build_report/
 plagiarism_chunks/
 plagiarism_checker_helper.html
 build_advait_from_new.py
 split_report.py
 export_plagiarism_chunks.py
+
+# =============================================================================
+# Paper Build Intermediates (Ignored from GitHub; paper.pdf and sources kept)
+# =============================================================================
+paper/*.aux
+paper/*.bbl
+paper/*.blg
+paper/*.log
+paper/*.out
+paper/*.toc
+paper/*.synctex*
+paper/missfont.log
+paper/*.docx
 
 # =============================================================================
 # Scratch Scripts & Literature Scrapes (Ignored from GitHub)
@@ -112,12 +123,12 @@ preview_git_cleanup.py
 execute_git_cleanup.py
 
 # =============================================================================
-# Legacy Directories (Superseded by robust_super/)
+# Legacy Root Directories (Superseded by robust_super/)
 # =============================================================================
-research/
-fedsuper_simulation/
-dashboard-ui/
-experiments/
-src/
-tests/
+/research/
+/fedsuper_simulation/
+/dashboard-ui/
+/experiments/
+/src/
+/tests/
 

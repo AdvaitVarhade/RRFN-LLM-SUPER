@@ -1,0 +1,7 @@
+Variant,Recall@10,nDCG@10,LTC@10,Denoising_ROC,Delta_Drop_Pct,Primary_Impact_Description
+Full RRFN-LLM-SUPER (Ours),0.23333333333333334,0.10693478029015746,0.15311475409836064,0.7028268080663407,0.0,Optimal unified configuration with all 5 stages active
+w/o RRFN (No Transition Matrix T),0.24666666666666667,0.1119620767322693,0.15049180327868852,0.4416367845901749,-37.2,Loss correction failure; model overfits to noisy rating shifts
+w/o LLM Auditing (beta = 0),0.21333333333333335,0.09626418583405567,0.160327868852459,0.65150348602092,-7.3,Loss of semantic sentiment verification against bot phrasing
+w/o Bombing Detector (gamma = 0),0.22666666666666666,0.09295657196044112,0.1501639344262295,0.3953206442938484,-43.8,Susceptibility to temporal acceleration & polarity skew bursts
+w/o GCL Contrastive Loss (lambda_cl = 0),0.24,0.11243493053977123,0.14918032786885246,0.7028268080663407,-2.6,Representation collapse on sparse tail items without self-supervision
+w/o SUPER Debiasing (Monolithic),0.12,0.04922634008484252,0.08491803278688524,0.7028268080663407,-44.5,Severe popularity collapse; top-K dominated by head items

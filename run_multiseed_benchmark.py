@@ -7,6 +7,16 @@ Executes 5-seed statistical benchmark (seeds = [42, 43, 44, 45, 46]) across:
 3. Yelp Academic (SGL backbone)
 
 Under Bandwagon Shilling Attack (rho = 0.15).
+Evaluates competitive baselines:
+- Plain LightGCN (SIGIR '20)
+- Plain SGL (SIGIR '21)
+- T-CE / SGDL (NeurIPS '22)
+- Trust-GRS (AAAI '25)
+- Uncalibrated Backbone
+- Vanilla SUPER (Clean Baseline)
+- Vanilla SUPER (Attacked bandwagon rho=0.15)
+- RRFN-LLM-SUPER (Ours, robust decoupled)
+
 Computes exact mean +- std, paired t-test p-values, attack-aware genuine LTC (g-LTC@10),
 and spam target exposure rate (STER@10).
 """
@@ -22,8 +32,9 @@ import pandas as pd
 import scipy.stats as stats
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-ROBUST_DIR = os.path.join(SCRIPT_DIR, "robust_super")
-sys.path.insert(0, ROBUST_DIR)
+ROBUST_DIR = os.path.join(SCRIPT_DIR, "robust_super") if os.path.basename(SCRIPT_DIR) != "robust_super" else SCRIPT_DIR
+if ROBUST_DIR not in sys.path:
+    sys.path.insert(0, ROBUST_DIR)
 
 import torch
 import torch.nn as nn
@@ -36,6 +47,10 @@ from src.data.attack_simulator import AttackSimulator
 from src.models.neumf import NeuMF
 from src.models.simgcl import SimGCL
 from src.models.sgl import SGL
+from src.models.lightgcn import LightGCN
+from src.models.tce_sgdl import TCE_SGDL
+from src.models.trust_grs import TrustGRS
+from src.trainer.baseline_trainer import BaselineTrainer
 from src.rrfn.anchor_selector import AnchorSelector
 from src.rrfn.transition_matrix import NoiseTransitionMatrix
 from src.llm_auditor.prompt_builder import LLMPromptBuilder
@@ -54,12 +69,15 @@ from src.evaluation.metrics import evaluate_recommendations
 from src.evaluation.robustness_metrics import compute_robustness_metrics, compute_roc_pr_data
 
 
-def load_domain_data(domain: str):
+def load_domain_data(domain: str, dataset_scale: str = "full"):
     """Loads and pre-processes the dataset into standard 0-indexed DataFrames."""
     if domain == "movielens":
-        raw_dir = os.path.join(ROBUST_DIR, "data", "ml-1m")
-        loader = MovieLensLoader(data_dir=raw_dir, min_user_interactions=10, min_item_interactions=5)
-    elif domain == "amazon":
+        raw_dir = os.path.join(ROBUST_DIR, "data", "raw", "ml-1m")
+        if dataset_scale == "full":
+            loader = MovieLensLoader(data_dir=raw_dir, use_full_catalog=True)
+        else:
+            loader = MovieLensLoader(data_dir=raw_dir, min_user_interactions=10, min_item_interactions=5)
+    elif domain in ("amazon", "amazon_electronics"):
         raw_dir = os.path.join(ROBUST_DIR, "data", "amazon")
         loader = AmazonReviewLoader(data_dir=raw_dir, min_user_interactions=5, min_item_interactions=5)
     elif domain == "yelp":
@@ -70,45 +88,69 @@ def load_domain_data(domain: str):
 
     ratings_df, items_df, users_df = loader.load_data()
 
-    if len(ratings_df["user_id"].unique()) > 300:
+    if dataset_scale == "sample" and len(ratings_df["user_id"].unique()) > 300:
         top_users = ratings_df["user_id"].value_counts().head(300).index
         ratings_df = ratings_df[ratings_df["user_id"].isin(top_users)].copy()
 
-    u_map = {old: new for new, old in enumerate(sorted(ratings_df["user_id"].unique()))}
-    i_map = {old: new for new, old in enumerate(sorted(ratings_df["item_id"].unique()))}
+        u_map = {old: new for new, old in enumerate(sorted(ratings_df["user_id"].unique()))}
+        i_map = {old: new for new, old in enumerate(sorted(ratings_df["item_id"].unique()))}
 
-    if items_df.empty:
-        items_df = pd.DataFrame({"item_id": list(i_map.keys()), "title": [f"Item_{k}" for k in i_map.keys()]})
-    else:
-        items_df = items_df[items_df["item_id"].isin(i_map.keys())].copy()
-    items_df["item_id"] = items_df["item_id"].map(i_map)
-    items_df = items_df.sort_values("item_id").reset_index(drop=True)
+        if items_df.empty:
+            items_df = pd.DataFrame({"item_id": list(i_map.keys()), "title": [f"Item_{k}" for k in i_map.keys()]})
+        else:
+            items_df = items_df[items_df["item_id"].isin(i_map.keys())].copy()
+        items_df["item_id"] = items_df["item_id"].map(i_map)
+        items_df = items_df.sort_values("item_id").reset_index(drop=True)
 
-    ratings_df["user_id"] = ratings_df["user_id"].map(u_map)
-    ratings_df["item_id"] = ratings_df["item_id"].map(i_map)
+        ratings_df["user_id"] = ratings_df["user_id"].map(u_map)
+        ratings_df["item_id"] = ratings_df["item_id"].map(i_map)
 
-    if users_df.empty:
-        users_df = pd.DataFrame({"user_id": list(u_map.keys())})
-    else:
-        users_df = users_df[users_df["user_id"].isin(u_map.keys())].copy()
-    users_df["user_id"] = users_df["user_id"].map(u_map)
-    users_df = users_df.sort_values(by="user_id").reset_index(drop=True)
+        if users_df.empty:
+            users_df = pd.DataFrame({"user_id": list(u_map.keys())})
+        else:
+            users_df = users_df[users_df["user_id"].isin(u_map.keys())].copy()
+        users_df["user_id"] = users_df["user_id"].map(u_map)
+        users_df = users_df.sort_values(by="user_id").reset_index(drop=True)
+    elif domain != "movielens":
+        u_map = {old: new for new, old in enumerate(sorted(ratings_df["user_id"].unique()))}
+        i_map = {old: new for new, old in enumerate(sorted(ratings_df["item_id"].unique()))}
+
+        if items_df.empty:
+            items_df = pd.DataFrame({"item_id": list(i_map.keys()), "title": [f"Item_{k}" for k in i_map.keys()]})
+        else:
+            items_df = items_df[items_df["item_id"].isin(i_map.keys())].copy()
+        items_df["item_id"] = items_df["item_id"].map(i_map)
+        items_df = items_df.sort_values("item_id").reset_index(drop=True)
+
+        ratings_df["user_id"] = ratings_df["user_id"].map(u_map)
+        ratings_df["item_id"] = ratings_df["item_id"].map(i_map)
+
+        if users_df.empty:
+            users_df = pd.DataFrame({"user_id": list(u_map.keys())})
+        else:
+            users_df = users_df[users_df["user_id"].isin(u_map.keys())].copy()
+        users_df["user_id"] = users_df["user_id"].map(u_map)
+        users_df = users_df.sort_values(by="user_id").reset_index(drop=True)
 
     return ratings_df, items_df, users_df
 
 
-def run_single_domain_multiseed(domain="movielens", seeds=[42, 43, 44, 45, 46], device="cuda"):
+def run_single_domain_multiseed(domain="movielens", seeds=[42, 43, 44, 45, 46], device="cuda", dataset_scale="full", eval_users_limit=None):
     print(f"\n=================================================================")
-    print(f"  RUNNING 5-SEED BENCHMARK: {domain.upper()} (Device: {device.upper()})")
+    print(f"  RUNNING 5-SEED BENCHMARK: {domain.upper()} (Scale: {dataset_scale}, Device: {device.upper()})")
     print(f"=================================================================")
     
-    ratings_df_raw, items_df_raw, users_df_raw = load_domain_data(domain)
+    ratings_df_raw, items_df_raw, users_df_raw = load_domain_data(domain, dataset_scale=dataset_scale)
 
     results_by_seed = {
-        "robust": [],
-        "vanilla_attacked": [],
+        "plain_lightgcn": [],
+        "plain_sgl": [],
+        "tce_sgdl": [],
+        "trust_grs": [],
+        "uncalibrated": [],
         "vanilla_clean": [],
-        "uncalibrated": []
+        "vanilla_attacked": [],
+        "robust": []
     }
     
     roc_pr_list = []
@@ -229,12 +271,72 @@ def run_single_domain_multiseed(domain="movielens", seeds=[42, 43, 44, 45, 46], 
         vanilla_blueprints = build_denoised_blueprints(attacked_split.train_dict, unweighted, attacked_split.user_mean_ratings, H_vanilla, filter_threshold=0.0)
         clean_blueprints = build_denoised_blueprints(clean_split.train_dict, unweighted, clean_split.user_mean_ratings, H_robust, filter_threshold=0.0)
 
-        # 9. Evaluation
+        # 9. Evaluation configuration
         top_k = 10
-        eval_users = list(clean_split.test_dict.keys())[:min(150, len(clean_split.test_dict))]
+        all_test_users = list(clean_split.test_dict.keys())
+        if eval_users_limit is not None:
+            eval_users = all_test_users[:min(eval_users_limit, len(all_test_users))]
+        elif dataset_scale == "sample":
+            eval_users = all_test_users[:min(150, len(all_test_users))]
+        else:
+            eval_users = all_test_users
         all_items_set = set(range(clean_split.num_items))
         rng = random.Random(seed)
-        
+
+        # --- Competitive Monolithic Baselines under rho = 0.15 attack ---
+        full_unweighted_loader = build_data_loader(attacked_split.train_dict, unweighted, batch_size=1024)
+
+        # 1. Plain LightGCN
+        m_lgcn = LightGCN(attacked_split.num_users, attacked_split.num_items, embedding_dim=32, num_layers=3).to(device)
+        m_lgcn.set_adjacency(attacked_split.train_dict, device=device)
+        trainer_lgcn = BaselineTrainer(device=device, lr=0.002, epochs=dual_epochs, baseline_type="standard")
+        m_lgcn = trainer_lgcn.train(m_lgcn, full_unweighted_loader, attacked_split.val_dict)
+        recs_lgcn = BaselineTrainer.generate_recommendations(m_lgcn, eval_users, clean_split, top_k=top_k, rng=rng, device=device)
+
+        # 2. Plain SGL
+        m_sgl = SGL(attacked_split.num_users, attacked_split.num_items, embedding_dim=32, num_layers=2, drop_rate=0.10, augment_type="ED").to(device)
+        m_sgl.set_adjacency(attacked_split.train_dict, device=device)
+        trainer_sgl = BaselineTrainer(device=device, lr=0.002, epochs=dual_epochs, baseline_type="sgl", lambda_cl=0.15, temperature_cl=0.15)
+        m_sgl = trainer_sgl.train(m_sgl, full_unweighted_loader, attacked_split.val_dict)
+        recs_sgl = BaselineTrainer.generate_recommendations(m_sgl, eval_users, clean_split, top_k=top_k, rng=rng, device=device)
+
+        # 3. T-CE / SGDL
+        m_tce = TCE_SGDL(attacked_split.num_users, attacked_split.num_items, embedding_dim=32, num_layers=3, num_classes=5, tau_loss=1.0, delta_T_reg=0.01).to(device)
+        m_tce.set_adjacency(attacked_split.train_dict, device=device)
+        trainer_tce = BaselineTrainer(device=device, lr=0.002, epochs=dual_epochs, baseline_type="tce_sgdl", warm_epochs=warm_epochs)
+        m_tce = trainer_tce.train(m_tce, full_unweighted_loader, attacked_split.val_dict, anchor_selector=anchor_sel)
+        recs_tce = BaselineTrainer.generate_recommendations(m_tce, eval_users, clean_split, top_k=top_k, rng=rng, device=device)
+
+        # Extract weights for Denoising-ROC-AUC calculation for T-CE / SGDL in vectorized batches
+        tce_weights = {}
+        m_tce.eval()
+        with torch.no_grad():
+            all_u, all_i, all_r = [], [], []
+            for u, inters in attacked_split.train_dict.items():
+                for item, r, _ in inters:
+                    all_u.append(u)
+                    all_i.append(item)
+                    all_r.append(r)
+            if all_u:
+                chunk_size = 4096
+                for idx in range(0, len(all_u), chunk_size):
+                    cu = torch.tensor(all_u[idx:idx + chunk_size], dtype=torch.long, device=device)
+                    ci = torch.tensor(all_i[idx:idx + chunk_size], dtype=torch.long, device=device)
+                    cr = torch.tensor(all_r[idx:idx + chunk_size], dtype=torch.long, device=device)
+                    _, w_chunk = m_tce.compute_loss(cu, ci, cr, return_weights=True)
+                    w_arr = w_chunk.cpu().numpy()
+                    for j, w_val in enumerate(w_arr):
+                        tce_weights[(all_u[idx + j], all_i[idx + j])] = float(w_val)
+
+        # 4. Trust-GRS
+        m_trust = TrustGRS(attacked_split.num_users, attacked_split.num_items, embedding_dim=32, num_layers=3, eps_rating=0.01, tau_var=0.5, eps_min=0.001).to(device)
+        trust_weights = m_trust.compute_trust_weights(attacked_split.train_dict, head_items=H_robust)
+        trust_loader = build_data_loader(attacked_split.train_dict, trust_weights, batch_size=1024)
+        trainer_trust = BaselineTrainer(device=device, lr=0.002, epochs=dual_epochs, baseline_type="trust_grs")
+        m_trust = trainer_trust.train(m_trust, trust_loader, attacked_split.val_dict, train_dict=attacked_split.train_dict, head_items=H_robust)
+        recs_trust = BaselineTrainer.generate_recommendations(m_trust, eval_users, clean_split, top_k=top_k, rng=rng, device=device)
+
+        # 10. Evaluation loops for decoupled and baseline models
         recs_robust, recs_vanilla, recs_uncalib, recs_clean = {}, {}, {}, {}
         
         for u in eval_users:
@@ -276,7 +378,7 @@ def run_single_domain_multiseed(domain="movielens", seeds=[42, 43, 44, 45, 46], 
             recs_vanilla[u] = merge_top_n(u, p_c_van, t_c_van, c_u_van, b_u_van, top_k=top_k)
             recs_clean[u]   = merge_top_n(u, p_c_rob, t_c_rob, c_u_clean, b_u_clean, top_k=top_k)
 
-        # 10. Metrics with target item separation
+        # 11. Metrics evaluation
         m_rob = evaluate_recommendations(recs_robust, clean_split.test_dict, attacked_split.train_dict, H_robust, T_robust, robust_inclinations, top_k=top_k, target_items=target_set)
         m_van = evaluate_recommendations(recs_vanilla, clean_split.test_dict, attacked_split.train_dict, H_vanilla, T_vanilla, vanilla_inclinations, top_k=top_k, target_items=target_set)
         m_cln = evaluate_recommendations(recs_clean, clean_split.test_dict, clean_split.train_dict, H_robust, T_robust, clean_inclinations, top_k=top_k, target_items=target_set)
@@ -284,6 +386,12 @@ def run_single_domain_multiseed(domain="movielens", seeds=[42, 43, 44, 45, 46], 
 
         rob_extra = compute_robustness_metrics(m_rob, m_cln, attacked_split.ground_truth_labels, fused_weights, recommendations=recs_robust, top_k=top_k)
         van_extra = compute_robustness_metrics(m_van, m_cln, attacked_split.ground_truth_labels, unweighted, recommendations=recs_vanilla, top_k=top_k)
+        if "Denoising-ROC-AUC" in rob_extra:
+            rob_extra["Denoising Detection ROC-AUC"] = rob_extra["Denoising-ROC-AUC"]
+            rob_extra["Denoising-ROC"] = rob_extra["Denoising-ROC-AUC"]
+        if "Denoising-ROC-AUC" in van_extra:
+            van_extra["Denoising Detection ROC-AUC"] = van_extra["Denoising-ROC-AUC"]
+            van_extra["Denoising-ROC"] = van_extra["Denoising-ROC-AUC"]
         m_rob.update(rob_extra)
         m_van.update(van_extra)
 
@@ -292,10 +400,35 @@ def run_single_domain_multiseed(domain="movielens", seeds=[42, 43, 44, 45, 46], 
         results_by_seed["vanilla_clean"].append(m_cln)
         results_by_seed["uncalibrated"].append(m_unc)
 
+        # Evaluate metrics for all 4 competitive baselines
+        baseline_recs_map = {
+            "plain_lightgcn": (recs_lgcn, unweighted),
+            "plain_sgl": (recs_sgl, unweighted),
+            "tce_sgdl": (recs_tce, tce_weights),
+            "trust_grs": (recs_trust, trust_weights)
+        }
+
+        for b_key, (b_recs, b_w) in baseline_recs_map.items():
+            m_base = evaluate_recommendations(b_recs, clean_split.test_dict, attacked_split.train_dict, H_robust, T_robust, clean_inclinations, top_k=top_k, target_items=target_set)
+            extra_base = compute_robustness_metrics(m_base, m_cln, attacked_split.ground_truth_labels, b_w, recommendations=b_recs, top_k=top_k)
+            if "Denoising-ROC-AUC" in extra_base:
+                extra_base["Denoising Detection ROC-AUC"] = extra_base["Denoising-ROC-AUC"]
+                extra_base["Denoising-ROC"] = extra_base["Denoising-ROC-AUC"]
+            m_base.update(extra_base)
+            results_by_seed[b_key].append(m_base)
+
+        # Memory cleanup between seeds
+        del m_lgcn, m_sgl, m_tce, m_trust, M_pop_rob, M_tail_rob, M_pop_van, M_tail_van
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+
     # Compute Statistics across seeds
+    all_model_keys = ["plain_lightgcn", "plain_sgl", "tce_sgdl", "trust_grs", "uncalibrated", "vanilla_clean", "vanilla_attacked", "robust"]
     summary_stats = {}
-    for model_key in ["robust", "vanilla_attacked", "vanilla_clean", "uncalibrated"]:
+    for model_key in all_model_keys:
         summary_stats[model_key] = {}
+        if not results_by_seed[model_key]:
+            continue
         all_metrics_keys = results_by_seed[model_key][0].keys()
         for k in all_metrics_keys:
             vals = [res[k] for res in results_by_seed[model_key] if isinstance(res.get(k), (int, float))]
@@ -307,29 +440,47 @@ def run_single_domain_multiseed(domain="movielens", seeds=[42, 43, 44, 45, 46], 
                     "max": float(np.max(vals))
                 }
 
-    # Significance testing between Robust and Attacked Vanilla
+    # Significance testing between Robust and Baselines / Attacked Vanilla
     p_values = {}
-    for k in summary_stats["robust"].keys():
-        r_vals = [res[k] for res in results_by_seed["robust"] if isinstance(res.get(k), (int, float))]
-        v_vals = [res[k] for res in results_by_seed["vanilla_attacked"] if isinstance(res.get(k), (int, float))]
-        if len(r_vals) == len(v_vals) and len(r_vals) > 1:
-            try:
-                # Paired t-test
-                t_stat, p_val = stats.ttest_rel(r_vals, v_vals)
-                p_values[k] = float(p_val) if not np.isnan(p_val) else 1.0
-            except:
-                p_values[k] = 1.0
+    for comp_key in ["plain_lightgcn", "plain_sgl", "tce_sgdl", "trust_grs", "vanilla_attacked"]:
+        p_values[f"vs_{comp_key}"] = {}
+        if comp_key not in results_by_seed or not results_by_seed[comp_key]:
+            continue
+        for k in summary_stats["robust"].keys():
+            r_vals = [res[k] for res in results_by_seed["robust"] if isinstance(res.get(k), (int, float))]
+            c_vals = [res[k] for res in results_by_seed[comp_key] if isinstance(res.get(k), (int, float))]
+            if len(r_vals) == len(c_vals) and len(r_vals) > 1:
+                try:
+                    _, p_val = stats.ttest_rel(r_vals, c_vals)
+                    p_values[f"vs_{comp_key}"][k] = float(p_val) if not np.isnan(p_val) else 1.0
+                except:
+                    p_values[f"vs_{comp_key}"][k] = 1.0
+
+    # Populate top-level p_values for vs_vanilla_attacked backward compatibility
+    for k, val in p_values.get("vs_vanilla_attacked", {}).items():
+        p_values[k] = val
 
     print(f"\n--- {domain.upper()} Multi-Seed Summary (Mean +- Std) ---")
-    for k in ["Recall@10", "nDCG@10", "RMSE-PC", "MRMC", "LTC@10", "g-LTC@10", "STER@10", "Novelty", "GKPI", "Denoising Detection ROC-AUC"]:
-        if k in summary_stats["robust"]:
-            r_m = summary_stats["robust"][k]["mean"]
-            r_s = summary_stats["robust"][k]["std"]
-            v_m = summary_stats["vanilla_attacked"][k]["mean"]
-            v_s = summary_stats["vanilla_attacked"][k]["std"]
-            p_v = p_values.get(k, 1.0)
-            sig = "*" if p_v < 0.05 else ""
-            print(f"{k:<28} | Robust: {r_m:.4f} +- {r_s:.4f}{sig} | Attacked: {v_m:.4f} +- {v_s:.4f} | p={p_v:.4f}")
+    header_str = f"{'Metric':<24} | {'Robust':<18} | {'Vanilla Att':<18} | {'LightGCN':<18} | {'SGL':<18} | {'T-CE/SGDL':<18} | {'Trust-GRS':<18}"
+    print(header_str)
+    print("-" * len(header_str))
+
+    display_keys = ["Recall@10", "nDCG@10", "RMSE-PC", "MRMC", "LTC@10", "g-LTC@10", "STER@10", "Novelty", "GKPI", "Denoising-ROC-AUC"]
+    for k in display_keys:
+        def fmt_m_s(m_key):
+            if m_key in summary_stats and k in summary_stats[m_key]:
+                m = summary_stats[m_key][k]["mean"]
+                s = summary_stats[m_key][k]["std"]
+                return f"{m:.4f} +- {s:.4f}"
+            return "N/A"
+
+        r_str = fmt_m_s("robust")
+        v_str = fmt_m_s("vanilla_attacked")
+        lgcn_str = fmt_m_s("plain_lightgcn")
+        sgl_str = fmt_m_s("plain_sgl")
+        tce_str = fmt_m_s("tce_sgdl")
+        trust_str = fmt_m_s("trust_grs")
+        print(f"{k:<24} | {r_str:<18} | {v_str:<18} | {lgcn_str:<18} | {sgl_str:<18} | {tce_str:<18} | {trust_str:<18}")
 
     output_pkg = {
         "domain": domain,
@@ -337,26 +488,31 @@ def run_single_domain_multiseed(domain="movielens", seeds=[42, 43, 44, 45, 46], 
         "summary_stats": summary_stats,
         "p_values": p_values,
         "raw_per_seed": results_by_seed,
-        "mean_roc_auc": float(np.mean([x["roc_auc"] for x in roc_pr_list])),
-        "mean_avg_precision": float(np.mean([x["avg_precision"] for x in roc_pr_list]))
+        "mean_roc_auc": float(np.mean([x["roc_auc"] for x in roc_pr_list])) if roc_pr_list else 0.0,
+        "mean_avg_precision": float(np.mean([x["avg_precision"] for x in roc_pr_list])) if roc_pr_list else 0.0
     }
 
     return output_pkg
 
 
 if __name__ == "__main__":
-    device = "cuda" if torch.cuda.is_available() else "cpu"
-    seeds = [42, 43, 44, 45, 46]
-    
-    ml_out = run_single_domain_multiseed("movielens", seeds=seeds, device=device)
-    amz_out = run_single_domain_multiseed("amazon", seeds=seeds, device=device)
-    yelp_out = run_single_domain_multiseed("yelp", seeds=seeds, device=device)
-    
-    all_multiseed = {
-        "movielens": ml_out,
-        "amazon": amz_out,
-        "yelp": yelp_out
-    }
+    import argparse
+    parser = argparse.ArgumentParser(description="Multi-Seed Multi-Domain Benchmark")
+    parser.add_argument("--dataset", default="full", choices=["full", "sample"], help="full|sample")
+    parser.add_argument("--domains", default="movielens,amazon,yelp", help="Comma-separated domains to run")
+    parser.add_argument("--seeds", default="42,43,44,45,46", help="Comma-separated seeds")
+    parser.add_argument("--eval_users", default=None, type=int, help="Limit number of eval users per domain")
+    parser.add_argument("--device", default=None, help="cuda|cpu override")
+    args = parser.parse_args()
+
+    device = args.device or ("cuda" if torch.cuda.is_available() else "cpu")
+    seeds = [int(s.strip()) for s in args.seeds.split(",") if s.strip()]
+    domain_list = [d.strip().lower() for d in args.domains.split(",") if d.strip()]
+
+    all_multiseed = {}
+    for dom in domain_list:
+        out = run_single_domain_multiseed(dom, seeds=seeds, device=device, dataset_scale=args.dataset, eval_users_limit=args.eval_users)
+        all_multiseed[dom] = out
     
     out_file = os.path.join(ROBUST_DIR, "results", "multiseed_benchmark.json")
     os.makedirs(os.path.dirname(out_file), exist_ok=True)
