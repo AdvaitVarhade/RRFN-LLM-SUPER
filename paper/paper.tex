@@ -397,7 +397,7 @@ To minimize Mean Rank Miscalibration (MRMC), recommendations are assembled using
 \label{sec:experiments}
 
 \begin{table*}[!t]
-\caption{Dataset Characteristics, Graph Topology, and Bandwagon Attack Injection Statistics.}
+\caption{Evaluation Prototype Sub-Graph Characteristics, Graph Topology, and Bandwagon Attack Injection Statistics.}
 \label{tab:dataset_topology}
 \centering
 \setlength{\tabcolsep}{3.5pt}
@@ -439,6 +439,8 @@ Exact Dataset Specifications:
     \item \textbf{Amazon Reviews (Electronics) sub-graph}~\cite{ni2019justifying}: 5-core filtered ecommerce sub-graph ($|\mathcal{U}| = 60$ users, $|\mathcal{I}| = 81$ items, 888 train interactions), constructed to act as a dense multi-modal prototype in order to test LLM review verification with controlled API caching. Tested using SimGCL backbone ($\lambda_{\text{cl}} = 0.15, \tau = 0.15$, 8 dual epochs on CUDA). Modalities: Ratings, timestamps, natural language review text ($\alpha = 0.40, \beta = 0.30, \gamma = 0.30$).
     \item \textbf{Yelp Academic sub-graph}: 5-core filtered local business sub-graph ($|\mathcal{U}| = 70$ users, $|\mathcal{I}| = 100$ items, 1,152 train interactions), tested using SGL backbone ($\lambda_{\text{cl}} = 0.15, \tau = 0.15$, 8 dual epochs on CUDA). Modalities: Ratings, timestamps, dense text reviews ($\alpha = 0.40, \beta = 0.30, \gamma = 0.30$).
 \end{enumerate}
+
+\textbf{Methodological Justification for Sub-Graph Benchmarking}: The multi-view MIRF framework integrates semantic natural language review auditing (via LLM evaluation and SQLite WAL caching) and 5-seed repeated trials ($S = \{42, 43, 44, 45, 46\}$) across all comparative baselines. Evaluating the multi-seed LLM auditing pipeline across full catalog scales ($>50,000$ reviews) would incur prohibitive sequential API latency and financial cost. Consequently, empirical benchmarks in Tables~\ref{tab:movielens_benchmark}--\ref{tab:ablation} are evaluated on these dense prototype sub-graphs ($|\mathcal{U}| \in [60, 300]$). Simultaneously, our data ingestion architecture (\texttt{loader.py}, \texttt{amazon\_loader.py}, \texttt{yelp\_loader.py}) is fully scaled and verified against standard full-scale benchmarks (MovieLens-1M: 6,040 users, 1,000,209 ratings; Amazon: 4,905 users, 53,258 interactions; Yelp: 1,200 businesses, 26,000 interactions), with automated verification in \texttt{test\_dataset\_scaling.py}.
 
 \textbf{Data Partitioning and Strict Zero-Leakage Adversarial Attack Injection}: Data partitioning is performed strictly before adversarial attack injection using leave-one-out temporal order for each user $u \in \mathcal{U}$, where their last interaction is taken to the test set $\mathcal{I}_u^{\text{test}}$, second-last interaction to the validation set $\mathcal{I}_u^{\text{val}}$, and all other interactions to the training graph $\mathcal{G}_{\text{train}}$. Adversarial shilling attacks are injected only into the training graph $\mathcal{G}_{\text{train}}$ after temporal splitting. Validation and test sets remain strictly clean and untouched to ensure zero test set leakage or contamination with synthetic labels.
 
@@ -552,7 +554,7 @@ To evaluate commercial implications under stylized market conditions, we run an 
 
 \textbf{Vectorization Efficiency}: Using 2D BLAS matrix broadcasting, MIRF scores 42,000 user-item pairs in $4.95\,$ms ($>500\times$ faster than naive Python loops).
 
-\textbf{Scalability \& Sub-Graph Prototyping}: While MovieLens-1M processes 237,421 edges across 3,405 items, Amazon and Yelp utilize dense 5-core prototype subgraphs (60--70 users). For production catalogs with millions of items, asynchronous batching and offline vector lookups prevent LLM latency bottlenecks.
+\textbf{Scalability \& Sub-Graph Prototyping}: While empirical 5-seed multi-view benchmarks in Tables~\ref{tab:movielens_benchmark}--\ref{tab:ablation} evaluate dense prototype sub-graphs (300 users on MovieLens, 60--70 users on Amazon/Yelp) to maintain feasible LLM API auditing latency across repeated trials, our underlying data architecture and vectorization engine support full-scale ingestion (MovieLens-1M: 1,000,209 edges across 6,040 users; Amazon: 53,258 edges; Yelp: 26,000 edges). For production deployments with millions of catalog items, asynchronous batching, hierarchical embedding retrieval, and offline BLAS vectorization prevent LLM inference bottlenecks.
 
 \textbf{Cold Start Limitations}: In ultra-sparse regimes lacking clean anchor interactions, noise transition estimation defaults gracefully to category priors.
 
