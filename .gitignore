@@ -82,9 +82,11 @@ robust_super/data/
 *.pptx
 *.ppt
 slide_images/
+final_review_slide_images/
 template_images/
 build_clean_flow_deck.py
 generate_flow_presentation.py
+build_final_review_presentation.py
 logo_extracted.png
 
 # =============================================================================
