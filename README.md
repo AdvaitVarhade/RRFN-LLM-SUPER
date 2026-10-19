@@ -400,7 +400,6 @@ The codebase has undergone a full architectural audit, numerical stabilization, 
 ├── train_multidomain.py                      # Standalone Cross-Domain SimGCL / SGL Pipeline
 ├── print_results.py                          # Consolidated Console Formatter for Stored Runs
 ├── requirements.txt                          # Top-Level Python Dependencies
-├── AUDIT_REPORT.md                           # Comprehensive Architectural Audit Report
 ├── .gitignore                                # Git Exclusion Rules (Purges PPTs, DOCX, Slides)
 └── README.md                                 # Technical Documentation
 ```

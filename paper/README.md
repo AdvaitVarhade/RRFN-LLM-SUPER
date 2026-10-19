@@ -1,6 +1,6 @@
 # RRFN-LLM-SUPER Research Paper Package
 
-This directory contains the complete LaTeX source, compiled publication-ready PDF, vector figures, bibliography, figure generation scripts, and independent evaluation report for the research paper:
+This directory contains the complete LaTeX source, compiled publication-ready PDF, vector figures, bibliography, and figure generation scripts for the research paper:
 
 > **Robust Risk-Consistent Graph-Contrastive Learning for Popularity-Calibrated Recommendation with MIRF Auditing**  
 > *Advait Varhade and Research Collaborators*
@@ -15,7 +15,6 @@ paper/
 ├── paper.pdf                 # Compiled 11-page publication-ready PDF (1.47 MB)
 ├── references.bib            # BibTeX bibliography containing 18 verified citations
 ├── generate_figures.py       # Python script generating vector PDF/PNG figures from JSON logs
-├── evaluation_report.md      # Independent 4-metric quality evaluation report (All scores >= 9.6/10)
 ├── README.md                 # Package documentation and compilation guide
 └── figures/                  # Vector and high-resolution figure assets
     ├── fig1_system_architecture.pdf / .png   # 4-Stage Horizontal System Architecture
@@ -69,13 +68,3 @@ pdflatex -interaction=nonstopmode paper.tex
 pdflatex -interaction=nonstopmode paper.tex
 ```
 
----
-
-## Summary of Evaluated Quality Metrics
-
-Per the mandatory independent evaluation criteria in `evaluation_report.md`:
-- **Metric A: Scientific Rigor & Correctness**: **9.7 / 10.0**
-- **Metric B: Novelty & Research Contribution**: **9.6 / 10.0**
-- **Metric C: Technical Depth & Argumentation**: **9.8 / 10.0**
-- **Metric D: Writing, Structure & Publication Readiness**: **9.8 / 10.0**
-- **Status**: 100% compliant with IEEE / ACM publication standards.
