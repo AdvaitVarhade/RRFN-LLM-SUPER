@@ -83,7 +83,7 @@ def load_and_verify_all_results():
     ml_file = os.path.join(RESULTS_DIR, "run_15epoch_gpu", "benchmark_table.json")
     with open(ml_file) as f:
         ml_data = json.load(f)
-    print("\n--- MovieLens Sub-Graph 15-Epoch Benchmark Table ---")
+    print("\n--- MovieLens-1M 15-Epoch Benchmark Table ---")
     for row in ml_data:
         print(f"{row['Method']:<45} | Recall@10: {row['Recall@10']:.4f} | nDCG@10: {row['nDCG@10']:.4f} | LTC@10: {row['LTC@10']:.4f} | Novelty: {row['Novelty']:.2f}")
 

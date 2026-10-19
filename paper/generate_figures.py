@@ -164,7 +164,7 @@ def generate_improved_master_architecture():
     ax.text(c1_x + c1_w/2, 58.8, "Multi-Domain Benchmark Ingestion", weight='bold', fontsize=11.8, ha='center', color="#0369A1", zorder=3)
     
     domains = [
-        ("MovieLens-1M Sub-Graph", "6,040 U / 3,706 I / 1M Ratings", "15% Bandwagon Attack (\\beta = 0)"),
+        ("MovieLens-1M Benchmark", "6,040 U / 3,952 I / 1M Ratings", "15% Bandwagon Attack (\\beta = 0)"),
         ("Amazon Electronics", "E-Comm Graph with Review Text", "Sparse Long-Tail Skew (\\beta > 0)"),
         ("Yelp Academic", "Local Graph with Text + Timestamps", "Temporal Review-Bombing Bursts")
     ]
