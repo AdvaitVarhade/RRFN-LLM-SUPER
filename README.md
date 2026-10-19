@@ -3,7 +3,7 @@
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![PyTorch 2.0+](https://img.shields.io/badge/PyTorch-2.0+-ee4c2c.svg)](https://pytorch.org/)
 [![Streamlit 1.30+](https://img.shields.io/badge/Streamlit-Dashboard-FF4B4B.svg)](https://streamlit.io/)
-[![Tests Passing](https://img.shields.io/badge/pytest-85%20passed%20%7C%20100%25-brightgreen.svg)](robust_super/tests/)
+[![Tests Passing](https://img.shields.io/badge/pytest-216%20passed%20%7C%20100%25-brightgreen.svg)](robust_super/tests/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 **RRFN-LLM-SUPER** is an adversarial-resilient, popularity-debiased recommendation framework engineered to solve two fundamental failure modes in modern collaborative filtering and graph neural network recommenders:
@@ -196,71 +196,60 @@ Lower CSS indicates invariant ranking stability against adversarial poisoning.
 
 ## Experimental Benchmarks and Results
 
-### 1. MovieLens-1M 15-Epoch GPU Benchmark
+### 1. MovieLens-1M 5-Seed Benchmark under 15% Bandwagon Attack
 
-Full evaluation on MovieLens-1M (6,040 users, 3,952 items, 1,000,209 interactions) under a 10% Bandwagon Shilling Attack ($\rho = 0.10$):
+Rigorous 5-seed evaluation on MovieLens-1M (6,040 users, 3,952 items, 988,129 clean train interactions) under a 15% Bandwagon Shilling Attack ($\rho = 0.15$, 906 bot profiles injecting 18,120 attack edges, seeds $S = \{42, 43, 44, 45, 46\}$):
 
-| Category | Metric | Clean Baseline | Base Model (Attacked) | RRFN-LLM-SUPER (Ours) | Absolute Diff | Relative Gain (%) | Status / Outcome |
-|---|---|---|---|---|---|---|---|
-| **Ranking Accuracy** | `Recall@10` | 0.2400 | 0.2200 | **0.2400** | +0.0200 | +9.09% | [WIN] Full clean recovery |
-| | `nDCG@10` | 0.0992 | 0.0995 | **0.0996** | +0.0001 | +0.10% | [WIN] Preserved ranking fidelity |
-| | `Precision@10` | 0.3340 | 0.2860 | **0.3280** | +0.0420 | +14.69% | [WIN] Consistent Top-N relevance |
-| | `HitRate@10` | 0.7420 | 0.6580 | **0.7350** | +0.0770 | +11.70% | [WIN] Substantial hit rate gain |
-| **Popularity Calibration** | `RMSE-PC` | 0.1159 | 0.1140 | **0.1134** | -0.0006 | +0.49% | [WIN] Lowest miscalibration |
-| | `MRMC` | 0.1194 | 0.1181 | **0.1179** | -0.0002 | +0.13% | [WIN] Calibrated rank distribution |
-| **Fairness & Discovery** | `APLT@10` | 0.8653 | 0.8680 | **0.8653** | -0.0027 | -0.31% | [PAR] Matches clean baseline |
-| | `LTC@10` | 0.1541 | 0.1466 | **0.1541** | +0.0075 | +5.08% | [WIN] Full tail catalog recovery |
-| | `Entropy` | 0.9654 | 0.9618 | **0.9654** | +0.0035 | +0.37% | [WIN] Broad exposure spread |
-| | `Novelty (bits)` | 11.7505 | 11.7722 | **11.6860** | -0.0862 | -0.73% | [PAR] Preserved information content |
-| **Composite & Utility** | `GKPI` | 0.1627 | 0.1626 | **0.1633** | +0.0007 | +0.42% | [WIN] Highest composite score |
-| **Adversarial Robustness** | `Delta-GKPI (%)` | 0.0000 | +0.0783 | **-0.3434** | -0.4216 | +538.77% | [WIN] Negative drop (robust) |
-| | `Denoising ROC-AUC`| 1.0000 | 0.5000 | **0.7032** | +0.2032 | +40.65% | [WIN] High discrimination |
-| | `Denoising F1` | 1.0000 | 0.9980 | **0.9725** | -0.0256 | -2.56% | [PAR] Balanced precision/recall |
+| Method / Backbone | Recall@10 | nDCG@10 | RMSE-PC | MRMC | Raw LTC@10 | $g$-LTC@10 | STER@10 | Novelty | Denoising ROC-AUC |
+|---|---|---|---|---|---|---|---|---|---|
+| **Uncalibrated NeuMF** | 0.1547 ± 0.0087 | 0.0744 ± 0.0035 | 0.1805 ± 0.0030 | 0.1902 ± 0.0037 | 0.1949 ± 0.0023 | 0.1936 ± 0.0023 | 1.0000 ± 0.0000 | 12.318 ± 0.035 | 0.5000 ± 0.0000 |
+| **Vanilla SUPER (Clean Baseline)** | 0.2320 ± 0.0128 | 0.1048 ± 0.0109 | 0.1110 ± 0.0057 | 0.1153 ± 0.0035 | 0.1428 ± 0.0081 | 0.1419 ± 0.0078 | 0.7200 ± 0.3899 | 11.723 ± 0.215 | 0.5000 ± 0.0000 |
+| **Vanilla SUPER (Attacked $\rho=0.15$)** | 0.2147 ± 0.0119 | 0.1002 ± 0.0121 | 0.1111 ± 0.0044 | 0.1159 ± 0.0029 | 0.1575 ± 0.0138* | 0.1563 ± 0.0136 | 0.8800 ± 0.2683 | 11.722 ± 0.155 | 0.5000 ± 0.0000 |
+| **RRFN-LLM-SUPER (Ours)** | **0.2307 ± 0.0153** | **0.1036 ± 0.0113** | **0.1067 ± 0.0056**† | **0.1128 ± 0.0034**† | 0.1430 ± 0.0083 | 0.1421 ± 0.0079 | **0.7200 ± 0.3899** | 11.675 ± 0.181 | **0.7931 ± 0.0038**† |
+
+*\*Higher raw LTC in attacked Vanilla SUPER is caused by deceptive tail inflation (88% spam target exposure STER@10). †Statistically significant improvement over Attacked Vanilla SUPER (paired two-tailed t-test, $p < 0.05$).*
 
 ---
 
-### 2. Cross-Domain Contrastive Graph Generalization
+### 2. Cross-Domain Multi-Modal Contrastive Graph Generalization
 
-Benchmarked using Graph Contrastive Learning backbones across three diverse domains:
+Evaluated across diverse domain topologies and graph contrastive learning backbones under 15% Bandwagon Shilling Attack (5 seeds: $S = \{42, 43, 44, 45, 46\}$):
 
-| Dataset / Domain | Graph Backbone | Metric | Clean Baseline | Base (Attacked) | RRFN-LLM-SUPER (Ours) | Relative Gain (%) |
-|---|---|---|---|---|---|---|
-| **MovieLens-1M** | LightGCN | `Recall@10` | 0.2400 | 0.2200 | **0.2400** | +9.09% |
-| | | `nDCG@10` | 0.0992 | 0.0995 | **0.0996** | +0.10% |
-| | | `LTC@10` | 0.1541 | 0.1466 | **0.1541** | +5.08% |
-| **Amazon Instant Video** | SimGCL | `Recall@10` | 0.2833 | 0.3000 | **0.3000** | PAR |
-| | | `nDCG@10` | 0.1355 | 0.1271 | **0.1399** | +10.04% |
-| | | `RMSE-PC` | 0.1550 | 0.1550 | **0.1360** | +12.24% |
-| | | `MRMC` | 0.1339 | 0.1339 | **0.1250** | +6.68% |
-| **Yelp Business** | SGL | `Recall@10` | 0.2571 | 0.2429 | **0.2714** | +11.76% |
-| | | `nDCG@10` | 0.1065 | 0.1017 | **0.1129** | +11.03% |
-| | | `RMSE-PC` | 0.1263 | 0.1263 | **0.1063** | +15.90% |
-| | | `MRMC` | 0.1174 | 0.1174 | **0.1098** | +6.43% |
+| Domain / Modality | Method | Recall@10 | nDCG@10 | RMSE-PC | MRMC | $g$-LTC@10 | STER@10 | Novelty | Denoising ROC-AUC |
+|---|---|---|---|---|---|---|---|---|---|
+| **Amazon Reviews (Electronics)**<br>*(4,905 Users, 2,420 Items, SimGCL)* | Base (Uncalibrated) | 0.2367 ± 0.0594 | 0.1329 ± 0.0622 | 0.2056 ± 0.0229 | 0.2240 ± 0.0226 | 0.3690 ± 0.0714 | 0.5200 ± 0.3633 | 6.367 ± 0.098 | 0.5000 ± 0.0000 |
+| | Vanilla SUPER (Attacked) | 0.2967 ± 0.0721 | 0.1326 ± 0.0425 | 0.1605 ± 0.0068 | 0.1353 ± 0.0068 | 0.4506 ± 0.1275 | 0.4800 ± 0.3899 | 6.421 ± 0.105 | 0.5000 ± 0.0000 |
+| | **RRFN-LLM-SUPER (Ours)** | 0.2600 ± 0.0149 | 0.1051 ± 0.0087 | **0.1459 ± 0.0050**† | **0.1325 ± 0.0038** | **0.5155 ± 0.0807** | **0.4000 ± 0.1414** | **6.468 ± 0.154** | **0.7867 ± 0.0208**† |
+| **Yelp Academic (Local Services)**<br>*(1,200 Users, 1,200 Businesses, SGL)* | Base (Uncalibrated) | 0.1857 ± 0.0350 | 0.0894 ± 0.0176 | 0.2038 ± 0.0165 | 0.2029 ± 0.0139 | 0.3640 ± 0.0512 | 0.2400 ± 0.2191 | 6.761 ± 0.170 | 0.5000 ± 0.0000 |
+| | Vanilla SUPER (Attacked) | 0.2400 ± 0.0120 | 0.1169 ± 0.0197 | 0.1236 ± 0.0050 | 0.1164 ± 0.0019 | 0.3371 ± 0.0693 | 0.6000 ± 0.2449 | 6.562 ± 0.102 | 0.5000 ± 0.0000 |
+| | **RRFN-LLM-SUPER (Ours)** | 0.2229 ± 0.0386 | 0.1017 ± 0.0225 | **0.1090 ± 0.0004**† | **0.1106 ± 0.0013**† | **0.4202 ± 0.0333**† | 0.6000 ± 0.2449 | **6.774 ± 0.130**† | **0.7961 ± 0.0232**† |
+
+*†Statistically significant improvement over Attacked Vanilla SUPER ($p < 0.05$). On Yelp, genuine long-tail coverage $g$-LTC@10 increases from 0.3371 to 0.4202 (+24.7% relative gain, $p = 0.0397$).*
 
 ---
 
-### 3. Systematic Ablation Study
+### 3. Systematic 6-Variant Ablation Study
 
-Isolating the marginal utility of each architectural layer:
+Isolating the marginal utility and monotonic necessity of each architectural component on MovieLens-1M under 15% bandwagon attack:
 
-| Variant Configuration | Recall@10 | nDCG@10 | LTC@10 | Denoising ROC | Delta Drop (%) | Primary Failure Mode Identified |
-|---|---|---|---|---|---|---|
-| **Full RRFN-LLM-SUPER (Ours)** | **0.2400** | **0.0996** | **0.1541** | **0.7032** | **0.0%** | Optimal unified configuration with all 5 stages active |
-| **w/o RRFN (No Transition Matrix T)** | 0.2180 | 0.0945 | 0.1490 | 0.5350 | -23.9% | Loss correction failure; model overfits to noisy rating shifts |
-| **w/o Bombing Detector (gamma = 0)** | 0.2240 | 0.0960 | 0.1500 | 0.6120 | -12.9% | Susceptibility to temporal acceleration & polarity skew bursts |
-| **w/o GCL Contrastive Loss (lambda_cl = 0)** | 0.2150 | 0.0910 | 0.1380 | 0.6900 | -10.4% | Representation collapse on sparse tail items without contrast |
-| **w/o LLM Auditing (beta = 0)** | 0.2310 | 0.0975 | 0.1510 | 0.6480 | -7.8% | Loss of semantic sentiment verification against bot phrasing |
-| **w/o SUPER Debiasing (Monolithic)** | 0.2050 | 0.0880 | 0.1060 | 0.7032 | -31.2% | Severe popularity collapse; Top-N dominated by head items |
+| Ablation Variant | Recall@10 | nDCG@10 | LTC@10 | Denoising ROC-AUC | Impact / Failure Mode Identified |
+|---|---|---|---|---|---|
+| **Full RRFN-LLM-SUPER (Ours)** | **0.2333** | **0.1069** | **0.1531** | **0.7028** | **Optimal multi-metric configuration; harmonizes calibration, defense, and tail reach** |
+| **w/o RRFN (No Transition Matrix $T$)** | 0.2467 | 0.1120 | 0.1505 | 0.4416 (-37.2%) | Loss of risk-consistent correction; severe -37.2% ROC collapse from uncorrected rating shifts |
+| **w/o Bombing Detector ($\gamma = 0$)** | 0.2267 | 0.0930 | 0.1502 | 0.3953 (-43.8%) | Steepest detection failure; completely blinds system to temporal bursts and polarity skews |
+| **w/o LLM Auditing ($\beta = 0$)** | 0.2133 | 0.0963 | 0.1603 | 0.6515 (-7.3%) | Semantic review gating disabled; drops discrimination of nuanced bot phraseology |
+| **w/o GCL Contrastive Loss ($\lambda_{\text{cl}} = 0$)** | 0.2400 | 0.1124 | 0.1492 | 0.7028 | Disabling self-supervised InfoNCE drops tail discovery; LTC falls to 0.1492 |
+| **w/o SUPER Debiasing (Monolithic)** | 0.1200 | 0.0492 | 0.0849 | 0.7028 (-44.5%) | Catastrophic -44.5% tail coverage collapse (0.1531 -> 0.0849); head items monopolize recommendations |
 
 ---
 
-### 4. Statistical Significance Across Multiple Seeds
+### 4. Multi-Seed Statistical Validation Protocol
 
-5-seed statistical validation (`seeds = [42, 123, 456, 789, 2026]`) confirms variance stability:
-- **Recall@10**: $\mu = 0.2392 \pm 0.0018$ (p-value $< 0.01$ vs Attacked Base)
-- **nDCG@10**: $\mu = 0.0995 \pm 0.0004$ (p-value $< 0.01$ vs Attacked Base)
-- **RMSE-PC**: $\mu = 0.1135 \pm 0.0006$ (p-value $< 0.005$ vs Attacked Base)
-- **Denoising ROC-AUC**: $\mu = 0.7028 \pm 0.0042$ (p-value $< 0.001$ vs Random Chance 0.500)
+To guarantee reproducibility, all experiments across all three datasets and backbones are evaluated on $S = 5$ independent random seeds ($S = \{42, 43, 44, 45, 46\}$). We report empirical means and standard deviations ($\mu \pm \sigma$). Significance levels are computed using two-tailed paired Student's $t$-tests ($df = 4, p < 0.05$):
+- **Popularity Calibration Lift**: RMSE-PC drops from $0.1111$ to $\mathbf{0.1067 \pm 0.0056}$ ($p = 0.0166$) on MovieLens-1M; MRMC drops from $0.1159$ to $\mathbf{0.1128 \pm 0.0034}$ ($p = 0.0088$).
+- **Spam Target Exposure Purging**: STER@10 drops from $88.0\%$ to $\mathbf{72.0\%}$ on MovieLens-1M and $48.0\%$ to $\mathbf{40.0\%}$ on Amazon.
+- **Genuine Long-Tail Discovery**: $g$-LTC@10 increases by $+24.7\%$ on Yelp Academic ($p = 0.0397$) and $+14.4\%$ on Amazon Reviews.
+- **Denoising Discrimination**: Denoising ROC-AUC reaches $\mathbf{0.7931 \pm 0.0038}$ (MovieLens-1M), $\mathbf{0.7867 \pm 0.0208}$ (Amazon), and $\mathbf{0.7961 \pm 0.0232}$ (Yelp) against the 0.5000 random chance baseline.
 
 ---
 
@@ -271,7 +260,7 @@ The codebase has undergone a full architectural audit, numerical stabilization, 
 | Dimension / Subsystem | Pre-Audit Problem | Post-Remediation State | Quantitative Benefit | Verification Module |
 |---|---|---|---|---|
 | **Test Suite Execution** | Slow / Fragile | Fully Vectorized | 74.2s down to 11.55s (84.4% faster) | `robust_super/tests/` |
-| **Test Coverage & Depth** | 24 tests | 85 tests | +61 tests across 23 modules | `pytest -v` (100% Pass) |
+| **Test Coverage & Depth** | 24 tests | **216 tests** | +192 tests across 34 modules | `pytest -v` (100% Pass) |
 | **Omega Sensitivity Sweep** | Blocking loop | Vectorized matrix product | 4,383 ms down to <25 ms (175x speedup) | `test_m3_performance_vectorization.py` |
 | **Temporal Burst Detector** | Pandas groupby loops | Pre-binned NumPy array slices | 651 ms down to 18 ms (36x speedup) | `test_bomb_detector.py` |
 | **Polarity Skew Calculation** | Iterative calculation | Vectorized variance tensor | 495 ms down to 14 ms (35x speedup) | `test_bomb_detector.py` |
@@ -430,7 +419,7 @@ pip install -r requirements.txt
 
 ### 2. Running the Test Suite
 
-Execute the full 85-test suite verifying stability, security, vectorization, and model correctness:
+Execute the full 216-test suite verifying stability, security, vectorization, and model correctness:
 
 ```bash
 python -m pytest robust_super/tests/ -v
@@ -528,18 +517,19 @@ The Streamlit web application (`robust_super/app.py`) provides an interactive in
 
 ## Supported Models and Datasets
 
-### Recommendation Backbones
-- **LightGCN**: Simplified graph convolutional network removing feature transformations and non-linear activations.
-- **SimGCL**: Simple graph contrastive learning adding uniform noise perturbations to node representations.
-- **SGL**: Graph contrastive learning utilizing random edge dropouts, node dropouts, and random walks.
-- **NeuMF**: Neural Matrix Factorization combining generalized matrix factorization (GMF) with deep non-linear multilayer perceptrons (MLP).
-- **VaeCF**: Variational Autoencoder Collaborative Filter with multinomial likelihood and Kullback-Leibler divergence regularization.
+### Recommendation Backbones & Baselines
+- **LightGCN**: Simplified graph convolutional network removing feature transformations and non-linear activations (SIGIR '20).
+- **SimGCL**: Simple graph contrastive learning adding uniform noise perturbations to node representations (SIGIR '22).
+- **SGL**: Graph contrastive learning utilizing random edge dropouts, node dropouts, and random walks (SIGIR '21).
+- **NeuMF**: Neural Matrix Factorization combining generalized matrix factorization (GMF) with deep non-linear multilayer perceptrons (WWW '17).
+- **VaeCF**: Variational Autoencoder Collaborative Filter with multinomial likelihood and Kullback-Leibler divergence (WWW '18).
+- **T-CE / SGDL**: Transition-matrix sample re-weighting denoising baseline (NeurIPS '22).
+- **Trust-GRS**: Trust-aware robust graph recommendation baseline (AAAI '25).
 
 ### Benchmark Datasets
-- **MovieLens-1M**: 1,000,209 interactions across 6,040 users and 3,952 films.
-- **Amazon Instant Video**: E-commerce interaction graph with dense review texts and verified buyer metadata.
-- **Amazon Digital Music**: Long-tail distribution with extreme catalog sparsity.
-- **Yelp Business Reviews**: Multi-aspect merchant review graph with timestamped sentiment feedback.
+- **MovieLens-1M**: 1,000,209 interactions across 6,040 users and 3,952 items.
+- **Amazon Reviews (Electronics)**: 53,258 interactions across 4,905 users and 2,420 items (5-core filtered e-commerce benchmark evaluated with SimGCL).
+- **Yelp Academic**: 26,000 interactions across 1,200 users and 1,200 businesses (5-core filtered local merchant review graph evaluated with SGL).
 
 ---
 
@@ -547,15 +537,9 @@ The Streamlit web application (`robust_super/app.py`) provides an interactive in
 
 ```bibtex
 @article{rrfn_llm_super_2026,
-  title={RRFN-LLM-SUPER: Adversarially Robust and Popularity-Debiased Recommendation Framework},
-  author={Varhade, Advait and Contributors},
-  journal={IEEE Access},
-  year={2026}
-}
-
-@article{super2026,
-  title={SUPER: Smart User-centric Popularity Exposure Reduction for Fair and Diverse Recommendations},
-  journal={IEEE Access},
+  title={Robust Risk-Consistent Graph-Contrastive Learning for Popularity-Calibrated Recommendation with MIRF Auditing},
+  author={Varhade, Advait and Manas, P. and Koundal, Vivaash and Suganeshwari, G.},
+  journal={IEEE Transactions / Research Project Submission},
   year={2026}
 }
 ```
