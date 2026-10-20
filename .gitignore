@@ -81,12 +81,14 @@ robust_super/data/
 # =============================================================================
 *.pptx
 *.ppt
+*.drawio
 slide_images/
 final_review_slide_images/
 template_images/
 build_clean_flow_deck.py
 generate_flow_presentation.py
 build_final_review_presentation.py
+generate_drawio_xml.py
 logo_extracted.png
 
 # =============================================================================
